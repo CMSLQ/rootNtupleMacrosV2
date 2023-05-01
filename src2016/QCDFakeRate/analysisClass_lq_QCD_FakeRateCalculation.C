@@ -283,7 +283,7 @@ void analysisClass::Loop()
         heepSFEle1 = readerTools_->ReadValueBranch<Float_t>("Ele1_HEEPSF");
       }
       float totalScaleFactor = recoSFEle1*heepSFEle1;
-      gen_weight*=recoSFEle1;
+      gen_weight*=totalScaleFactor;
     }
     // add these to pileup weight
     pileup_weight*=gen_weight;
