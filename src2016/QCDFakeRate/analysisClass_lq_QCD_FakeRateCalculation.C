@@ -278,9 +278,11 @@ void analysisClass::Loop()
       float ele1ECorr = readerTools_->ReadValueBranch<Float_t>("Ele1_ECorr");
       float ele1PtUncorr = ele1ECorr != 0 ? readerTools_->ReadValueBranch<Float_t>("Ele1_Pt")/ele1ECorr : readerTools_->ReadValueBranch<Float_t>("Ele1_Pt");
       float recoSFEle1 = readerTools_->ReadValueBranch<Float_t>("Ele1_RecoSF");
-      //float heepSFEle1 = ElectronScaleFactors2016::LookupHeepSF(readerTools_->ReadValueBranch<Float_t>("Ele1_SCEta"));
-      //float totalScaleFactor = recoSFEle1*heepSFEle1;
-      //gen_weight*=totalScaleFactor;
+      float heepSFEle1 = 1.0;
+      if (readerTools_->ReadValueBranch<Bool_t>("Ele1_PassHEEPID") == true) {
+        heepSFEle1 = readerTools_->ReadValueBranch<Float_t>("Ele1_HEEPSF");
+      }
+      float totalScaleFactor = recoSFEle1*heepSFEle1;
       gen_weight*=recoSFEle1;
     }
     // add these to pileup weight
@@ -326,7 +328,7 @@ void analysisClass::Loop()
     //fillVariableWithValue(   "nMuon"                   , readerTools_->ReadValueBranch<Float_t>("nMuon_ptCut")     , min_prescale * pileup_weight );
     float nEle_ptCut = readerTools_->ReadValueBranch<Int_t>("nEle_ptCut");
     float nVLooseEle_ptCut = readerTools_->ReadValueBranch<Int_t>("nVLooseEle_ptCut");
-    float nJet_ptCut = readerTools_->ReadValueBranch<Int_t>("nJet_ptCut");
+    float nJet_ptCut = readerTools_->ReadValueBranch<Int_t>("nJet_store");
     // 1st Electron variables				      		              
     fillVariableWithValue(   "nEle"                    , nVLooseEle_ptCut , min_prescale * pileup_weight );
 
