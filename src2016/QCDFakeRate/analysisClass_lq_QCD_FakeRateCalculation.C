@@ -174,7 +174,8 @@ void analysisClass::Loop()
   //--------------------------------------------------------------------------
   // Tell the user how many entries we'll look at
   //--------------------------------------------------------------------------
-
+  Int_t forLoopDebugCounterA = 0; //debugging 
+  Int_t forLoopDebugCounterB = 0;
   Long64_t nentries = GetTreeEntries();
   std::cout << "analysisClass::analysisClass(): nentries = " << nentries << std::endl;
   //--------------------------------------------------------------------------
@@ -278,13 +279,19 @@ void analysisClass::Loop()
       float ele1ECorr = readerTools_->ReadValueBranch<Float_t>("Ele1_ECorr");
       float ele1PtUncorr = ele1ECorr != 0 ? readerTools_->ReadValueBranch<Float_t>("Ele1_Pt")/ele1ECorr : readerTools_->ReadValueBranch<Float_t>("Ele1_Pt");
       float recoSFEle1 = readerTools_->ReadValueBranch<Float_t>("Ele1_RecoSF");
-      //float heepSFEle1 = 1.0;
-      //if (readerTools_->ReadValueBranch<Bool_t>("Ele1_PassHEEPID") == true) {
-        //heepSFEle1 = readerTools_->ReadValueBranch<Float_t>("Ele1_HEEPSF");
-      //}
-      //float totalScaleFactor = recoSFEle1*heepSFEle1;
-      //gen_weight*=totalScaleFactor;
-      gen_weight*=recoSFEle1;
+      float heepSFEle1 = 1.0;
+      if (readerTools_->ReadValueBranch<Bool_t>("Ele1_PassHEEPID") == true) {
+        heepSFEle1 = readerTools_->ReadValueBranch<Float_t>("Ele1_HEEPSF");
+      }
+      if (heepSFEle1 != 1.0){
+        forLoopDebugCounterA+=1;
+      }
+      if (heepSFEle1==1.0){
+        forLoopDebugCounterB+=1;
+      }
+      float totalScaleFactor = recoSFEle1*heepSFEle1;
+      gen_weight*=totalScaleFactor;
+      //gen_weight*=recoSFEle1;
     }
     // add these to pileup weight
     pileup_weight*=gen_weight;
@@ -1259,8 +1266,8 @@ void analysisClass::Loop()
         );
 
 
-      //bool passElectron = passHEEPprime;
-      bool passElectron = passLoosePrime;
+      bool passElectron = passHEEPprime;
+      //bool passElectron = passLoosePrime;
       bool passJet = passJetLoose;
 
       ////XXX SIC TEST
@@ -2625,4 +2632,6 @@ void analysisClass::Loop()
   } // End loop over events
 
   std::cout << "analysisClass::Loop() ends" <<std::endl;   
+  std::cout << "number of MC eles with SF applied = "<<forLoopDebugCounterA<<std::endl;
+  std::cout << "number of MC eles with no SF = "<<forLoopDebugCounterB;
 }
