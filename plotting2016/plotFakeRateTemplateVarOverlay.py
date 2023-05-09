@@ -46,7 +46,7 @@ def GetCPErrorLow(passing, total):
 
 
 # configurables
-filename = "/eos/user/e/eipearso/LQ/lqData/2016/qcdFakeRateCalc/calcFR_2016HEEPpre/newSF/fakeRate_plots.root"
+filename = "/eos/user/e/eipearso/LQ/lqData/2016/qcdFakeRateCalc/calcFR_2016HEEPpre/fakeRate_plots.root"
 makeRatioPlot = False
 doHEEPFR = True
 if doHEEPFR:
@@ -74,7 +74,7 @@ else:
     # varTitle = "Full5x5SigmaIEtaIEta"
     # varXRangeMax = 0.1
     fractionFitXRangeMax = 0.8
-plotsDir = "/eos/user/e/eipearso/LQ/lqData/2016/qcdFakeRateCalc/calcFR_2016HEEPpre/newSF/isoPlots"
+plotsDir = "/eos/user/e/eipearso/LQ/lqData/2016/qcdFakeRateCalc/calcFR_2016HEEPpre/ExpandedRangeIsoPlots"
 doFracFit = False
 do2016 = True
 
@@ -317,7 +317,7 @@ for region in regList:
     denomHist.GetXaxis().SetRangeUser(0, varXRangeMax)
     denomHist.GetXaxis().SetNdivisions(515)
     denomHist.GetXaxis().SetTitle(varTitle)
-    denomHist.SetMinimum(10)
+    denomHist.SetMinimum(0.01)
     denomHist.SetMaximum(10 * denomHist.GetMaximum())
     denomHist.Draw()
     # jets hist style
