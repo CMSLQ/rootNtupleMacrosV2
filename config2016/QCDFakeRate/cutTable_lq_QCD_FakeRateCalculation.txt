@@ -12,7 +12,7 @@ JSON /afs/cern.ch/user/s/scooper/work/public/Leptoquarks/ultralegacy/certifiedGo
 eleEta_bar            	1.4442        -                    -               -               -1
 eleEta_end1            	1.566        2.0                  -               -               -1
 eleEta_end2            	2.000        2.5                  -               -               -1
-electronIDType          EGMLoose  - - - -1
+electronIDType          HEEPID  - - - -1
 #-----------------------------------------------------------------------------------------------------------------------------
 # Reco scale factors
 #-----------------------------------------------------------------------------------------------------------------------------
