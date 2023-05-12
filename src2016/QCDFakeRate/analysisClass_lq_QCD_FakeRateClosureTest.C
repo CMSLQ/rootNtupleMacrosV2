@@ -407,8 +407,8 @@ void analysisClass::Loop()
      double PFMET_Type1_Pt  = readerTools_->ReadValueBranch<Float_t>("PFMET_Type1_Pt");
      double PFMET_Type1_Phi  = readerTools_->ReadValueBranch<Float_t>("PFMET_Type1_Phi");
      double nEle_ptCut = readerTools_->ReadValueBranch<Int_t>("nEle_ptCut");
-     //double nJetLooseEle_ptCut = readerTools_->ReadValueBranch<Int_t>("nJetLooseEle_ptCut"); replaced with nJet_store
-     double nJet_store = readerTools_->ReadValueBranch<Int_t>("nJet_store");
+     double nJet_ptCut = readerTools_->ReadValueBranch<Int_t>("nJet_ptCut");
+     double nJet_store = readerTools_->ReadValueBranch<Int_t>("nJetEle_store");
      double nVertex = readerTools_->ReadValueBranch<Int_t>("nVertex");
      // reweighting
      fillVariableWithValue ( "Reweighting", 1, pileup_weight * min_prescale * fakeRateEffective) ; 
@@ -461,7 +461,7 @@ void analysisClass::Loop()
      }
 
      // Jets
-     fillVariableWithValue(   "nJet"                          , nJet_store , pileup_weight * min_prescale  * fakeRateEffective );
+     fillVariableWithValue(   "nJet"                          , nJet_ptCut , pileup_weight * min_prescale  * fakeRateEffective );
      if ( nJet_store >= 1 ) {
        fillVariableWithValue( "Jet1_Pt"                       , Jet1_Pt   , pileup_weight * min_prescale  * fakeRateEffective ) ;
        fillVariableWithValue( "Jet1_Eta"                      , Jet1_Eta , pileup_weight * min_prescale  * fakeRateEffective ) ;
@@ -500,7 +500,7 @@ void analysisClass::Loop()
 
        FillUserTH1D("nElectron_PAS"        , nEle_ptCut                , pileup_weight * min_prescale * fakeRateEffective );
        FillUserTH1D("nMuon_PAS"            , nMuon_ptCut               , pileup_weight * min_prescale * fakeRateEffective );
-       FillUserTH1D("nJet_PAS"             , nJet_store                , pileup_weight * min_prescale * fakeRateEffective );
+       FillUserTH1D("nJet_PAS"             , nJet_ptCut                , pileup_weight * min_prescale * fakeRateEffective );
        FillUserTH1D("Pt1stEle_PAS"	   , Ele1_Pt                   , pileup_weight * min_prescale * fakeRateEffective );
        FillUserTH1D("Eta1stEle_PAS"	   , Ele1_Eta                  , pileup_weight * min_prescale * fakeRateEffective );
        FillUserTH1D("Phi1stEle_PAS"	   , Ele1_Phi                  , pileup_weight * min_prescale * fakeRateEffective );

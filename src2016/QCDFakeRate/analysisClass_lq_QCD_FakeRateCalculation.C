@@ -174,8 +174,6 @@ void analysisClass::Loop()
   //--------------------------------------------------------------------------
   // Tell the user how many entries we'll look at
   //--------------------------------------------------------------------------
-  Int_t forLoopDebugCounterA = 0; //debugging 
-  Int_t forLoopDebugCounterB = 0;
   Long64_t nentries = GetTreeEntries();
   std::cout << "analysisClass::analysisClass(): nentries = " << nentries << std::endl;
   //--------------------------------------------------------------------------
@@ -283,12 +281,6 @@ void analysisClass::Loop()
       if (readerTools_->ReadValueBranch<Bool_t>("Ele1_PassHEEPID") == true) {
         heepSFEle1 = readerTools_->ReadValueBranch<Float_t>("Ele1_HEEPSF");
       }
-      if (heepSFEle1 != 1.0){
-        forLoopDebugCounterA+=1;
-      }
-      if (heepSFEle1==1.0){
-        forLoopDebugCounterB+=1;
-      }
       float totalScaleFactor = recoSFEle1*heepSFEle1;
       gen_weight*=totalScaleFactor;
       //gen_weight*=recoSFEle1;
@@ -336,7 +328,7 @@ void analysisClass::Loop()
     //fillVariableWithValue(   "nMuon"                   , readerTools_->ReadValueBranch<Float_t>("nMuon_ptCut")     , min_prescale * pileup_weight );
     float nEle_ptCut = readerTools_->ReadValueBranch<Int_t>("nEle_ptCut");
     float nVLooseEle_ptCut = readerTools_->ReadValueBranch<Int_t>("nVLooseEle_ptCut");
-    float nJet_ptCut = readerTools_->ReadValueBranch<Int_t>("nJet_store");
+    float nJet_ptCut = readerTools_->ReadValueBranch<Int_t>("nJet_ptCut");
     // 1st Electron variables				      		              
     fillVariableWithValue(   "nEle"                    , nVLooseEle_ptCut , min_prescale * pileup_weight );
 
@@ -2632,6 +2624,4 @@ void analysisClass::Loop()
   } // End loop over events
 
   std::cout << "analysisClass::Loop() ends" <<std::endl;   
-  std::cout << "number of MC eles with SF applied = "<<forLoopDebugCounterA<<std::endl;
-  std::cout << "number of MC eles with no SF = "<<forLoopDebugCounterB;
 }
