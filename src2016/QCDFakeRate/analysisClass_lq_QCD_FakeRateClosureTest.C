@@ -408,7 +408,7 @@ void analysisClass::Loop()
      double PFMET_Type1_Phi  = readerTools_->ReadValueBranch<Float_t>("PFMET_Type1_Phi");
      double nEle_ptCut = readerTools_->ReadValueBranch<Int_t>("nEle_ptCut");
      double nJet_ptCut = readerTools_->ReadValueBranch<Int_t>("nJet_ptCut");
-     double nJet_store = readerTools_->ReadValueBranch<Int_t>("nJetEle_store");
+     double nJet_store = readerTools_->ReadValueBranch<Int_t>("nJet_store");
      double nVertex = readerTools_->ReadValueBranch<Int_t>("nVertex");
      // reweighting
      fillVariableWithValue ( "Reweighting", 1, pileup_weight * min_prescale * fakeRateEffective) ; 
