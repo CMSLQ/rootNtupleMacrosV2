@@ -269,9 +269,8 @@ void analysisClass::Loop()
       }
     }
     if(isData() && passTrigger) { 
-      //std::cout<<"this if statement is being evaluated"<<std::endl;
       //std::cout << "INFO: lookup trigger name " << triggerName << " for year: " << year << std::endl;
-      min_prescale = run2PhotonTriggerPrescales.LookupPrescale(analysisYearAsString,triggerName);
+      min_prescale = run2PhotonTriggerPrescales.LookupPrescale(analysisYearStr,triggerName);
     }
 
     //--------------------------------------------------------------------------
