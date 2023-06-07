@@ -1269,8 +1269,9 @@ void analysisClass::Loop()
 
 
       bool passElectron = passHEEPprime;
+      bool passJet = passJetHEEP;
       //bool passElectron = passLoosePrime;
-      bool passJet = passJetLoose;
+      //bool passJet = passJetLoose;
 
       ////XXX SIC TEST
       //if(run==284043 && (ls==116 || ls==146 || ls==172 || ls==199 || ls==45 || ls==8) )
