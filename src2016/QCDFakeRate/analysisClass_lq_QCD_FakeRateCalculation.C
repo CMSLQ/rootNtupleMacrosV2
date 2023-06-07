@@ -266,7 +266,7 @@ void analysisClass::Loop()
 
     //// TopPt reweight
     //// only valid for powheg
-    //std::string current_file_name ( readerTools_->GetTree()->GetCurrentFile()->GetName());
+    std::string current_file_name ( readerTools_->GetTree()->GetCurrentFile()->GetName());
     //if(current_file_name.find("TT_") != std::string::npos) {
     //  gen_weight*=TopPtWeight;
     //}
@@ -297,6 +297,16 @@ void analysisClass::Loop()
 
     // Trigger 
     fillVariableWithValue(   "PassTrigger"                   , passTrigger                 , min_prescale * pileup_weight ); 
+
+    //pt binned sample stitching, June 2023. See https://cms-talk.web.cern.ch/t/bug-in-ul-pt-binned-dy-samples/11639
+    //this was done in the nominal analysis last year and we think it needs to be done here too.
+    bool passLHECuts = true;
+    if(current_file_name.find("DYJetsToLL_M-50_TuneCP5") != std::string::npos) {
+      passLHECuts = false;
+      if(readerTools_->ReadValueBranch<Float_t>("LHE_Vpt") == 0)
+        passLHECuts = true; 
+    }
+    fillVariableWithValue("PassLHECuts",passLHECuts,gen_weight*pileup_weight);
 
     // JSON variable								            
     fillVariableWithValue(   "PassJSON"                      , passedJSON                  , min_prescale * pileup_weight ); 
