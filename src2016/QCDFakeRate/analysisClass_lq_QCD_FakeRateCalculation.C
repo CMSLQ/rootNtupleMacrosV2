@@ -306,7 +306,7 @@ void analysisClass::Loop()
       if(readerTools_->ReadValueBranch<Float_t>("LHE_Vpt") == 0)
         passLHECuts = true; 
     }
-    fillVariableWithValue("PassLHECuts",passLHECuts,gen_weight*pileup_weight);
+    fillVariableWithValue("PassLHECuts",passLHECuts,min_prescale*pileup_weight);
 
     // JSON variable								            
     fillVariableWithValue(   "PassJSON"                      , passedJSON                  , min_prescale * pileup_weight ); 
