@@ -79,7 +79,30 @@ void analysisClass::Loop()
   //--------------------------------------------------------------------------
   // Analysis year
   //--------------------------------------------------------------------------
-  int analysisYear = getPreCutValue1("AnalysisYear");
+  
+  std::string getAnalysisYear = getPreCutString1("AnalysisYear");
+  //std::cout<<"analysis year: "<<getAnalysisYear<<std::endl;
+  int analysisYear;
+  std::string analysisYearStr;
+  if (getAnalysisYear.find("pre") != string::npos ){
+    analysisYear = 2016;
+    analysisYearStr = "2016preVFP";
+  }
+  else if (getAnalysisYear.find("post") != string::npos){
+    analysisYear = 2016;
+    analysisYearStr = "2016postVFP";
+  }
+  else if (getAnalysisYear.find("17") != string::npos){
+    analysisYear = 2017;
+    analysisYearStr = "2017";
+  }
+  else if (getAnalysisYear.find("18") != string::npos){
+    analysisYear = 2018;
+    analysisYearStr = "2018";
+  }
+  else{
+    std::cout<<"ERROR: cannot determine analysis year from cutfile"<<std::endl;
+  }
 
   //--------------------------------------------------------------------------
   // Photon trigger average prescales
@@ -248,7 +271,7 @@ void analysisClass::Loop()
     if(isData() && passTrigger) { 
       //std::cout<<"this if statement is being evaluated"<<std::endl;
       //std::cout << "INFO: lookup trigger name " << triggerName << " for year: " << year << std::endl;
-      min_prescale = run2PhotonTriggerPrescales.LookupPrescale(analysisYear,triggerName);
+      min_prescale = run2PhotonTriggerPrescales.LookupPrescale(analysisYearAsString,triggerName);
     }
 
     //--------------------------------------------------------------------------
