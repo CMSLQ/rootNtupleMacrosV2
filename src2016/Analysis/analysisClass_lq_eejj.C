@@ -952,11 +952,13 @@ void analysisClass::Loop()
     //prefire_weight = readerTools_->ReadValueBranch<Float_t>("L1PreFiringWeight_Nom");
     gen_weight*=prefire_weight;
 
-    // SIC remove March 2018
-    //// TopPt reweight
-    //// only valid for powheg
-    //if(current_file_name.find("TT_") != std::string::npos) {
-    //  gen_weight*=TopPtWeight;
+    // TopPt reweighting
+    // only valid for powheg
+    //if(current_file_name.find("TTTo") != std::string::npos) {
+    //  float topPtSF1 = readerTools_->ReadValueBranch<Float_t>("TopPtSF1");
+    //  float topPtSF2 = readerTools_->ReadValueBranch<Float_t>("TopPtSF2");
+    //  float topPtSF = sqrt(topPtSF1*topPtSF2);
+    //  gen_weight*=topPtSF;
     //}
 
     //// apply PDF rescale for LQToDEle/LQToBEle 2016 only
