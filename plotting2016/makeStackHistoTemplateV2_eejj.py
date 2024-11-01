@@ -1032,36 +1032,6 @@ if doPreselPlots:
     plots[-1].xtit = "M(ee) (GeV) [Preselection, 60-250 GeV]"
     plots[-1].name = "Mee_60_250_PAS"
 
-    plots.append(makeDefaultPlot("Mee_PAS_gteTwoBtaggedJets"))
-    plots[-1].rebin = 4
-    plots[-1].ymax = 5e5
-    plots[-1].ymin = 1e-1
-    plots[-1].xmin = 60.0
-    plots[-1].xmax = 250.0
-    plots[-1].ylog = "yes"
-    plots[-1].xtit = "M(ee) (GeV) [Preselection, >= 2 b-tags, GeV]"
-    plots[-1].name = "Mee_PAS_gteTwoBtaggedJets"
-
-    plots.append(makeDefaultPlot("Mee_PAS_gteOneBtaggedJet"))
-    plots[-1].rebin = 4
-    plots[-1].ymax = 5e5
-    plots[-1].ymin = 1e-1
-    plots[-1].xmin = 60.0
-    plots[-1].xmax = 250.0
-    plots[-1].ylog = "yes"
-    plots[-1].xtit = "M(ee) (GeV) [Preselection, >= 1 b-tag, GeV]"
-    plots[-1].name = "Mee_PAS_gteOneBtaggedJet"
-
-    plots.append(makeDefaultPlot("Mee_PAS_noBtaggedJets"))
-    plots[-1].rebin = 4
-    plots[-1].ymax = 5e5
-    plots[-1].ymin = 1e-1
-    plots[-1].xmin = 60.0
-    plots[-1].xmax = 250.0
-    plots[-1].ylog = "yes"
-    plots[-1].xtit = "M(ee) (GeV) [Preselection, == 0 b-tags, GeV]"
-    plots[-1].name = "Mee_PAS_noBtaggedJets"
-
     plots.append(makeDefaultPlot("Mee_EBEB_PAS", systs=doSystematics))
     plots[-1].rebin = 1
     # plots[-1].ymax = 1e4
@@ -1664,6 +1634,36 @@ if doPreselPlots:
 ####################################################################################################
 if doBTagPlots:
     print("INFO: creating B-tag plots...", end=' ')
+    plots.append(makeDefaultPlot("Mee_PAS_gteTwoBtaggedJets"))
+    plots[-1].rebin = 4
+    plots[-1].ymax = 5e5
+    plots[-1].ymin = 1e-1
+    plots[-1].xmin = 60.0
+    plots[-1].xmax = 250.0
+    plots[-1].ylog = "yes"
+    plots[-1].xtit = "M(ee) (GeV) [Preselection, >= 2 b-tags, GeV]"
+    plots[-1].name = "Mee_PAS_gteTwoBtaggedJets"
+
+    plots.append(makeDefaultPlot("Mee_PAS_gteOneBtaggedJet"))
+    plots[-1].rebin = 4
+    plots[-1].ymax = 5e5
+    plots[-1].ymin = 1e-1
+    plots[-1].xmin = 60.0
+    plots[-1].xmax = 250.0
+    plots[-1].ylog = "yes"
+    plots[-1].xtit = "M(ee) (GeV) [Preselection, >= 1 b-tag, GeV]"
+    plots[-1].name = "Mee_PAS_gteOneBtaggedJet"
+
+    plots.append(makeDefaultPlot("Mee_PAS_noBtaggedJets"))
+    plots[-1].rebin = 4
+    plots[-1].ymax = 5e5
+    plots[-1].ymin = 1e-1
+    plots[-1].xmin = 60.0
+    plots[-1].xmax = 250.0
+    plots[-1].ylog = "yes"
+    plots[-1].xtit = "M(ee) (GeV) [Preselection, == 0 b-tags, GeV]"
+    plots[-1].name = "Mee_PAS_noBtaggedJets"
+
     plots.append(makeDefaultPlot("nElectron_gteTwoBtaggedJets"))
     # plots[-1].ymax = 10000000
     # plots[-1].ymin = 1e-1
