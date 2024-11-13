@@ -1621,6 +1621,13 @@ if doPreselPlots:
     plots[-1].xmin = -1
     plots[-1].ylog = "yes"
 
+    plots.append(makeDefaultPlot("EleTriggerMatches_PAS"))
+    plots[-1].xtit = "Electron trigger object matching [preselection]"
+    plots[-1].ylog = "yes"
+    plots[-1].lpos = "top-left"
+    plots[-1].ymax = 1e10
+    plots[-1].ymin = 1e-1
+
     if doSystematics:
         plots.append(makeDefaultPlot2D_NoData("systematics",histoBaseName2D_userDef,samplesForStackHistos,sampleForDataHisto))
         #plots[-1].xtit = "M(ee) [GeV]"
