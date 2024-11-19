@@ -331,6 +331,12 @@ void analysisClass::Loop()
   CreateUserHist( "ECorrEle1_PAS", 100, 0, 1);
   CreateUserHist( "ECorrEle2_PAS", 100, 0, 1);
 
+  CreateUserHist( "EleTriggerMatches_PAS", 4, -0.5, 3.5);
+  GetUserHist<TH1>("EleTriggerMatches_PAS").GetXaxis()->SetBinLabel(1, "no match");
+  GetUserHist<TH1>("EleTriggerMatches_PAS").GetXaxis()->SetBinLabel(2, "ele1 match only");
+  GetUserHist<TH1>("EleTriggerMatches_PAS").GetXaxis()->SetBinLabel(3, "ele2 match only");
+  GetUserHist<TH1>("EleTriggerMatches_PAS").GetXaxis()->SetBinLabel(4, "both match");
+
   //CreateUserHist("CorrIsolation_1stEle_PASandMee100"        , 200,-25.0 ,  25.0  ); CreateUserHist("CorrIsolation_2ndEle_PASandMee100"        , 200,-25.0 ,  25.0  );
   //CreateUserHist("DeltaEtaTrkSC_1stEle_PASandMee100"        , 200, -0.01,   0.01 ); CreateUserHist("DeltaEtaTrkSC_2ndEle_PASandMee100"        , 200, -0.01,   0.01 );
   //CreateUserHist("EcalIsolation_1stEle_PASandMee100"        , 200,  0.0 ,  20.0  ); CreateUserHist("EcalIsolation_2ndEle_PASandMee100"        , 200,  0.0 ,  20.0  );
@@ -736,6 +742,10 @@ void analysisClass::Loop()
     CreateUserHistWithSysts(cut_name,2000,-1,1.001);
     sprintf(cut_name, "BDTOutput_noWeight_TrainRegion_LQ%d"   , lq_mass );
     CreateUserHistWithSysts(cut_name,2000,-1,1.001);
+    sprintf(cut_name, "MeeVsBDTOutput_BkgControlRegion_LQ%d", lq_mass );
+    CreateUserHist2D(cut_name, 400, -1, 1.001, 1000, 0, 2000);
+    sprintf(cut_name, "MeeVsBDTOutput_gteTwoBtaggedJets_BkgControlRegion_LQ%d", lq_mass );
+    CreateUserHist2D(cut_name, 400, -1, 1.001, 1000, 0, 2000);
     sprintf(cut_name, "BDTOutput_LQ%d"   , lq_mass );
     if(hasCut(cut_name))
       doFinalSelections = true;
@@ -998,11 +1008,39 @@ void analysisClass::Loop()
       fillSystVariableWithValue("EleTrigSFDown", 1);
     }
     // apply event trigger scale factor
-    float trigSF = readerTools_->ReadValueBranch<Float_t>("EventTriggerScaleFactor");
-    float trigSFErr = readerTools_->ReadValueBranch<Float_t>("EventTriggerScaleFactorErr");
-    gen_weight*=trigSF;
+    //float trigSF = readerTools_->ReadValueBranch<Float_t>("EventTriggerScaleFactor");
+    //float trigSFErr = readerTools_->ReadValueBranch<Float_t>("EventTriggerScaleFactorErr");
+    ////gen_weight*=trigSF;
+    ////fillSystVariableWithValue("EleTrigSFUp", (trigSF+trigSFErr)/trigSF);
+    ////fillSystVariableWithValue("EleTrigSFDown", (trigSF-trigSFErr)/trigSF);
+    ////eventWeight = gen_weight * pileup_weight;
+    bool ele1TrigMatch = false;
+    bool ele2TrigMatch = false;
+    if(readerTools_->ReadValueBranch<bool>("Ele1_PassedHLTriggerWPTightFilter") || readerTools_->ReadValueBranch<bool>("Ele1_PassedHLTriggerHighPtPhotonFilter"))
+      ele1TrigMatch = true;
+    if(readerTools_->ReadValueBranch<bool>("Ele2_PassedHLTriggerWPTightFilter") || readerTools_->ReadValueBranch<bool>("Ele2_PassedHLTriggerHighPtPhotonFilter"))
+      ele2TrigMatch = true;
+    float trigSF = 1.0;
+    float trigSFErr = 0.0;
+    if(ele1TrigMatch && !ele2TrigMatch) {
+      trigSF = readerTools_->ReadValueBranch<float>("Ele1_TrigSF");
+      trigSFErr = readerTools_->ReadValueBranch<float>("Ele1_TrigSF_Err");
+    }
+    else if(ele2TrigMatch && !ele1TrigMatch) {
+      trigSF = readerTools_->ReadValueBranch<float>("Ele2_TrigSF");
+      trigSFErr = readerTools_->ReadValueBranch<float>("Ele2_TrigSF_Err");
+    }
+    else if(ele1TrigMatch && ele2TrigMatch) {
+      float ele1TrigSF = readerTools_->ReadValueBranch<float>("Ele1_TrigSF");
+      float ele1TrigSFErr = readerTools_->ReadValueBranch<float>("Ele1_TrigSF_Err");
+      float ele2TrigSF = readerTools_->ReadValueBranch<float>("Ele2_TrigSF");
+      float ele2TrigSFErr = readerTools_->ReadValueBranch<float>("Ele2_TrigSF_Err");
+      trigSF = 1-(1-ele1TrigSF)*(1-ele2TrigSF); // SF1 + SF2 - SF1*SF2
+      trigSFErr = pow(1-ele2TrigSF, 2)*pow(ele1TrigSFErr, 2) + pow(1-ele1TrigSF, 2)*pow(ele2TrigSF, 2) + 2*(1-ele1TrigSF)*(1-ele2TrigSF)*ele1TrigSFErr*ele2TrigSFErr;
+    }
     fillSystVariableWithValue("EleTrigSFUp", (trigSF+trigSFErr)/trigSF);
     fillSystVariableWithValue("EleTrigSFDown", (trigSF-trigSFErr)/trigSF);
+    gen_weight*=trigSF;
     eventWeight = gen_weight * pileup_weight;
 
     //--------------------------------------------------------------------------
@@ -1921,6 +1959,17 @@ void analysisClass::Loop()
             FillUserHist(cut_name, bdtOutput, gen_weight * pileup_weight  , "preselection");
           }
         }
+        for (int i_lq_mass = 0; i_lq_mass < n_lq_mass; ++i_lq_mass ){ 
+          int lq_mass = LQ_MASS[i_lq_mass];
+          sprintf(cut_name, "BDTOutput_LQ%d", lq_mass );
+          float bdtOutput = getVariableValue(cut_name);
+          sprintf(cut_name, "MeeVsBDTOutput_BkgControlRegion_LQ%d", lq_mass );
+          FillUserHist2D(cut_name, bdtOutput, M_e1e2, pileup_weight * gen_weight);
+          if(nBJet_ptCut >= 2) {
+            sprintf(cut_name, "MeeVsBDTOutput_gteTwoBtaggedJets_BkgControlRegion_LQ%d", lq_mass );
+            FillUserHist2D(cut_name, bdtOutput, M_e1e2, pileup_weight * gen_weight);
+          }
+        }
       }
     }
 
@@ -2532,6 +2581,20 @@ void analysisClass::Loop()
       FillUserHist("Mej_minmax_PAS"        , M_ej_min                       , pileup_weight * gen_weight, preselectionCut );	   
       FillUserHist("Mej_minmax_PAS"        , M_ej_max                       , pileup_weight * gen_weight, preselectionCut );	   
       FillUserHist("Mej_asym_PAS"        , M_ej_asym                        , pileup_weight * gen_weight, preselectionCut );	   
+      bool ele1PassedHLTWPTight = readerTools_->ReadValueBranch<bool>("Ele1_PassedHLTriggerWPTightFilter");
+      bool ele1PassedHLTPhoton = readerTools_->ReadValueBranch<bool>("Ele1_PassedHLTriggerHighPtPhotonFilter");
+      bool ele2PassedHLTWPTight = readerTools_->ReadValueBranch<bool>("Ele2_PassedHLTriggerWPTightFilter");
+      bool ele2PassedHLTPhoton = readerTools_->ReadValueBranch<bool>("Ele2_PassedHLTriggerHighPtPhotonFilter");
+      bool ele1Matched = ele1PassedHLTWPTight || ele1PassedHLTPhoton;
+      bool ele2Matched = ele2PassedHLTWPTight || ele2PassedHLTPhoton;
+      if(ele1Matched && !ele2Matched)
+        FillUserHist("EleTriggerMatches_PAS", 1, pileup_weight * gen_weight);
+      if(ele2Matched && !ele1Matched)
+        FillUserHist("EleTriggerMatches_PAS", 2, pileup_weight * gen_weight);
+      if(ele1Matched && ele2Matched)
+        FillUserHist("EleTriggerMatches_PAS", 3, pileup_weight * gen_weight);
+      if(!ele1Matched && !ele2Matched)
+        FillUserHist("EleTriggerMatches_PAS", 0, pileup_weight * gen_weight);
 
       FillUserHist2D("MeeVsST_PAS" , M_e1e2, sT_eejj, pileup_weight * gen_weight );	   
       FillUserHist2D("MeeVsPtee_PAS" , M_e1e2, Pt_e1e2, pileup_weight * gen_weight );	   

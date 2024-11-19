@@ -376,6 +376,12 @@ void analysisClass::Loop()
   CreateUserHist("Full5x5SigmaIEtaIEta_Barrel_1stEle_PAS"   , 200,  0.0,    0.04 ); CreateUserHist("Full5x5SigmaIEtaIEta_Barrel_2ndEle_PAS"   , 200,  0.0,    0.04 );
   CreateUserHist("Full5x5SigmaIEtaIEta_Endcap_1stEle_PAS"   , 200,  0.0,    0.1  ); CreateUserHist("Full5x5SigmaIEtaIEta_Endcap_2ndEle_PAS"   , 200,  0.0,    0.1  );
 
+  CreateUserHist( "EleTriggerMatches_PAS", 4, -0.5, 3.5);
+  GetUserHist<TH1>("EleTriggerMatches_PAS").GetXaxis()->SetBinLabel(1, "no match");
+  GetUserHist<TH1>("EleTriggerMatches_PAS").GetXaxis()->SetBinLabel(2, "ele1 match only");
+  GetUserHist<TH1>("EleTriggerMatches_PAS").GetXaxis()->SetBinLabel(3, "ele2 match only");
+  GetUserHist<TH1>("EleTriggerMatches_PAS").GetXaxis()->SetBinLabel(4, "both match");
+
   //CreateUserHist("CorrIsolation_1stEle_PASandMee100"        , 200,-25.0 ,  25.0  ); CreateUserHist("CorrIsolation_2ndEle_PASandMee100"        , 200,-25.0 ,  25.0  );
   //CreateUserHist("DeltaEtaTrkSC_1stEle_PASandMee100"        , 200, -0.01,   0.01 ); CreateUserHist("DeltaEtaTrkSC_2ndEle_PASandMee100"        , 200, -0.01,   0.01 );
   //CreateUserHist("EcalIsolation_1stEle_PASandMee100"        , 200,  0.0 ,  20.0  ); CreateUserHist("EcalIsolation_2ndEle_PASandMee100"        , 200,  0.0 ,  20.0  );
@@ -728,6 +734,10 @@ void analysisClass::Loop()
     CreateUserHistWithSysts(cut_name,2000,-1,1.001);
     sprintf(cut_name, "BDTOutput_noWeight_TrainRegion_LQ%d"   , lq_mass );
     CreateUserHistWithSysts(cut_name,2000,-1,1.001);
+    sprintf(cut_name, "MeeVsBDTOutput_BkgControlRegion_LQ%d", lq_mass );
+    CreateUserHist2D(cut_name, 400, -1, 1.001, 1000, 0, 2000);
+    sprintf(cut_name, "MeeVsBDTOutput_gteTwoBtaggedJets_BkgControlRegion_LQ%d", lq_mass );
+    CreateUserHist2D(cut_name, 400, -1, 1.001, 1000, 0, 2000);
     sprintf(cut_name, "BDTOutput_LQ%d"   , lq_mass );
     if(hasCut(cut_name))
       doFinalSelections = true;
@@ -967,6 +977,33 @@ void analysisClass::Loop()
         gen_weight*=readerTools_->ReadValueBranch<Float_t>("EWKNLOCorrection");
       }
     }
+
+    // apply event trigger scale factor
+    bool ele1TrigMatch = false;
+    bool ele2TrigMatch = false;
+    if(readerTools_->ReadValueBranch<bool>("Ele1_PassedHLTriggerWPTightFilter") || readerTools_->ReadValueBranch<bool>("Ele1_PassedHLTriggerHighPtPhotonFilter"))
+      ele1TrigMatch = true;
+    if(readerTools_->ReadValueBranch<bool>("Ele2_PassedHLTriggerWPTightFilter") || readerTools_->ReadValueBranch<bool>("Ele2_PassedHLTriggerHighPtPhotonFilter"))
+      ele2TrigMatch = true;
+    float trigSF = 1.0;
+    float trigSFErr = 0.0;
+    if(ele1TrigMatch && !ele2TrigMatch) {
+      trigSF = readerTools_->ReadValueBranch<float>("Ele1_TrigSF");
+      trigSFErr = readerTools_->ReadValueBranch<float>("Ele1_TrigSF_Err");
+    }
+    else if(ele2TrigMatch && !ele1TrigMatch) {
+      trigSF = readerTools_->ReadValueBranch<float>("Ele2_TrigSF");
+      trigSFErr = readerTools_->ReadValueBranch<float>("Ele2_TrigSF_Err");
+    }
+    else if(ele1TrigMatch && ele2TrigMatch) {
+      float ele1TrigSF = readerTools_->ReadValueBranch<float>("Ele1_TrigSF");
+      float ele1TrigSFErr = readerTools_->ReadValueBranch<float>("Ele1_TrigSF_Err");
+      float ele2TrigSF = readerTools_->ReadValueBranch<float>("Ele2_TrigSF");
+      float ele2TrigSFErr = readerTools_->ReadValueBranch<float>("Ele2_TrigSF_Err");
+      trigSF = 1-(1-ele1TrigSF)*(1-ele2TrigSF); // SF1 + SF2 - SF1*SF2
+      trigSFErr = pow(1-ele2TrigSF, 2)*pow(ele1TrigSFErr, 2) + pow(1-ele1TrigSF, 2)*pow(ele2TrigSF, 2) + 2*(1-ele1TrigSF)*(1-ele2TrigSF)*ele1TrigSFErr*ele2TrigSFErr;
+    }
+    gen_weight*=trigSF;
 
     // run ls event
     unsigned int run = readerTools_->ReadValueBranch<UInt_t>("run");
@@ -1309,6 +1346,37 @@ void analysisClass::Loop()
     // double eFakeRateEffective = fakeRateEffective * sqrt (  ( eFakeRate1 / fakeRate1 ) * ( eFakeRate1 / fakeRate1 ) +
     //					     ( eFakeRate2 / fakeRate2 ) * ( eFakeRate2 / fakeRate2 ) );
     double eFakeRateEffective = 0.0;
+
+// for testing Mee "bias" in closure test results - Nov. 2024
+//{
+//double qcdWeightCorrection = 1;
+//TLorentzVector e1, j1, e2, j2,j3, mu, met;
+//TLorentzVector eej, ejj, ee;
+//float Ele1_Eta = readerTools_->ReadValueBranch<Float_t>(ele1KeyName+"_Eta");
+//float Ele2_Eta = readerTools_->ReadValueBranch<Float_t>(ele2KeyName+"_Eta");
+//e1.SetPtEtaPhiM ( Ele1_Pt, Ele1_Eta, Ele1_Phi, 0.0 );
+//e2.SetPtEtaPhiM ( Ele2_Pt, Ele2_Eta, Ele2_Phi, 0.0 );
+//ee   = e1 + e2;
+//double Mee = ee.M();
+//if (Mee >= 220.0 && Mee < 270.0) {qcdWeightCorrection = 1.0486; }
+//if (Mee >= 270.0 && Mee < 320.0) {qcdWeightCorrection = 1.2217; }
+//if (Mee >= 320.0 && Mee < 370.0) {qcdWeightCorrection = 0.8811; }
+//if (Mee >= 370.0 && Mee < 420.0) {qcdWeightCorrection = 0.7404; }
+//if (Mee >= 420.0 && Mee < 470.0) {qcdWeightCorrection = 0.6557; }
+//if (Mee >= 470.0 && Mee < 520.0) {qcdWeightCorrection = 0.7709; }
+//if (Mee >= 520.0 && Mee < 570.0) {qcdWeightCorrection = 0.8523; }
+//if (Mee >= 570.0 && Mee < 620.0) {qcdWeightCorrection = 0.7818; }
+//if (Mee >= 620.0 && Mee < 670.0) {qcdWeightCorrection = 1.0612; }
+//if (Mee >= 670.0 && Mee < 720.0) {qcdWeightCorrection = 1.015; }
+//if (Mee >= 720.0 && Mee < 770.0) {qcdWeightCorrection = 1.2531; }
+//if (Mee >= 770.0 && Mee < 830.0) {qcdWeightCorrection = 1.3616; }
+//if (Mee >= 830.0 && Mee < 910.0) {qcdWeightCorrection = 1.9761; }
+//if (Mee >= 910.0 && Mee < 1010.0) {qcdWeightCorrection = 1.26; }
+//if (Mee >= 1010.0 && Mee < 1150.0) {qcdWeightCorrection = 1.273; }
+//if (Mee >= 1150.0 && Mee < 2000.0) {qcdWeightCorrection = 1.4181; }
+//gen_weight /= qcdWeightCorrection;
+//}
+// end testing
 
     eventWeight = fakeRateEffective * min_prescale * gen_weight;
     //cout << "event=" << event << " ls=" << ls << ", original weight = " << readerTools_->ReadValueBranch<Float_t>("Weight") << ", &fakeRateEffective=" << &fakeRateEffective << ", fakeRateEffective=" << fakeRateEffective << ", min_prescale=" << min_prescale << ", product = " << fakeRateEffective*min_prescale << endl;
@@ -2018,7 +2086,18 @@ void analysisClass::Loop()
             sprintf(cut_name, "BDTOutput_LQ%d", lq_mass );
             float bdtOutput = getVariableValue(cut_name);
             sprintf(cut_name, "BDTOutput_TTBarCRRegion_LQ%d", lq_mass );
-            FillUserHist(cut_name, bdtOutput,  fakeRateEffective * min_prescale * gen_weight);
+            FillUserHist(cut_name, bdtOutput,  fakeRateEffective * min_prescale * gen_weight, "preselection");
+          }
+        }
+        for (int i_lq_mass = 0; i_lq_mass < n_lq_mass; ++i_lq_mass ){ 
+          int lq_mass = LQ_MASS[i_lq_mass];
+          sprintf(cut_name, "BDTOutput_LQ%d", lq_mass );
+          float bdtOutput = getVariableValue(cut_name);
+          sprintf(cut_name, "MeeVsBDTOutput_BkgControlRegion_LQ%d", lq_mass );
+          FillUserHist2D(cut_name, bdtOutput, M_e1e2, pileup_weight * gen_weight);
+          if(nBJet_ptCut >= 2) {
+            sprintf(cut_name, "MeeVsBDTOutput_gteTwoBtaggedJets_BkgControlRegion_LQ%d", lq_mass );
+            FillUserHist2D(cut_name, bdtOutput, M_e1e2, pileup_weight * gen_weight);
           }
         }
       }
@@ -2182,6 +2261,21 @@ void analysisClass::Loop()
       FillUserHist("Mej_minmax_PAS"       , M_ej_min                           , min_prescale * gen_weight * fakeRateEffective ) ;	   
       FillUserHist("Mej_minmax_PAS"       , M_ej_max                           , min_prescale * gen_weight * fakeRateEffective ) ;	   
       FillUserHist("Mej_asym_PAS"         , M_ej_asym                        , min_prescale * gen_weight * fakeRateEffective );	   
+			bool ele1PassedHLTWPTight = readerTools_->ReadValueBranch<bool>("Ele1_PassedHLTriggerWPTightFilter");
+			bool ele1PassedHLTPhoton = readerTools_->ReadValueBranch<bool>("Ele1_PassedHLTriggerHighPtPhotonFilter");
+			bool ele2PassedHLTWPTight = readerTools_->ReadValueBranch<bool>("Ele2_PassedHLTriggerWPTightFilter");
+			bool ele2PassedHLTPhoton = readerTools_->ReadValueBranch<bool>("Ele2_PassedHLTriggerHighPtPhotonFilter");
+			bool ele1Matched = ele1PassedHLTWPTight || ele1PassedHLTPhoton;
+			bool ele2Matched = ele2PassedHLTWPTight || ele2PassedHLTPhoton;
+      if(ele1Matched && !ele2Matched)
+        FillUserHist("EleTriggerMatches_PAS", 1, pileup_weight * gen_weight);
+      if(ele2Matched && !ele1Matched)
+        FillUserHist("EleTriggerMatches_PAS", 2, pileup_weight * gen_weight);
+      if(ele1Matched && ele2Matched)
+        FillUserHist("EleTriggerMatches_PAS", 3, pileup_weight * gen_weight);
+      if(!ele1Matched && !ele2Matched)
+        FillUserHist("EleTriggerMatches_PAS", 0, pileup_weight * gen_weight);
+
       // muon kinematics
       FillUserHist("Pt1stMuon_PAS"	   , Muon1_Pt                       , min_prescale * gen_weight * fakeRateEffective ) ;
       FillUserHist("Eta1stMuon_PAS"	   , Muon1_Eta                      , min_prescale * gen_weight * fakeRateEffective ) ;
