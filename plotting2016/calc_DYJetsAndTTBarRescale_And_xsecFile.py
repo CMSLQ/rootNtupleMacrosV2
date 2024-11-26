@@ -15,6 +15,7 @@ import ROOT
 import re
 import copy
 import math
+import traceback
 import numpy as np
 from tabulate import tabulate
 
@@ -349,7 +350,7 @@ def GetRTTBarDYJets(plotObjTTBar, plotObjDYJets, randomize=False, verbose=False)
         ERRintegralMCall_ttbar ** 2 + ERRintegralTTbar_ttbar ** 2
     )
 
-    # integrals: wjets
+    # integrals: dyjets
     integralDATA_dyjets = GetIntegralTH1(
         plotObjDYJets.histoDATA, plotObjDYJets.xmin, plotObjDYJets.xmax
     )
@@ -391,9 +392,12 @@ def GetRTTBarDYJets(plotObjTTBar, plotObjDYJets, randomize=False, verbose=False)
     ERRintegralMCothers_dyjets = math.sqrt(
         ERRintegralMCall_dyjets ** 2 + ERRintegralDYJets_dyjets ** 2
     )
-    contamination_dyjets = (
-        integralMCothers_dyjets + integralTTbar_dyjets + integralQCD_dyjets
-    ) / (integralMCall_dyjets + integralQCD_dyjets)
+    if (integralMCall_dyjets + integralQCD_dyjets) != 0:
+        contamination_dyjets = (
+                integralMCothers_dyjets + integralTTbar_dyjets + integralQCD_dyjets
+                ) / (integralMCall_dyjets + integralQCD_dyjets)
+    else:
+        contamination_dyjets = -1
 
     # randomize
     trand = TRandom3(0)
@@ -430,7 +434,7 @@ def GetRTTBarDYJets(plotObjTTBar, plotObjDYJets, randomize=False, verbose=False)
             - integralTTbar_ttbar * integralDYJets_dyjets
         )
     except ZeroDivisionError:
-        print("ERROR: ZeroDivisionError: one or more of the integrals above are zero")
+        # print("ERROR: ZeroDivisionError: one or more of the integrals above are zero")
         return -1, -1
     rDYJets = (
         integralDATA_dyjets * integralTTbar_ttbar
@@ -465,15 +469,22 @@ def CalculateRescaleFactor(plotObjTTBar, plotObjDYJets, fileps):
     sys.stdout.flush()
     rTTBarList = []
     rDYJetsList = []
+    iterationsWithZeroIntegrals = 0
     for i in range(0, N):
         # print ""
         rTTBar, rDYJets = GetRTTBarDYJets(plotObjTTBar, plotObjDYJets, True)
+        if rTTBar == -1 and rDYJets == -1:
+            iterationsWithZeroIntegrals += 1
         rTTBarList.append(rTTBar)
         rDYJetsList.append(rDYJets)
         # print "\b.",
         # sys.stdout.flush()
     # print "\b] 100%"
-    print("Done.")
+    print("Done. ", end='')
+    if iterationsWithZeroIntegrals:
+        print("{} iterations out of {} had zero integrals".format(iterationsWithZeroIntegrals, N))
+    else:
+        print()
 
     ttMean = 0
     for rtt in rTTBarList:
@@ -584,16 +595,19 @@ def CalculateRescaleFactor(plotObjTTBar, plotObjDYJets, fileps):
     else:
         integralQCD_dyjets = 0
         ERRintegralQCD_dyjets = 0
-    # contamination from other backgrounds (except WJets and TTBar) in the integral range [QCD is not in MCall]
+    # contamination from other backgrounds (except DYJets and TTBar) in the integral range [QCD is not in MCall]
     integralMCothers_dyjets = (
         integralMCall_dyjets - integralDYJets_dyjets - integralTTbar_dyjets
     )
     ERRintegralMCothers_dyjets = math.sqrt(
         ERRintegralMCall_dyjets ** 2 + ERRintegralDYJets_dyjets ** 2
     )
-    contamination_dyjets = (
-        integralMCothers_dyjets + integralTTbar_dyjets + integralQCD_dyjets
-    ) / (integralMCall_dyjets + integralQCD_dyjets)
+    if (integralMCall_dyjets + integralQCD_dyjets) != 0:
+        contamination_dyjets = (
+                integralMCothers_dyjets + integralTTbar_dyjets + integralQCD_dyjets
+                ) / (integralMCall_dyjets + integralQCD_dyjets)
+    else:
+        contamination_dyjets = -1
 
     # solve the system of equations
     # (1) --> dyjets
@@ -626,7 +640,7 @@ def CalculateRescaleFactor(plotObjTTBar, plotObjDYJets, fileps):
             - integralTTbar_dyjets * integralDYJets_ttbar
         )
     except ZeroDivisionError:
-        print("ERROR in rWJets: ZeroDivisionError: one or more of the integrals is zero:")
+        print("ERROR in rDYJets: ZeroDivisionError: one or more of the integrals is zero:")
         print(integralTTbar_ttbar, integralDYJets_dyjets, "-", integralTTbar_dyjets, integralDYJets_ttbar)
 
     # FIXME
@@ -732,10 +746,10 @@ def CalculateRescaleFactor(plotObjTTBar, plotObjDYJets, fileps):
     print("integral DATA:                " + str(integralDATA_dyjets) + " +/- " + str(
         ERRintegralDATA_dyjets
     ))
-    print("contribution from other bkgs (except wjets): " + str(
+    print("contribution from other bkgs (except dyjets): " + str(
         contamination_dyjets * 100
     ) + "% [purity " + str(100-contamination_dyjets*100) + "%]")
-    # print "integral DATA (corrected for contribution from other bkgs): "  + str( integralDATAcorr_wjets ) + " +/- " + str( ERRintegralDATAcorr_wjets )
+    # print "integral DATA (corrected for contribution from other bkgs): "  + str( integralDATAcorr_dyjets ) + " +/- " + str( ERRintegralDATAcorr_dyjets )
     print("rescale factor for DYJets background: " + str(rDYJets) + " +/- " + str(
         rDYJetsSigma
     ))
@@ -910,6 +924,7 @@ histBaseNames.append("MeeVsEle1Pt_BkgControlRegionBJETBIN2")
 histBaseNames.append("MeeVsEle2Pt_BkgControlRegionBJETBIN2")
 histBaseNames.append("MeeVsJet1Pt_BkgControlRegionBJETBIN2")
 histBaseNames.append("MeeVsJet2Pt_BkgControlRegionBJETBIN2")
+histBaseNames.append("MeeVsJet3Pt_BkgControlRegionBJETBIN2")
 histBaseNames.append("MeeVsPFMETType1Pt_BkgControlRegionBJETBIN2")
 histBaseNames.extend(["MeeVsBDTOutputBJETBIN2_BkgControlRegion_LQ"+str(mass) for mass in range(300, 3100, 100)])
 
@@ -940,6 +955,7 @@ binsForVarDict["Ele1Pt"] = PtBins
 binsForVarDict["Ele2Pt"] = Pt2Bins
 binsForVarDict["Jet1Pt"] = PtBins
 binsForVarDict["Jet2Pt"] = PtBins
+binsForVarDict["Jet3Pt"] = Pt2Bins
 binsForVarDict["PFMETType1Pt"] = METBins
 binsForVarDict["BDTOutput"] = BDTBins
 
@@ -959,6 +975,7 @@ varToXTitleDict["Ele1Pt"] = "P_{T}(e_{1}) [GeV]"
 varToXTitleDict["Ele2Pt"] = "P_{T}(e_{2}) [GeV]"
 varToXTitleDict["Jet1Pt"] = "P_{T}(j_{1}) [GeV]"
 varToXTitleDict["Jet2Pt"] = "P_{T}(j_{2}) [GeV]"
+varToXTitleDict["Jet3Pt"] = "P_{T}(j_{3}) [GeV]"
 varToXTitleDict["PFMETType1Pt"] = "PFMET [GeV]"
 varToXTitleDict["BDTOutput"] = "BDT output [LQ {} GeV]"
 
@@ -978,6 +995,7 @@ varToYRangeDict["Ele1Pt"] = [0.5, 1.5]
 varToYRangeDict["Ele2Pt"] = [0.5, 1.5]
 varToYRangeDict["Jet1Pt"] = [0.5, 1.5]
 varToYRangeDict["Jet2Pt"] = [0.5, 1.5]
+varToYRangeDict["Jet3Pt"] = [0.5, 1.5]
 varToYRangeDict["PFMETType1Pt"] = [0, 8]
 varToYRangeDict["BDTOutput"] = [0.5, 1.5]
 
@@ -1005,6 +1023,7 @@ varToLegPosDict["TTBar"]["Ele1Pt"] = "upper-left"
 varToLegPosDict["TTBar"]["Ele2Pt"] = "upper-right"
 varToLegPosDict["TTBar"]["Jet1Pt"] = "upper-right"
 varToLegPosDict["TTBar"]["Jet2Pt"] = "upper-right"
+varToLegPosDict["TTBar"]["Jet3Pt"] = "upper-right"
 varToLegPosDict["TTBar"]["MejMin"] = "upper-right"
 varToLegPosDict["TTBar"]["MejMax"] = "upper-right"
 varToLegPosDict["TTBar"]["Me1j1"] = "upper-right"
@@ -1093,6 +1112,7 @@ for idx, plot in enumerate(plotsTTBar):
         rDYJets, rDYJetsSigma, rTTBar, rTTBarSigma = CalculateRescaleFactor(plot, dyjPlot, fileps)
     except Exception as e:
         plotErrors.append("Had an exception doing CalculateRescaleFactor for plot {}: {}".format(plot.name, e))
+        traceback.print_exc()
         print("WARN: Had an exception doing CalculateRescaleFactor for plot {}: {}".format(plot.name, e), flush=True)
         continue
     if dyjPlot.name == nominalBkgSFPlotNames[0]:
