@@ -179,7 +179,7 @@ def GetHisto(histoName, file, scale=1):
     return new
 
 
-def generateHistoList(histoBaseName, samples, variableName, fileNames, scale=1, sumSamples=False, sumSampleName=""):
+def generateHistoList(histoBaseName, samples, variableName, fileNames, scale=1, sumSamples=False, sumSampleName="", rescaleSysts=False, normSyst=0):
     if not isinstance(fileNames, list):
         fileNames = [fileNames]
     histolist = []
@@ -194,6 +194,33 @@ def generateHistoList(histoBaseName, samples, variableName, fileNames, scale=1, 
                 histolist.append(copy.deepcopy(GetHisto(hname, fileNames[idx], scale).Clone(sumSampleName)))
             else:
                 histolist[0].Add(GetHisto(hname, fileNames[idx], scale))
+        if rescaleSysts:
+            histo = histolist[-1]
+            if not histo.InheritsFrom("TH2"):
+                raise RuntimeError("Asked to zero systematics from histogram named '{}' from file '{}', but it's not 2-D".format(
+                    histo.GetName(), fileNames[idx]))
+            nominalTotal = histo.Integral(1, histo.GetNbinsX()+1, 1, 1)
+            for biny in range(2, histo.GetNbinsY()+2):
+                yBinLabel = histo.GetYaxis().GetBinLabel(biny)
+                systTotal = histo.Integral(1, histo.GetNbinsX()+1, biny, biny)
+                avgRescaleFactor = nominalTotal/systTotal if systTotal != 0 else 1.0
+                # print("DEBUG: rescale histo syst bin {} content/error for hist {} by factor {}={}/{}".format(histo.GetYaxis().GetBinLabel(biny), histo.GetName(), avgRescaleFactor, nominalTotal, systTotal))
+                for binx in range(0, histo.GetNbinsX()+2):
+                    binc = histo.GetBinContent(binx, biny)
+                    bine = histo.GetBinError(binx, biny)
+                    histo.SetBinContent(binx, biny, binc*avgRescaleFactor)
+                    histo.SetBinError(binx, biny, bine*avgRescaleFactor)
+                    # not very nice: use pileup syst to store the norm systs on top
+                    if "ees" in yBinLabel.lower():
+                        nominal = histo.GetBinContent(binx, 1)
+                        binc = histo.GetBinContent(binx, biny)
+                        bine = histo.GetBinError(binx, biny)
+                        if "up" in yBinLabel.lower():
+                            # print("DEBUG: set {} xbin {} bin content from {} to {} + {} = {}; set bin error from {} to {}; normSyst={}, nominal={}".format(yBinLabel, binx, binc, binc, nominal*normSyst, binc + nominal*normSyst, bine, math.sqrt( pow(nominal*normSyst, 2) + pow(bine, 2) ), normSyst, nominal))
+                            histo.SetBinContent(binx, biny, binc + nominal*normSyst)
+                        else:
+                            histo.SetBinContent(binx, biny, binc - nominal*normSyst)
+                        histo.SetBinError(binx, biny, math.sqrt( pow(nominal*normSyst, 2) + pow(bine, 2) ))
     return histolist
 
 
