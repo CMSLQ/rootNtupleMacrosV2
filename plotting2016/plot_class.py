@@ -208,12 +208,18 @@ def generateHistoList(histoBaseName, samples, variableName, fileNames, scale=1, 
                 raise RuntimeError("Asked to zero systematics from histogram named '{}' from file '{}', but it's not 2-D".format(
                     histo.GetName(), fileNames[idx]))
             systHisto = systHistoList[-1]
-            preselTotal = systHisto.GetBinContent(systHisto.GetXaxis().FindBin("preselection"), 1)
             for biny in range(2, histo.GetNbinsY()+2):
+                preselTotal = systHisto.GetBinContent(systHisto.GetXaxis().FindBin("preselection"), 1)
                 yBinLabel = histo.GetYaxis().GetBinLabel(biny)
-                systTotal = histo.Integral(1, histo.GetNbinsX()+1, biny, biny)
-                avgRescaleFactor = preselTotal/systTotal if systTotal != 0 else 1.0
-                print("DEBUG: rescale histo syst bin {} content/error for hist {} by factor {}={}/{}".format(histo.GetYaxis().GetBinLabel(biny), histo.GetName(), avgRescaleFactor, preselTotal, systTotal))
+                systAtPresel = systHisto.GetBinContent(systHisto.GetXaxis().FindBin("preselection"), biny)
+                # print("DEBUG: rescale histo syst bin {} content/error for hist {} by factor {}={}/{}".format(histo.GetYaxis().GetBinLabel(biny), histo.GetName(), avgRescaleFactor, preselTotal, systTotal))
+                if "LHEScale" in yBinLabel:
+                    if "preselYield" in yBinLabel:
+                        continue
+                    # recalculate avg. rescale based on LHE weight value at preselection
+                    lheScaleYieldAtPreselBin = systHisto.GetYaxis().FindBin("LHEScaleWeight_preselYield")
+                    systAtPresel = systHisto.GetBinContent(systHisto.GetXaxis().FindBin("preselection"), lheScaleYieldAtPreselBin)
+                avgRescaleFactor = preselTotal/systAtPresel if systAtPresel != 0 else 1.0
                 for binx in range(0, histo.GetNbinsX()+2):
                     binc = histo.GetBinContent(binx, biny)
                     bine = histo.GetBinError(binx, biny)
@@ -225,7 +231,7 @@ def generateHistoList(histoBaseName, samples, variableName, fileNames, scale=1, 
                         binc = histo.GetBinContent(binx, biny)
                         bine = histo.GetBinError(binx, biny)
                         if "up" in yBinLabel.lower():
-                            print("DEBUG: set {} xbin {} bin content from {} to {} + {} = {}; set bin error from {} to {}; normSyst={}, nominal={}".format(yBinLabel, binx, binc, binc, nominal*normSyst, binc + nominal*normSyst, bine, math.sqrt( pow(nominal*normSyst, 2) + pow(bine, 2) ), normSyst, nominal))
+                            # print("DEBUG: set {} xbin {} bin content from {} to {} + {} = {}; set bin error from {} to {}; normSyst={}, nominal={}".format(yBinLabel, binx, binc, binc, nominal*normSyst, binc + nominal*normSyst, bine, math.sqrt( pow(nominal*normSyst, 2) + pow(bine, 2) ), normSyst, nominal))
                             histo.SetBinContent(binx, biny, binc + nominal*normSyst)
                         else:
                             histo.SetBinContent(binx, biny, binc - nominal*normSyst)
