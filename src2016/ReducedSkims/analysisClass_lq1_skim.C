@@ -508,6 +508,15 @@ void analysisClass::Loop()
       c_ele_final_ptCut         = c_ele_final -> SkimByMinPt<Electron>( ele_PtCut  );
       c_ele_vLoose_ptCut         = c_ele_vLoose -> SkimByMinPt<LooseElectron>( 10.0 );
     }
+    bool doPrint = false;
+    //if(event%1000 == 0)
+    //    doPrint = true;
+    if(doPrint) {
+    std::cout << static_cast<unsigned int>(run) << " " << static_cast<unsigned int>(ls) << " " << static_cast<unsigned int>(event) << std::endl;
+    std::cout << "\tINFO after c_ele_final_ptCut is assigned: ";
+    std::cout << "\t"; c_ele_final_ptCut->examine<Electron>("c_ele_final_ptCut");
+    std::cout << "\t"; c_ele_all->examine<Electron>("c_ele_all");
+    }
     // look at final electrons
     //Electron ele1_tmp;
     //if(c_ele_final->GetSize() > 0)
@@ -580,6 +589,11 @@ void analysisClass::Loop()
     CollectionPtr c_pfjet_final                       = c_pfjet_central_ID_noLeptonOverlap;
     //c_pfjet_final->examine<PFJet>("c_pfjet_final");
     CollectionPtr c_pfjet_final_ptCut                 = c_pfjet_final                        -> SkimByMinPt      <PFJet>          ( jet_PtCut );
+    if(doPrint) {
+        std::cout << "\tINFO after PFJet (central )handling: ";
+        std::cout << "\t"; c_ele_final_ptCut->examine<Electron>("c_ele_final_ptCut");
+        std::cout << "\t"; c_ele_all->examine<Electron>("c_ele_all");
+    }
 
     //c_pfjet_final_ptCut->examine<PFJet>("c_pfjet_final_ptCut");
     //if(c_pfjet_final->GetSize() > 4) {
@@ -660,6 +674,11 @@ void analysisClass::Loop()
     metSystematics["Phi_eesdown"] = (v_PFMETType1Cor + v_delta_met).Phi();
     v_delta_met.SetPtEtaPhiM(0.,0.,0.,0.);
 
+    if(doPrint) {
+    std::cout << "\tINFO after energy scaling handling: ";
+    std::cout << "\t"; c_ele_final_ptCut->examine<Electron>("c_ele_final_ptCut");
+    std::cout << "\t"; c_ele_all->examine<Electron>("c_ele_all");
+    }
 
     //-----------------------------------------------------------------
     // We need high-eta jets in order to look at boson recoil
@@ -674,6 +693,11 @@ void analysisClass::Loop()
     CollectionPtr c_pfjet_highEta_final              = c_pfjet_highEta_ID_noLeptonOverlap;
     CollectionPtr c_pfjet_highEta_final_ptCut        = c_pfjet_highEta_final                -> SkimByMinPt      <PFJet>          ( jet_PtCut );
 
+    if(doPrint) {
+    std::cout << "\tINFO after highEta jet handling: ";
+    std::cout << "\t"; c_ele_final_ptCut->examine<Electron>("c_ele_final_ptCut");
+    std::cout << "\t"; c_ele_all->examine<Electron>("c_ele_all");
+    }
     //-----------------------------------------------------------------
     // Get ready to fill variables 
     //-----------------------------------------------------------------
@@ -828,8 +852,11 @@ void analysisClass::Loop()
 
     //if(n_ele_ptCut < 1) {
     //  std::cout << "NO GOOD ELECTRON FOUND! " << 
-    //    static_cast<unsigned int>(run) << " " << static_cast<unsigned int>(luminosityBlock) << " " << static_cast<unsigned int>(event) << std::endl;
-    //  c_ele_all->examine<Electron>("c_ele_all");
+    if(doPrint) {
+    std::cout << "\tINFO after n_ele_ptCut assigned: ";
+    std::cout << "\t"; c_ele_final_ptCut->examine<Electron>("c_ele_final_ptCut");
+    std::cout << "\t"; c_ele_all->examine<Electron>("c_ele_all");
+    }
     //}
     //-----------------------------------------------------------------
     // All skims need GEN particles/jets
@@ -1513,7 +1540,7 @@ void analysisClass::Loop()
           fillVariableWithValue("M_e2j1_EES_Up"     , (t_ele2ScaledUp+t_jet1).M());
           fillVariableWithValue("M_e2j1_EES_Dn"     , (t_ele2ScaledDown+t_jet1).M());
           for(int idx = 1; idx < compSystNames.size(); ++idx)
-            fillVariableWithValue("M_e2j1_"+compSystNames[idx], (t_ele2+jet1FourVectors_ptVariations[idx]).M());
+            fillVariableWithValue("M_e2j1_"+compSystNames[idx], (t_ele2+jet1FourVectors_ptVariations[idx-1]).M());
         }
 
         if ( n_jet_store >= 2 ){ 
