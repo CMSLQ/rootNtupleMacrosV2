@@ -13,11 +13,11 @@ gROOT.ProcessLine("gErrorIgnoreLevel = kWarning;")
 
 if len(sys.argv) < 4:
     print("ERROR: did not find MC/data combined plot file or QCD plot file or year")
-    print("Usage: python calc_DYJetsAndTTBarRescale_And_xsecFile.py combinedQCDPlotFile.root combinedDataMCPlotFile.root year")
+    print("Usage: python makeStackHistoTemplateV2_eejj.py combinedQCDPlotFile.root /path/to/combinedDataMCPlotFiles year")
     exit(-1)
 if len(sys.argv) > 4:
     print("ERROR: found extra arguments")
-    print("Usage: python calc_DYJetsAndTTBarRescale_And_xsecFile.py combinedQCDPlotFile.root combinedDataMCPlotFile.root year")
+    print("Usage: python makeStackHistoTemplateV2_eejj.py combinedQCDPlotFile.root /path/to/combinedDataMCPlotFiles year")
     exit(-1)
 
 qcdFile = sys.argv[1]
@@ -39,6 +39,7 @@ do2016pre = False
 do2016post = False
 do2017 = False
 do2018 = False
+doRunII = False
 if '2016preVFP' in year:
     do2016 = True
     do2016pre = True
@@ -51,13 +52,15 @@ elif '2017' in year:
     do2017 = True
 elif '2018' in year:
     do2018 = True
+elif 'RunII' == year or 'all' == year.lower():
+    doRunII = True
 else:
-    print("ERROR: could not find one of 2017/2017/2018 in given year. cannot do year-specific customizations. quitting.")
+    print("ERROR: could not find one of 2017/2017/2018/RunII/all in given year. cannot do year-specific customizations. quitting.")
     exit(-1)
-if "2016" in year:
-    year = 2016
-else:
-    year = int(year)
+# if "2016" in year:
+#     year = 2016
+# else:
+#     year = int(year)
 
 # LQmasses = [700, 1500]  # new samples don't have 650 GeV point
 #LQmasses = [1500, 2000]  # new samples don't have 650 GeV point
@@ -210,6 +213,17 @@ elif do2018:
         # "Z/#gamma* + jets (MG5_aMC jet-binned)",
         # "Z/#gamma* + jets (MG5_aMC jet/pt-binned)",
     ])
+elif doRunII:
+    ilumi = "138.0"
+    samplesForStackHistos_ZJets = ["ZJet_amcatnlo_ptBinned_IncStitch"]
+    samplesForStackHistos_other = ["SingleTop", "DIBOSON_nlo"]  # UL with single/double QCD fakes from data
+    samplesForStackHistos_ttbar = ["TTTo2L2Nu"]  # UL with single/double QCD fakes from data
+    keysStack = ["QCD multijet (data)"] if doQCD else []
+    keysStack.extend([
+        "Other backgrounds",
+        "t#bar{t} (powheg)",
+        "Z/#gamma* + jets (MG5_aMC Pt+IncStitch)",
+    ])
 
 #samplesForStackHistos_ZJets  = [ "TTbar_FromData", "ZJet_Madgraph" ]
 # older
@@ -222,7 +236,10 @@ samplesForStackHistosMC = (
 )
 samplesForStackHistos = [samplesForStackHistos_QCD] + samplesForStackHistosMC
 
-dataMCFilesDict = {sample: GetFile(dataMCFilePath + "analysisClass_lq_eejj_{}_plots.root".format(sample)) for sample in samplesForStackHistosMC}
+if doRunII:
+    dataMCFilesDict = {sample: GetFile(dataMCFilePath + "analysisClass_{}_combinedRunII_plots.root".format(sample)) for sample in samplesForStackHistosMC}
+else:
+    dataMCFilesDict = {sample: GetFile(dataMCFilePath + "analysisClass_lq_eejj_{}_plots.root".format(sample)) for sample in samplesForStackHistosMC}
 #samplesForStackHistos += samplesForStackHistos_other + samplesForStackHistos_ttbar + samplesForStackHistos_ZJets
 # print 'samplesForStackHistos',samplesForStackHistos
 # keysStack             = [ "Other backgrounds", "QCD multijet", "t#bar{t} (Madgraph)"  ,  "Z/#gamma* + jets (MG HT)"  ]
@@ -252,7 +269,10 @@ signalSampleName = "LQToDEle_M-{}_pair"
 signalSampleLabel = "LQToDEle, M={} GeV"
 samplesForHistos = [signalSampleName.format(lqmass) for lqmass in LQmasses]
 for sample in samplesForHistos:
-    dataMCFilesDict[sample] = GetFile(dataMCFilePath + "analysisClass_lq_eejj_{}_plots.root".format(sample))
+    if doRunII:
+        dataMCFilesDict[sample] = GetFile(dataMCFilePath + "analysisClass_{}_combinedRunII_plots.root".format(sample))
+    else:
+        dataMCFilesDict[sample] = GetFile(dataMCFilePath + "analysisClass_lq_eejj_{}_plots.root".format(sample))
 keys = [signalSampleLabel.format(lqmass) for lqmass in LQmasses]
 # no signal
 # samplesForHistos = []
@@ -263,7 +283,10 @@ samplesForHistos_blank = []
 keys_blank = []
 
 sampleForDataHisto = "DATA"
-dataMCFilesDict[sampleForDataHisto] = GetFile(dataMCFilePath + "analysisClass_lq_eejj_DATA_plots.root")
+if doRunII:
+    dataMCFilesDict[sampleForDataHisto] = GetFile(dataMCFilePath + "analysisClass_DATA_combinedRunII_plots.root")
+else:
+    dataMCFilesDict[sampleForDataHisto] = GetFile(dataMCFilePath + "analysisClass_lq_eejj_DATA_plots.root")
 #sampleForDataHisto = "SingleElectron_2016_HIPM"
 #sampleForDataHisto = "SingleElectron_2016"
 # dataBlindAbovePt1 = 800 # GeV; used for ele Pt1, Mee, Mej
@@ -670,7 +693,7 @@ if doPreselPlots:
     plots[-1].ylog = "yes"
     plots[-1].xtit = "2nd Jet p_{T} (GeV) [Preselection]"
 
-    plots.append(makeDefaultPlot("Pt3rdJet_PAS", systs=doSystematics))  # can't renorm at preselection since the event selection is effectively different here
+    plots.append(makeDefaultPlot("Pt3rdJet_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
     plots[-1].rebin = pt_rebin
     # plots[-1].ymax = 1e4
     # plots[-1].ymin = 1e-1
@@ -697,7 +720,7 @@ if doPreselPlots:
     plots[-1].ylog = "yes"
     plots[-1].xtit = "2nd Jet #eta [Preselection]"
 
-    plots.append(makeDefaultPlot("Eta3rdJet_PAS", systs=doSystematics,))  # can't renorm at preselection since the event selection is effectively different here
+    plots.append(makeDefaultPlot("Eta3rdJet_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
     plots[-1].rebin = 2
     # plots[-1].ymax = 200000000
     # plots[-1].ymin = 1e-1
@@ -720,7 +743,7 @@ if doPreselPlots:
     plots[-1].ylog = "yes"
     plots[-1].xtit = "2nd Jet #phi [Preselection]"
 
-    plots.append(makeDefaultPlot("Phi3rdJet_PAS", systs=doSystematics))  # can't renorm at preselection since the event selection is effectively different here
+    plots.append(makeDefaultPlot("Phi3rdJet_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
     plots[-1].rebin = 1
     # plots[-1].ymax = 4e7
     # plots[-1].ymin = 1e-1
