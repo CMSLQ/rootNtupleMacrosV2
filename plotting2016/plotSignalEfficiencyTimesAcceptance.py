@@ -90,15 +90,16 @@ def plotSignalEfficiencyTimesAcceptance(filePath, signalNameTemplate, mass_point
             # firstBinContent = eventsPassingHist.GetBinContent(1)
             # firstBinError = eventsPassingHist.GetBinError(1)
         # totalEventsByMass.append(round(noCutEntries, 3))
-        totalEventsByMass.append(round(sumWeights, 3))
+        totalEventsByMass.append(sumWeights)
         if doPDFReweight and "2016" in filename:
             if "LQToBEle" in filename or "LQToDEle" in filename:
                 totalEventsByMass.pop()
-                totalEventsByMass.append(round(lhePdfWeightSumw, 3))
+                totalEventsByMass.append(lhePdfWeightSumw)
                 print("\tapplying LHEPdfWeight={} to dataset={}".format(
                         lhePdfWeightSumw, filename)+"[instead of original sumWeights={}]".format(sumWeights))
     
-        eventsAtFinalSelByMass.append(round(binContent, 4))
+        # eventsAtFinalSelByMass.append(round(binContent, 4))
+        eventsAtFinalSelByMass.append(binContent)
         histTotal.SetBinContent(histTotal.FindBin(mass), sumWeights)
         # old approximation: take the relative stat error from the "raw" number of MC events and apply it to the sumWeights
         # histTotal.SetBinError(histTotal.FindBin(mass), sumWeights*firstBinError/firstBinContent)
