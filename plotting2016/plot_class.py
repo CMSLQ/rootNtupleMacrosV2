@@ -663,71 +663,71 @@ def GetSystematicGraphAndHist(bkgTotalHist, systNames, verbose=False):
 
 # The Plot class: add members if needed
 class Plot:
-    data_file_name = ""
-    histos = []  # list of histograms to be plotted in this plot
-    keys = []  # list of keys to be put in the legend (1 key per histo)
-    histosStack = (
-        []
-    )  # list of histograms to be plotted in this plot -- stack histo format
-    keysStack = (
-        []
-    )  # list of keys to be put in the legend (1 key per histo) -- stack histo format
-    xtit = ""  # xtitle
-    ytit = ""  # ytitle
-    xmin = ""  # min x axis range (need to set both min and max. Leave it as is for full range)
-    xmax = ""  # max x axis range (need to set both min and max. Leave it as is for full range)
-    ymin = ""  # min y axis range (need to set both min and max. Leave it as is for full range)
-    ymax = ""  # max y axis range (need to set both min and max. Leave it as is for full range)
-    lpos = (
-        ""  # legend position (default = top-right, option="bottom-center", "top-left")
-    )
-    #    xlog        = "" # log scale of X axis (default = no, option="yes") ### IT SEEMS IT DOES NOT WORK
-    ylog = ""  # log scale of Y axis (default = no, option="yes")
-    rebin = ""  # rebin x axis (default = 1, option = set it to whatever you want )
-    addOvfl = "yes"  # add the overflow bin to the last visible bin (default = "yes", option="no")
-    name = ""  # name of the final plots
-    lint = (
-        "2130 pb^{-1}"  # integrated luminosity of the sample ( example "10 pb^{-1}" )
-    )
-    addZUncBand = "no"  # add an uncertainty band coming from the data-MC Z+jets rescaling (default = "no", option="yes")
-    ZUncKey = "Z/#gamma/Z* + jets unc."  # key to be put in the legend for the Z+jets uncertainty band
-    ZPlotIndex = 1  # index of the Z+jets plots in the histosStack list (default = 1)
-    ZScaleUnc = 0.20  # uncertainty of the data-MC Z+jets scale factor
-    makeRatio = 0  # 1=simple ratio, 2=ratio of cumulative histograms
-    makeNSigma = 0  # 1= yes, 0 = no
-    xbins = ""  # array with variable bin structure
-    histodata = ""  # data histogram
-    gif_folder = ""
-    eps_folder = ""
-    png_folder = "/tmp/"
-    pdf_folder = "/tmp/"
-    c_folder = ""
-    root_folder = "/tmp/"
-    lumi_fb = "0.0"
-    suffix = ""
-    stackColorIndexes = []
-    stackFillStyleIds = []
-    is_integral = False
-    histodataBlindAbove = -1.0
-    doPageNumbers = False
-    addBkgUncBand = False
-    bkgUncKey = "Bkg. syst."
-    bkgTotalHist = ""
-    systNames = []
-    histos2DStack = []
-    isInteractive = False  # draw the plot to the screen; use when running with python -i
-    titleFont = 42
-    markerSize = 1.0
-    markerStyle = kFullCircle
-    lineWidth = 2
-    titleSize = 0.057
-    labelSize = 0.052
-    ratioLabelTextSizeScaleFactor = 2.3
-    sigmaLabelSizeTextSizeScaleFactor = 2.3
-    cmsTextSize = 1.4
-    cmsLumiTextOffset = 0.275
-    cmsLumiTextScaleFactor = 1.4
-    padRightMargin = 0.03
+    def __init__(self):
+        self.histos = []  # list of histograms to be plotted in this plot
+        self.keys = []  # list of keys to be put in the legend (1 key per histo)
+        self.histosStack = (
+            []
+        )  # list of histograms to be plotted in this plot -- stack histo format
+        self.keysStack = (
+            []
+        )  # list of keys to be put in the legend (1 key per histo) -- stack histo format
+        self.xtit = ""  # xtitle
+        self.ytit = ""  # ytitle
+        self.xmin = ""  # min x axis range (need to set both min and max. Leave it as is for full range)
+        self.xmax = ""  # max x axis range (need to set both min and max. Leave it as is for full range)
+        self.ymin = ""  # min y axis range (need to set both min and max. Leave it as is for full range)
+        self.ymax = ""  # max y axis range (need to set both min and max. Leave it as is for full range)
+        self.lpos = (
+            ""  # legend position (default = top-right, option="bottom-center", "top-left")
+        )
+        #    xlog        = "" # log scale of X axis (default = no, option="yes") ### IT SEEMS IT DOES NOT WORK
+        self.ylog = ""  # log scale of Y axis (default = no, option="yes")
+        self.rebin = ""  # rebin x axis (default = 1, option = set it to whatever you want )
+        self.addOvfl = "yes"  # add the overflow bin to the last visible bin (default = "yes", option="no")
+        self.name = ""  # name of the final plots
+        self.lint = (
+            "2130 pb^{-1}"  # integrated luminosity of the sample ( example "10 pb^{-1}" )
+        )
+        self.addZUncBand = "no"  # add an uncertainty band coming from the data-MC Z+jets rescaling (default = "no", option="yes")
+        self.ZUncKey = "Z/#gamma/Z* + jets unc."  # key to be put in the legend for the Z+jets uncertainty band
+        self.ZPlotIndex = 1  # index of the Z+jets plots in the histosStack list (default = 1)
+        self.ZScaleUnc = 0.20  # uncertainty of the data-MC Z+jets scale factor
+        self.makeRatio = 0  # 1=simple ratio, 2=ratio of cumulative histograms
+        self.makeNSigma = 0  # 1= yes, 0 = no
+        self.xbins = ""  # array with variable bin structure
+        self.histodata = ""  # data histogram
+        self.gif_folder = ""
+        self.eps_folder = ""
+        self.png_folder = "/tmp/"
+        self.pdf_folder = "/tmp/"
+        self.c_folder = ""
+        self.root_folder = "/tmp/"
+        self.lumi_fb = "0.0"
+        self.suffix = ""
+        self.stackColorIndexes = []
+        self.stackFillStyleIds = []
+        self.is_integral = False
+        self.histodataBlindAbove = -1.0
+        self.doPageNumbers = False
+        self.addBkgUncBand = False
+        self.bkgUncKey = "Bkg. syst."
+        self.bkgTotalHist = ""
+        self.systNames = []
+        self.histos2DStack = []
+        self.isInteractive = False  # draw the plot to the screen; use when running with python -i
+        self.titleFont = 42
+        self.markerSize = 1.0
+        self.markerStyle = kFullCircle
+        self.lineWidth = 2
+        self.titleSize = 0.057
+        self.labelSize = 0.052
+        self.ratioLabelTextSizeScaleFactor = 2.3
+        self.sigmaLabelSizeTextSizeScaleFactor = 2.3
+        self.cmsTextSize = 1.4
+        self.cmsLumiTextOffset = 0.275
+        self.cmsLumiTextScaleFactor = 1.4
+        self.padRightMargin = 0.03
 
     def Draw(self, fileps, page_number=-1):
         if self.isInteractive:
@@ -1405,7 +1405,6 @@ class Plot:
 
 
 class Plot2D:
-    data_file_name = ""
     hasData = True
     histos = []  # list of histograms to be plotted in this plot
     keys = []  # list of keys to be put in the legend (1 key per histo)
@@ -1630,7 +1629,6 @@ class Plot2D:
 
 
 class Plot2DNSigma:
-    data_file_name = ""
     histos = []  # list of histograms to be plotted in this plot
     keys = []  # list of keys to be put in the legend (1 key per histo)
     histosStack = (
@@ -1797,7 +1795,6 @@ class Plot2DNSigma:
 
 
 class Plot2DRatio:
-    data_file_name = ""
     histos = []  # list of histograms to be plotted in this plot
     keys = []  # list of keys to be put in the legend (1 key per histo)
     histosStack = (
