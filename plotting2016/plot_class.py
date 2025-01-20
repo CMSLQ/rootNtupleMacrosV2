@@ -10,12 +10,13 @@ import sys
 import math
 import os
 import os.path
-from ROOT import gROOT, gStyle, gPad, kTRUE, kWhite, kRed, kOrange, kYellow, kSpring, kGreen, kTeal, kCyan, kAzure, kBlack, kBlue, kViolet, kMagenta, kGray
-from ROOT import TCanvas, TPad, THStack, TLatex, TLegend, TFile, TH2D, TH1D, TGraph, TLine, TText, TGraphAsymmErrors
+from ROOT import gROOT, gStyle, gPad, kTRUE, kWhite, kRed, kOrange, kYellow, kSpring, kGreen, kTeal, kCyan, kAzure, kBlack, kBlue, kViolet, kMagenta, kGray, kFullCircle
+from ROOT import TCanvas, TPad, THStack, TLatex, TLegend, TFile, TH2D, TH1D, TGraph, TLine, TText, TGraphAsymmErrors, TH1
 from array import array
 import copy
 import numpy as np
 from tabulate import tabulate
+import cmsstyle as CMS
 
 # --- ROOT general options
 gROOT.SetBatch(kTRUE)
@@ -708,12 +709,25 @@ class Plot:
     stackFillStyleIds = []
     is_integral = False
     histodataBlindAbove = -1.0
+    doPageNumbers = False
     addBkgUncBand = False
     bkgUncKey = "Bkg. syst."
     bkgTotalHist = ""
     systNames = []
     histos2DStack = []
     isInteractive = False  # draw the plot to the screen; use when running with python -i
+    titleFont = 42
+    markerSize = 1.0
+    markerStyle = kFullCircle
+    lineWidth = 2
+    titleSize = 0.057
+    labelSize = 0.052
+    ratioLabelTextSizeScaleFactor = 2.3
+    sigmaLabelSizeTextSizeScaleFactor = 2.3
+    cmsTextSize = 1.4
+    cmsLumiTextOffset = 0.275
+    cmsLumiTextScaleFactor = 1.4
+    padRightMargin = 0.03
 
     def Draw(self, fileps, page_number=-1):
         if self.isInteractive:
@@ -764,6 +778,8 @@ class Plot:
             if self.makeRatio == 1:
                 fPads1 = TPad("pad1", "", 0.00, 0.20, 0.99, 0.99)
                 fPads2 = TPad("pad2", "", 0.00, 0.00, 0.99, 0.20)
+                fPads1.SetRightMargin(self.padRightMargin)
+                fPads2.SetRightMargin(self.padRightMargin)
                 fPads1.SetFillColor(0)
                 fPads1.SetLineColor(0)
                 fPads2.SetFillColor(0)
@@ -772,6 +788,7 @@ class Plot:
                 fPads2.Draw()
             else:
                 fPads1 = TPad("pad1", "", 0.00, 0.0, 0.99, 0.99)
+                fPads1.SetRightMargin(self.padRightMargin)
                 fPads1.SetFillColor(0)
                 fPads1.SetLineColor(0)
                 fPads1.Draw()
@@ -781,6 +798,9 @@ class Plot:
                 fPads1 = TPad("pad1", "", 0.00, 0.40, 0.99, 0.99)
                 fPads3 = TPad("pad3", "", 0.00, 0.20, 0.99, 0.40)
                 fPads2 = TPad("pad2", "", 0.00, 0.00, 0.99, 0.20)
+                fPads1.SetRightMargin(self.padRightMargin)
+                fPads2.SetRightMargin(self.padRightMargin)
+                fPads3.SetRightMargin(self.padRightMargin)
                 fPads1.SetFillColor(0)
                 fPads1.SetLineColor(0)
                 fPads2.SetFillColor(0)
@@ -793,6 +813,8 @@ class Plot:
             else:
                 fPads1 = TPad("pad1", "", 0.00, 0.20, 0.99, 0.99)
                 fPads3 = TPad("pad3", "", 0.00, 0.00, 0.99, 0.20)
+                fPads1.SetRightMargin(self.padRightMargin)
+                fPads3.SetRightMargin(self.padRightMargin)
                 fPads1.SetFillColor(0)
                 fPads1.SetLineColor(0)
                 fPads3.SetFillColor(0)
@@ -811,8 +833,8 @@ class Plot:
         # -- legend
         #        hsize=0.22
         #        vsize=0.26
-        hsize = 0.21
-        vsize = 0.33
+        hsize = 0.2
+        vsize = 0.35
 
         if self.lpos == "bottom-center":
             xstart = 0.35
@@ -825,7 +847,7 @@ class Plot:
         else:
             # xstart=0.68
             # xstart = 0.65
-            xstart = 0.75
+            xstart = 0.65
             # ystart = 0.52
             ystart = 0.55
             if self.makeRatio == 0 and self.makeNSigma == 0:
@@ -833,13 +855,13 @@ class Plot:
                 vsize = 0.25
         #            xstart=0.65
         #            ystart=0.63
-        legend = TLegend(xstart, ystart, xstart + hsize, ystart + vsize)
+        legend = CMS.cmsLeg(xstart, ystart, xstart + hsize, ystart + vsize)
         legend.SetFillColor(kWhite)
         legend.SetBorderSize(0)
         legend.SetShadowColor(10)
         legend.SetMargin(0.2)
-        legend.SetTextFont(132)
-        legend.AddEntry(self.histodata, "Data, " + self.lumi_fb + " fb^{-1}", "lp")
+        legend.SetTextFont(self.titleFont)
+        legend.AddEntry(self.histodata, "Data", "lp")
 
         # -- loop over histograms (stacked)
         # stackColorIndexes = [20,38,14,45,20,38,14,45]
@@ -866,7 +888,7 @@ class Plot:
             stackedHistos[-1].SetMarkerStyle(20 + 2 * index)
             stackedHistos[-1].SetMarkerColor(self.stackColorIndexes[index])
             stackedHistos[-1].SetLineColor(self.stackColorIndexes[index])
-            stackedHistos[-1].SetLineWidth(2)
+            stackedHistos[-1].SetLineWidth(self.lineWidth)
             stackedHistos[-1].SetFillColor(self.stackColorIndexes[index])
             stackedHistos[-1].SetFillStyle(self.stackFillStyleIds[index])
             # set style
@@ -944,7 +966,7 @@ class Plot:
             thStack.SetMaximum(my_ymax)
         else:
             my_ymin = 1e-1
-            my_ymax = plot_maximum + 100 * math.sqrt(plot_maximum)
+            my_ymax = plot_maximum + 1000 * math.sqrt(plot_maximum)
             my_ymax = my_ymax * 10
             xtitLow = self.xtit.lower()
             if 'eta' in xtitLow or 'phi' in xtitLow or 'charge' in xtitLow or 'm(ee) [80, 100]' in xtitLow or 'm(ee) [70, 110]' in xtitLow:
@@ -956,18 +978,18 @@ class Plot:
         thStack.Draw()
         # print("INFO: Draw stack for thStack xtit={}".format(self.xtit), flush=True)
         thStack.GetXaxis().SetTitle(self.xtit)
-        thStack.GetXaxis().SetTitleFont(132)
-        thStack.GetXaxis().SetTitleOffset(0.8)
-        thStack.GetXaxis().SetLabelOffset(0.0)
-        thStack.GetXaxis().SetTitleSize(0.065)
-        thStack.GetXaxis().SetLabelSize(0.055)
-        thStack.GetXaxis().SetLabelFont(132)
-        thStack.GetYaxis().SetTitleFont(132)
-        thStack.GetYaxis().SetTitleOffset(0.7)
-        thStack.GetYaxis().SetTitleSize(0.065)
-        thStack.GetYaxis().SetLabelSize(0.055)
+        thStack.GetXaxis().SetTitleOffset(0.9)
+        thStack.GetXaxis().SetLabelOffset(1e-3)
+        thStack.GetXaxis().SetTitleSize(self.titleSize)
+        thStack.GetXaxis().SetLabelSize(self.labelSize)
+        thStack.GetYaxis().SetTitleOffset(0.75)
+        thStack.GetYaxis().SetTitleSize(self.titleSize)
+        thStack.GetYaxis().SetLabelSize(self.labelSize)
         thStack.GetYaxis().SetLabelOffset(0.0)
-        thStack.GetYaxis().SetLabelFont(132)
+        thStack.GetXaxis().SetTitleFont(self.titleFont)
+        thStack.GetXaxis().SetLabelFont(self.titleFont)
+        thStack.GetYaxis().SetTitleFont(self.titleFont)
+        thStack.GetYaxis().SetLabelFont(self.titleFont)
         thStack.GetYaxis().SetTitle(
             self.ytit + " #times (" + str(minBinW) + ")/(bin width)"
         )  # units omitted or no units for x-axis
@@ -1034,12 +1056,13 @@ class Plot:
 
         # -- plot data
         if self.histodata != "":
-            self.histodata.SetMarkerStyle(20)
-            self.histodata.SetMarkerSize(0.8)
-            self.histodata.SetLineWidth(2)
+            self.histodata.SetMarkerStyle(self.markerStyle)
+            self.histodata.SetMarkerSize(self.markerSize)
+            self.histodata.SetLineWidth(self.lineWidth)
             self.histodata.SetLineColor(kBlack)
             # legend.AddEntry(self.histodata, "Data","lp")
             # self.histodata.Draw("e0psame")
+            self.histodata.SetBinErrorOption(TH1.kPoisson)
             self.histodata.Draw("e0same")
             if self.histodataBlindAbove >= 0:
                 # print 'drawing TLine:',self.histodataBlindAbove,',',self.histodata.GetYaxis().GetXmin(),',',self.histodataBlindAbove,',',self.histodata.GetYaxis().GetXmax()
@@ -1063,52 +1086,15 @@ class Plot:
                     )
                 blindLine = TLine(xborder, my_ymin, xborder, my_ymax)
                 # blindLine = TLine(self.histodataBlindAbove,my_ymin,self.histodataBlindAbove,my_ymax)
-                blindLine.SetLineStyle(2)
-                blindLine.SetLineWidth(2)
+                blindLine.SetLineStyle(self.lineWidth)
+                blindLine.SetLineWidth(self.lineWidth)
                 # blindLine.SetLineColor(0)
                 blindLine.Draw("same")
 
-        # -- draw label
-        labelOffset = 0.03
-        ystart -= labelOffset
-        l = TLatex()
-        l.SetTextAlign(12)
-        l.SetTextFont(132)
-        # l.SetTextSize(0.065)
-        l.SetTextSize(0.055)
-        if self.makeRatio == 0 and self.makeNSigma == 0:
-            l.SetTextSize(0.041)
-        l.SetNDC()
-        if self.lpos == "bottom-center":
-            l.DrawLatex(0.35, 0.20, "CMS")
-            #            l.DrawLatex(0.35,0.20,"CMS Preliminary 2010")
-            #            l.DrawLatex(0.35,0.10,"#intLdt = " + self.lint)
-        if self.lpos == "top-left":
-            # l.DrawLatex(xstart+hsize+0.02,ystart+vsize-0.03,"CMS")
-            l.DrawLatex(xstart + hsize + 0.02, ystart + vsize - 0.03, "CMS Preliminary")
-            l.DrawLatex(
-                xstart + hsize + 0.02, ystart + vsize - 0.13, "#sqrt{s} = 13 TeV"
-            )
-        #            l.DrawLatex(xstart+hsize+0.02,ystart+vsize-0.13,"#intLdt = " + self.lint)
-        else:
-            if self.makeRatio == 0 and self.makeNSigma == 0:
-                l.DrawLatex(
-                    xstart - hsize + 0, ystart + vsize - 0.05, "CMS Preliminary"
-                )
-                l.DrawLatex(
-                    xstart - hsize + 0, ystart + vsize - 0.11, "#sqrt{s} = 13 TeV"
-                )
-                # l.DrawLatex(xstart-hsize+0,ystart+vsize-0.11,"#sqrt{s} = 8 TeV")
-            else:
-                # l.DrawLatex(xstart-hsize+0,ystart+vsize-0.05,"CMS Preliminary")
-                # l.DrawLatex(xstart-hsize+0,ystart+vsize-0.15,"#sqrt{s} = 13 TeV")
-                l.DrawLatex(xstart - hsize + 0, ystart + vsize - 0.0, "CMS Preliminary")
-                l.DrawLatex(
-                    xstart - hsize + 0, ystart + vsize - 0.05, "#sqrt{s} = 13 TeV"
-                )
-
-        #            l.DrawLatex(xstart-hsize-0.10,ystart+vsize-0.03,"CMS Preliminary 2010")
-        #            l.DrawLatex(xstart-hsize-0.10,ystart+vsize-0.13,"#intLdt = " + self.lint)
+#        # -- draw label
+        CMS.SetCmsTextSize(self.cmsTextSize)
+        CMS.lumiTextOffset = self.cmsLumiTextOffset 
+        CMS.CMS_lumi(fPads1, 11, scaleLumi=self.cmsLumiTextScaleFactor)
 
         legend.Draw()
         canvas.Update()
@@ -1121,8 +1107,9 @@ class Plot:
             h_ratio = copy.deepcopy(self.histodata)
             h_ratioSyst = copy.deepcopy(self.histodata)
             h_nsigma = copy.deepcopy(self.histodata)
-            h_bkgTot1 = TH1D()
-            h_ratio1 = TH1D()
+            h_bkgTot1 = copy.deepcopy(bkgTotalHist)
+            h_dataCopy = copy.deepcopy(self.histodata)
+            h_ratio1 = TGraphAsymmErrors()
             h_nsigma1 = TH1D()
 
             if self.xbins != "" and self.rebin != "var":  ## Variable binning
@@ -1134,7 +1121,7 @@ class Plot:
                     #bins = h_bkgTot.GetXaxis().GetXbins()
                     #h_bkgUnc1.Rebin(bins.GetSize()-1, "bkgUnc1Rebin", np.ndarray(bins.GetSize(), buffer=bins.GetArray()))
                     h_bkgUnc1 = h_bkgUnc1.Rebin(length, "h_bkgUnc1", xbinsFinal)
-                h_ratio1 = h_ratio.Rebin(length, "h_ratio1", xbinsFinal)
+                # h_ratio1 = h_ratio.Rebin(length, "h_ratio1", xbinsFinal)
                 h_nsigma1 = h_nsigma.Rebin(length, "h_nsigma1", xbinsFinal)
             else:
                 h_bkgTot1 = h_bkgTot
@@ -1142,7 +1129,7 @@ class Plot:
                     h_bkgUnc1 = copy.deepcopy(self.bkgUncHist)
                     #bins = h_bkgTot1.GetXaxis().GetXbins()
                     #h_bkgUnc1 = h_bkgUnc1.Rebin(bins.GetSize()-1, "bkgUnc1Rebin", np.ndarray(bins.GetSize(), buffer=bins.GetArray()))
-                h_ratio1 = h_ratio
+                # h_ratio1 = h_ratio
                 h_nsigma1 = h_nsigma
 
             h_ratio1.SetStats(0)
@@ -1158,27 +1145,25 @@ class Plot:
             h_ratioSyst = copy.deepcopy(h_ratio1)
             if self.makeRatio == 1:
                 fPads2.cd()
-                # fPads2.SetLogy()
-                fPads2.SetGridy()
-                h_ratio1.Divide(h_bkgTot1)
+                divOptions = "poiscpe0"
+                h_ratio1.Divide(h_dataCopy, h_bkgTot1, divOptions)
 
                 h_ratio1.GetXaxis().SetTitle("")
-                # h_ratio1.GetXaxis().SetTitleSize(0.06)
-                h_ratio1.GetXaxis().SetLabelSize(0.1)
+                h_ratio1.GetXaxis().SetLabelSize(self.labelSize*self.ratioLabelTextSizeScaleFactor)
                 h_ratio1.GetYaxis().SetRangeUser(0.0, 2)
-                h_ratio1.GetYaxis().SetTitle("Data/MC")
-                h_ratio1.GetYaxis().SetLabelSize(0.1)
-                h_ratio1.GetYaxis().SetTitleSize(0.13)
+                h_ratio1.GetYaxis().SetTitle("data / bkg.")
+                h_ratio1.GetYaxis().SetLabelSize(self.labelSize*self.ratioLabelTextSizeScaleFactor)
+                h_ratio1.GetYaxis().SetTitleSize(self.titleSize*self.ratioLabelTextSizeScaleFactor)
                 h_ratio1.GetYaxis().SetTitleOffset(0.3)
                 h_ratio1.GetYaxis().SetNdivisions(504)
-                h_ratio1.SetMarkerStyle(1)
-                h_ratio1.SetLineWidth(3)
+                h_ratio1.SetMarkerStyle(self.markerStyle)
+                h_ratio1.SetMarkerSize(self.markerSize*0.9)
+                h_ratio1.SetLineWidth(self.lineWidth)
                 h_ratio1.GetXaxis().SetLimits(
                     self.histodata.GetXaxis().GetXmin(),
                     self.histodata.GetXaxis().GetXmax(),
                 )
-
-                h_ratio1.Draw("e0p")
+                h_ratio1.Draw("zp0a")
                 #for xBin in range(0, h_ratio1.GetNbinsX()+1):
                 #    print("INFO: for h_ratio1 [data/MC] xBin={}, center={}, sumQuad={} vs. nominal={}".format(xBin, h_ratio1.GetXaxis().GetBinCenter(xBin), h_ratio1.GetBinError(xBin), h_ratio1.GetBinContent(xBin)))
 
@@ -1198,41 +1183,40 @@ class Plot:
                     ##bgRatioErrs.SetFillColor(kOrange-6)
                     #
                     #h_ratioSyst.Divide(h_bkgUnc1)  # just divide by the bkgTotal hist with the systs as errors
-                    bgRatioErrs = h_ratioSyst
+                    # bgRatioErrs = h_ratioSyst
+                    h_bkgUncRatio = copy.deepcopy(h_bkgUnc1)
                     # set bin contents to 1
-                    for binn in range(0, bgRatioErrs.GetNbinsX()+2):
-                        bgRatioErrs.SetBinContent(binn, 1.0)
-                        binContent = h_bkgUnc1.GetBinContent(binn)
+                    # for binn in range(0, bgRatioErrs.GetNbinsX()+2):
+                    for binn in range(0, h_bkgUncRatio.GetNbinsX()+2):
+                        binContent = h_bkgUncRatio.GetBinContent(binn)
                         if binContent != 0:
-                            bgRatioErrs.SetBinError(binn, h_bkgUnc1.GetBinError(binn)/binContent)
+                            h_bkgUncRatio.SetBinError(binn, h_bkgUncRatio.GetBinError(binn)/binContent)
                             #print("INFO: for bgRatioErrs: binn={}, center={}, binError={} vs. nominal={}; binError/nominal={}".format(binn, bgRatioErrs.GetXaxis().GetBinCenter(binn), bgRatioErrs.GetBinError(binn), bgRatioErrs.GetBinContent(binn), bgRatioErrs.GetBinError(binn)/bgRatioErrs.GetBinContent(binn)))
+                        h_bkgUncRatio.SetBinContent(binn, 1.0)
+                    bgRatioErrs = h_bkgUncRatio
                     bgRatioErrs.SetFillColor(kGray + 1)
                     bgRatioErrs.SetLineColor(kGray + 1)
-                    # bgRatioErrs.SetFillStyle(3001)
-                    # bgRatioErrs.SetFillStyle(3018)
-                    # bgRatioErrs.SetFillStyle(3013)
-                    # bgRatioErrs.SetMarkerSize(1.1)
+                    bgRatioErrs.SetFillStyle(3001)
                     bgRatioErrs.SetMarkerSize(0)
-                    # bgRatioErrs.SetLineColor(kOrange)
-                    # bgRatioErrs.SetLineWidth(3)
-                    # bgRatioErrs.Draw('aE2 aE0 same')
-                    # bgRatioErrs.SetDrawOption('hist')
-                    # bgRatioErrs.Draw('aE2 E0 same')
                     bgRatioErrs.GetXaxis().SetTitle("")
-                    # bgRatioErrs.GetXaxis().SetTitleSize(0.06)
-                    bgRatioErrs.GetXaxis().SetLabelSize(0.1)
+                    bgRatioErrs.GetXaxis().SetLabelSize(self.labelSize*self.ratioLabelTextSizeScaleFactor)
                     bgRatioErrs.GetYaxis().SetRangeUser(0.0, 2)
-                    bgRatioErrs.GetYaxis().SetTitle("Data/MC")
-                    bgRatioErrs.GetYaxis().SetLabelSize(0.1)
-                    bgRatioErrs.GetYaxis().SetTitleSize(0.13)
+                    bgRatioErrs.GetYaxis().SetTitle("data / bkg.")
+                    bgRatioErrs.GetYaxis().SetLabelSize(self.labelSize*self.ratioLabelTextSizeScaleFactor)
+                    bgRatioErrs.GetYaxis().SetTitleSize(self.titleSize*self.ratioLabelTextSizeScaleFactor)
                     bgRatioErrs.GetYaxis().SetTitleOffset(0.3)
+                    bgRatioErrs.GetXaxis().SetTitleFont(self.titleFont)
+                    bgRatioErrs.GetXaxis().SetLabelFont(self.titleFont)
+                    bgRatioErrs.GetYaxis().SetTitleFont(self.titleFont)
+                    bgRatioErrs.GetYaxis().SetLabelFont(self.titleFont)
                     bgRatioErrs.SetMarkerStyle(1)
                     bgRatioErrs.GetXaxis().SetLimits(
                         self.histodata.GetXaxis().GetXmin(),
                         self.histodata.GetXaxis().GetXmax(),
                     )
+                    bgRatioErrs.GetYaxis().SetNdivisions(504)
                     bgRatioErrs.Draw("E2")
-                    h_ratio1.Draw("e0psame")
+                    h_ratio1.Draw("zp0same")
 
                 lineAtOne = TLine(
                     h_ratio1.GetXaxis().GetXmin(), 1, h_ratio1.GetXaxis().GetXmax(), 1
@@ -1256,7 +1240,8 @@ class Plot:
                     if self.addBkgUncBand:
                         eBkgSyst = h_bkgUnc1.GetBinError(ibin)
 
-                    x = h_ratio1.GetBinCenter(ibin)
+                    # x = h_bkgUnc1.GetBinCenter(ibin)
+                    x = h_nsigma1.GetBinCenter(ibin)
 
                     diff = data - bkgd
                     if self.addBkgUncBand:
@@ -1282,13 +1267,12 @@ class Plot:
                         g_nsigma.SetTitle("")
 
                         g_nsigma.Draw("AP")
-                        g_nsigma.SetMarkerStyle(8)
-
-                        g_nsigma.SetMarkerSize(0.4)
+                        g_nsigma.SetMarkerStyle(self.markerStyle)
+                        g_nsigma.SetMarkerSize(self.markerSize*0.9)
 
                         g_nsigma.GetHistogram().GetXaxis().SetTitle("")
-                        g_nsigma.GetHistogram().GetXaxis().SetTitleSize(0.06)
-                        g_nsigma.GetHistogram().GetXaxis().SetLabelSize(0.1)
+                        g_nsigma.GetHistogram().GetXaxis().SetTitleSize(self.titleSize*self.sigmaLabelSizeTextSizeScaleFactor)
+                        g_nsigma.GetHistogram().GetXaxis().SetLabelSize(self.labelSize*self.sigmaLabelSizeTextSizeScaleFactor)
                         g_nsigma.GetHistogram().GetYaxis().SetRangeUser(-5.0, 5)
                         g_nsigma.GetHistogram().GetXaxis().SetLimits(
                             self.histodata.GetXaxis().GetXmin(),
@@ -1296,9 +1280,10 @@ class Plot:
                         )
 
                         g_nsigma.GetHistogram().GetYaxis().SetTitle("N(#sigma) Diff")
-                        g_nsigma.GetHistogram().GetYaxis().SetLabelSize(0.1)
-                        g_nsigma.GetHistogram().GetYaxis().SetTitleSize(0.13)
+                        g_nsigma.GetHistogram().GetYaxis().SetLabelSize(self.labelSize*2)
+                        g_nsigma.GetHistogram().GetYaxis().SetTitleSize(self.titleSize*2)
                         g_nsigma.GetHistogram().GetYaxis().SetTitleOffset(0.3)
+                        g_nsigma.GetHistogram().GetYaxis().SetTitleFont(self.titleFont)
                         g_nsigma.GetHistogram().GetYaxis().SetNdivisions(505)
 
                         lineAtZero = TLine(
@@ -1403,13 +1388,16 @@ class Plot:
         # canvas.SaveAs(self.name + ".root","root")
         # canvas.SaveAs(self.name + ".pdf","pdf") # do not use this line because root creates rotated pdf plot - see end of the file instead
 
-        if page_number >= 0:
+        if self.doPageNumbers and page_number >= 0:
             fPads1.cd()
             page_text = TText()
             page_text.SetTextSize(0.10)
             page_text.SetTextFont(42)
             page_text.SetTextAlign(33)
-            page_text.DrawTextNDC(0.97, 0.999, "%i" % page_number)
+            # FIXME
+            # this y value isn't high enough
+            # likely we need to adjust the fPads1 top margin (and then the lumi text offset)
+            page_text.DrawTextNDC(0.2, 0.999, "%i" % page_number)
 
         canvas.Print(fileps)
         if self.isInteractive:

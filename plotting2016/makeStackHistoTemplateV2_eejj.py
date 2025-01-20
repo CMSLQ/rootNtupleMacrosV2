@@ -6,6 +6,7 @@ import copy
 import numpy as np
 from plot_class import GetFile, Plot, Plot2D, generateHistoList, generateHisto, generateHistoBlank, generateHistoListFakeSystsFromModel, makeTOC, QuasiRebinHisto
 from ROOT import gROOT, kCyan, kRed, TCanvas, TGraphAsymmErrors, TH1D
+import cmsstyle as CMS
 
 gROOT.SetBatch(True)
 gROOT.ProcessLine("gErrorIgnoreLevel = kWarning;")
@@ -221,8 +222,10 @@ elif doRunII:
     keysStack = ["QCD multijet (data)"] if doQCD else []
     keysStack.extend([
         "Other backgrounds",
-        "t#bar{t} (powheg)",
-        "Z/#gamma* + jets (MG5_aMC Pt+IncStitch)",
+        # "t#bar{t} (powheg)",
+        # "Z/#gamma* + jets (MG5_aMC Pt+IncStitch)",
+        "t#bar{t}",
+        "Z/#gamma* + jets",
     ])
 
 #samplesForStackHistos_ZJets  = [ "TTbar_FromData", "ZJet_Madgraph" ]
@@ -245,9 +248,10 @@ else:
 # keysStack             = [ "Other backgrounds", "QCD multijet", "t#bar{t} (Madgraph)"  ,  "Z/#gamma* + jets (MG HT)"  ]
 # keysStack             = [ "Other backgrounds", "QCD multijet", "t#bar{t} (Madgraph)"  ,  "Z/#gamma* + jets (amc@NLO Pt)"  ]
 if doQCD:
-    stackColorIndexes = [kCyan, 9, 600, kRed]
+    # stackColorIndexes = [kCyan, 9, 600, kRed]
+    stackColorIndexes = [CMS.p8.kCyan, CMS.p8.kAzure, CMS.p8.kBlue, CMS.p8.kRed]
 else:
-    stackColorIndexes = [9, 600, kRed]
+    stackColorIndexes = [CMS.p8.kAzure, CMS.p8.kBlue, CMS.p8.kRed]
 stackFillStyleIds = [1001, 1001, 1001, 1001]
 
 ##keysStack             = [ "Other backgrounds", "t#bar{t} (Madgraph)"  ,  "Z/#gamma* + jets (MG Inc)"  ]
@@ -574,7 +578,7 @@ if doPreselPlots:
     plots[-1].rebin = 2
     # plots[-1].ymax = 1e4
     # plots[-1].ymin = 1e-1
-    plots[-1].xmin = 0
+    plots[-1].xmin = 50
     plots[-1].xmax = 1500
     plots[-1].ylog = "yes"
     plots[-1].xtit = "1st Electron p_{T} (GeV) [Preselection]"
@@ -584,7 +588,7 @@ if doPreselPlots:
     plots[-1].rebin = 2
     # plots[-1].ymax = 1e5
     # plots[-1].ymin = 1e-1
-    plots[-1].xmin = 0
+    plots[-1].xmin = 50
     plots[-1].xmax = 1000
     plots[-1].ylog = "yes"
     plots[-1].xtit = "2nd Electron p_{T} (GeV) [Preselection]"
@@ -953,7 +957,7 @@ if doPreselPlots:
     plots[-1].rebin = 1
     plots[-1].addOvfl = "no"
     plots[-1].ymin = 1e-1
-    plots[-1].ymax = 1e6
+    plots[-1].ymax = 1e10
     #plots[-1].rebin = "var"
     #plots[-1].xbins = list(range(0, 410, 10)) + [
     #    420,
@@ -3918,6 +3922,7 @@ if doFinalSelectionPlots:
 ####################################################################################################
 # --- Generate and print the plots from the list 'plots' define above
 ####################################################################################################
+CMS.setCMSStyle()
 c = TCanvas()
 
 fileps = "allPlots_eejj_analysis.ps"
