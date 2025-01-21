@@ -728,6 +728,7 @@ class Plot:
         self.cmsLumiTextOffset = 0.275
         self.cmsLumiTextScaleFactor = 1.4
         self.padRightMargin = 0.04
+        self.extraText = ""
 
     def Draw(self, fileps, page_number=-1, style="AN"):
         if self.isInteractive:
@@ -1091,6 +1092,9 @@ class Plot:
 #        # -- draw label
         CMS.SetCmsTextSize(self.cmsTextSize)
         CMS.lumiTextOffset = self.cmsLumiTextOffset 
+        CMS.ResetAdditionalInfo()
+        if len(self.extraText):
+            CMS.AppendAdditionalInfo(self.extraText)
         CMS.CMS_lumi(fPads1, 11, scaleLumi=self.cmsLumiTextScaleFactor)
 
         legend.Draw()

@@ -252,8 +252,7 @@ if doQCD:
     stackColorIndexes = [CMS.p8.kCyan, CMS.p8.kAzure, CMS.p8.kBlue, CMS.p8.kRed]
 else:
     stackColorIndexes = [CMS.p8.kAzure, CMS.p8.kBlue, CMS.p8.kRed]
-# stackFillStyleIds = [1001, 1001, 1001, 1001]
-stackFillStyleIds = [3013, 3006, 3005, 3004]
+stackFillStyleIds = [1001, 1001, 1001, 1001]
 
 ##keysStack             = [ "Other backgrounds", "t#bar{t} (Madgraph)"  ,  "Z/#gamma* + jets (MG Inc)"  ]
 ##stackColorIndexes     = [ 9                  , 600         ,  kRed           ]
@@ -697,6 +696,16 @@ if doPreselPlots:
     plots[-1].xtit = "PFMET #phi [Preselection]"
     plots[-1].xtitPaper = "#phi(MET)"
 
+    plots.append(makeDefaultPlot("MET_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
+    plots[-1].xtit = "PFMET (GeV) [Preselection]"
+    plots[-1].rebin = 4
+    # plots[-1].ymax = 1e6
+    # plots[-1].ymin = 1e-1
+    plots[-1].xmax = 500
+    plots[-1].xmin = 0
+    plots[-1].ylog = "yes"
+    plots[-1].xtitPaper = "MET (GeV)"
+
     plots.append(makeDefaultPlot("Pt1stJet_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
     plots[-1].rebin = pt_rebin
     # plots[-1].ymax = 1e4
@@ -812,6 +821,24 @@ if doPreselPlots:
     # plots[-1].rebin = 20
     plots[-1].rebin = 5
     plots[-1].ylog = "yes"
+    plots[-1].xtit = "S_{T} (GeV) [Preselection]"
+    plots[-1].xtitPaper = "S_{T} (GeV)"
+
+    plots.append(makeDefaultPlot("sT_PAS", systs=doSystematics, dataBlindAbove=dataBlindAboveSt, rescaleDYJTTBarSystsAtPreselection=True))
+    plots[-1].xmin = 200.0
+    plots[-1].xmax = 3000.0
+    plots[-1].rebin = 5
+    plots[-1].ylog = "yes"
+    plots[-1].xtit = "S_{T} (GeV) [Preselection]"
+    plots[-1].xtitPaper = "S_{T} (GeV)"
+
+    plots.append(makeDefaultPlot("sT_PAS", systs=doSystematics, dataBlindAbove=dataBlindAboveSt, rescaleDYJTTBarSystsAtPreselection=True))
+    plots[-1].xmin = 200.0
+    plots[-1].xmax = 3000.0
+    plots[-1].rebin = "var"
+    plots[-1].xbins = [300, 330, 370, 420, 480, 550, 630, 720, 820, 930, 1050, 1180, 1320, 1470, 1630, 1800, 1980, 2170, 2370, 2580, 2800, 3000]
+    plots[-1].ylog = "yes"
+    plots[-1].name = "sT_PAS_rebinVar"
     plots[-1].xtit = "S_{T} (GeV) [Preselection]"
     plots[-1].xtitPaper = "S_{T} (GeV)"
 
@@ -954,9 +981,22 @@ if doPreselPlots:
 
     plots.append(makeDefaultPlot("Meejj_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
     plots[-1].rebin = 5
-    # plots[-1].ymax = 6e5
-    # plots[-1].ymin = 1e-1
     plots[-1].ylog = "yes"
+    plots[-1].xtit = "Mass_{eejj} (GeV) [Preselection]"
+    plots[-1].xtitPaper = "M_{eejj} (GeV)"
+
+    plots.append(makeDefaultPlot("Meejj_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
+    plots[-1].rebin = 10
+    plots[-1].ylog = "yes"
+    plots[-1].name = "Meejj_PAS_rebin10"
+    plots[-1].xtit = "Mass_{eejj} (GeV) [Preselection]"
+    plots[-1].xtitPaper = "M_{eejj} (GeV)"
+
+    plots.append(makeDefaultPlot("Meejj_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
+    plots[-1].rebin = "var"
+    plots[-1].xbins = [300, 330, 370, 420, 480, 550, 630, 720, 820, 930, 1050, 1180, 1320, 1470, 1630, 1800, 1980, 2170, 2370, 2580, 2800, 3000]
+    plots[-1].ylog = "yes"
+    plots[-1].name = "Meejj_PAS_rebinVar"
     plots[-1].xtit = "Mass_{eejj} (GeV) [Preselection]"
     plots[-1].xtitPaper = "M_{eejj} (GeV)"
 
@@ -1397,38 +1437,16 @@ if doPreselPlots:
     plots[-1].xtit = "M(e_{2}j_{2}) (GeV) [Preselection]"
     plots[-1].xtitPaper = "M_{e_{2}j_{2}} (GeV)"
 
-    plots.append(makeDefaultPlot("Mej_selected_avg_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
-    plots[-1].rebin = 1
-    # plots[-1].ymax = 1.8e4
-    # plots[-1].ymin = 1e-1
-    plots[-1].ylog = "no"
-    plots[-1].xmin = 0
-    # plots[-1].xmax = 1000
-    plots[-1].rebin = 5
-    plots[-1].xtit = "M(ej) average (GeV) [Preselection]"
-    plots[-1].xtitPaper = "M_{ej}^{avg} (GeV)"
-
-    plots.append(makeDefaultPlot("Mej_selected_min_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
-    plots[-1].rebin = 1
-    # plots[-1].ymax = 1.8e4
-    # plots[-1].ymin = 1e-1
-    plots[-1].ylog = "no"
-    plots[-1].xmin = 0
-    # plots[-1].xmax = 1000
-    plots[-1].rebin = 5
-    plots[-1].xtit = "M(ej) minimum (GeV) [Preselection]"
-    plots[-1].xtitPaper = "M_{ej}^{amin} (GeV)"
-
-    plots.append(makeDefaultPlot("Mej_selected_max_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
-    plots[-1].rebin = 1
-    # plots[-1].ymax = 1.8e4
-    # plots[-1].ymin = 1e-1
-    plots[-1].ylog = "no"
-    plots[-1].xmin = 0
-    # plots[-1].xmax = 1000
-    plots[-1].rebin = 5
-    plots[-1].xtit = "M(ej) maximum (GeV) [Preselection]"
-    plots[-1].xtitPaper = "M_{ej}^{max} (GeV)"
+    # plots.append(makeDefaultPlot("Mej_selected_avg_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
+    # plots[-1].rebin = 1
+    # # plots[-1].ymax = 1.8e4
+    # # plots[-1].ymin = 1e-1
+    # plots[-1].ylog = "no"
+    # plots[-1].xmin = 0
+    # # plots[-1].xmax = 1000
+    # plots[-1].rebin = 5
+    # plots[-1].xtit = "M(ej) average (GeV) [Preselection]"
+    # plots[-1].xtitPaper = "M_{ej}^{avg} (GeV)"
 
     # USED IN AN
     plots.append(makeDefaultPlot("Mej_selected_avg_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
@@ -1442,16 +1460,43 @@ if doPreselPlots:
     plots[-1].xtit = "M(ej) average (GeV) [Preselection]"
     plots[-1].xtitPaper = "M_{ej}^{avg} (GeV)"
 
+    # plots.append(makeDefaultPlot("Mej_selected_min_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
+    # plots[-1].rebin = 1
+    # # plots[-1].ymax = 1.8e4
+    # # plots[-1].ymin = 1e-1
+    # plots[-1].ylog = "no"
+    # plots[-1].xmin = 0
+    # # plots[-1].xmax = 1000
+    # plots[-1].rebin = 5
+    # plots[-1].xtit = "M(ej) minimum (GeV) [Preselection]"
+    # plots[-1].xtitPaper = "M_{ej}^{min} (GeV)"
+
     plots.append(makeDefaultPlot("Mej_selected_min_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
-    plots[-1].rebin = 1
-    # plots[-1].ymax = 1e6
-    # plots[-1].ymin = 1e-1
     plots[-1].ylog = "yes"
     plots[-1].xmin = 0
-    # plots[-1].xmax = 1200
     plots[-1].rebin = 5
     plots[-1].xtit = "M(ej) minimum (GeV) [Preselection]"
     plots[-1].xtitPaper = "M_{ej}^{min} (GeV)"
+
+    plots.append(makeDefaultPlot("Mej_selected_min_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
+    plots[-1].rebin = "var"
+    plots[-1].xbins = [0, 20, 50, 90, 130, 180, 230, 280, 340, 410, 480, 550, 630, 720, 800, 900, 1000, 1110, 1220, 1330, 1450, 1580, 1710, 1840, 1980]
+    plots[-1].ylog = "yes"
+    plots[-1].xmin = 0
+    plots[-1].name = "Mej_selected_min_PAS_rebinVar"
+    plots[-1].xtit = "M(ej) minimum (GeV) [Preselection]"
+    plots[-1].xtitPaper = "M_{ej}^{min} (GeV)"
+
+    plots.append(makeDefaultPlot("Mej_selected_max_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
+    plots[-1].rebin = 1
+    # plots[-1].ymax = 1.8e4
+    # plots[-1].ymin = 1e-1
+    plots[-1].ylog = "no"
+    plots[-1].xmin = 0
+    # plots[-1].xmax = 1000
+    plots[-1].rebin = 5
+    plots[-1].xtit = "M(ej) maximum (GeV) [Preselection]"
+    plots[-1].xtitPaper = "M_{ej}^{max} (GeV)"
 
     plots.append(makeDefaultPlot("Mej_selected_max_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
     plots[-1].rebin = 1
@@ -1593,14 +1638,6 @@ if doPreselPlots:
     plots[-1].xmax = 6
     plots[-1].xtitPaper = "#DeltaR(ee, j_{2})"
 
-    plots.append(makeDefaultPlot("Meejj_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
-    plots[-1].rebin = 10
-    # plots[-1].ymax = 2000000
-    # plots[-1].ymin = 1e-1
-    plots[-1].ylog = "yes"
-    plots[-1].xtit = "Mass_{eejj} (GeV) [Preselection]"
-    plots[-1].xtitPaper = "M_{eejj} (GeV)"
-
     #plots.append(makeDefaultPlot("Meej_PAS",histoBaseName_userDef,samplesForHistos,keys,samplesForStackHistos,keysStack,sampleForDataHisto,zUncBand,makeRatio))
     # plots[-1].rebin = 10
     # plots[-1].ymax = 200000
@@ -1614,16 +1651,6 @@ if doPreselPlots:
     # plots[-1].ymin = 1e-1
     # plots[-1].ylog  = "yes"
     # plots[-1].xtit = "Mass_{ejj} (GeV) [Preselection]"
-
-    plots.append(makeDefaultPlot("MET_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
-    plots[-1].xtit = "PFMET (GeV) [Preselection]"
-    plots[-1].rebin = 4
-    # plots[-1].ymax = 1e6
-    # plots[-1].ymin = 1e-1
-    plots[-1].xmax = 500
-    plots[-1].xmin = 0
-    plots[-1].ylog = "yes"
-    plots[-1].xtitPaper = "MET (GeV)"
 
     #plots.append(makeDefaultPlot2D_NoData("MeeVsST_PAS",histoBaseName2D_userDef,samplesForStackHistos,sampleForDataHisto))
     # plots[-1].xrebin = 2
@@ -1699,11 +1726,32 @@ if doPreselPlots:
     plots[-1].ylog = "yes"
     plots[-1].xtitPaper = "BDT score"
 
+    # bdtRebin = 125
+    bdtRebin = 200
+    bdtYMax = 1e8
     plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ500", dataBlindAbove=0.7, systs=doSystematics))  # above 0.7 covers most of the mass ranges
     plots[-1].xtit = "BDT output [TrainRegion, M_{LQ} = 500 GeV]"
     plots[-1].rebin = 10
-    plots[-1].ymax = 1e6
+    plots[-1].xmax = 1
+    plots[-1].xmin = -1
+    plots[-1].ylog = "yes"
+    plots[-1].xtitPaper = "BDT score"
+
+    plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ500", dataBlindAbove=0.7, systs=doSystematics))  # above 0.7 covers most of the mass ranges
+    plots[-1].xtit = "BDT output [TrainRegion, M_{LQ} = 500 GeV]"
+    plots[-1].rebin = bdtRebin
+    plots[-1].ymax = bdtYMax
     plots[-1].ymin = 1e-1
+    plots[-1].xmax = 1
+    plots[-1].xmin = -1
+    plots[-1].ylog = "yes"
+    plots[-1].name = "BDTOutput_TrainRegion_LQ500_fixRebin"
+    plots[-1].extraText = "m_{LQ} = 500 GeV"
+    plots[-1].xtitPaper = "BDT score"
+
+    plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ1000", dataBlindAbove=0.7, systs=doSystematics))  # above 0.7 covers most of the mass ranges
+    plots[-1].xtit = "BDT output [TrainRegion, M_{LQ} = 1000 GeV]"
+    plots[-1].rebin = 10
     plots[-1].xmax = 1
     plots[-1].xmin = -1
     plots[-1].ylog = "yes"
@@ -1711,9 +1759,19 @@ if doPreselPlots:
 
     plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ1000", dataBlindAbove=0.7, systs=doSystematics))  # above 0.7 covers most of the mass ranges
     plots[-1].xtit = "BDT output [TrainRegion, M_{LQ} = 1000 GeV]"
-    plots[-1].rebin = 10
-    plots[-1].ymax = 1e6
+    plots[-1].rebin = bdtRebin
+    plots[-1].ymax = bdtYMax
     plots[-1].ymin = 1e-1
+    plots[-1].xmax = 1
+    plots[-1].xmin = -1
+    plots[-1].ylog = "yes"
+    plots[-1].name = "BDTOutput_TrainRegion_LQ1000_fixRebin"
+    plots[-1].extraText = "m_{LQ} = 1000 GeV"
+    plots[-1].xtitPaper = "BDT score"
+
+    plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ1500", dataBlindAbove=0.7, systs=doSystematics))  # above 0.7 covers most of the mass ranges
+    plots[-1].xtit = "BDT output [TrainRegion, M_{LQ} = 1500 GeV]"
+    plots[-1].rebin = 10
     plots[-1].xmax = 1
     plots[-1].xmin = -1
     plots[-1].ylog = "yes"
@@ -1721,12 +1779,14 @@ if doPreselPlots:
 
     plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ1500", dataBlindAbove=0.7, systs=doSystematics))  # above 0.7 covers most of the mass ranges
     plots[-1].xtit = "BDT output [TrainRegion, M_{LQ} = 1500 GeV]"
-    plots[-1].rebin = 10
-    plots[-1].ymax = 1e6
+    plots[-1].rebin = bdtRebin
+    plots[-1].ymax = bdtYMax
     plots[-1].ymin = 1e-1
     plots[-1].xmax = 1
     plots[-1].xmin = -1
     plots[-1].ylog = "yes"
+    plots[-1].name = "BDTOutput_TrainRegion_LQ1500_fixRebin"
+    plots[-1].extraText = "m_{LQ} = 1500 GeV"
     plots[-1].xtitPaper = "BDT score"
 
     plots.append(makeDefaultPlot("EleTriggerMatches_PAS"))
@@ -4010,9 +4070,9 @@ fileps = "allPlots_eejj_analysis.ps"
 print("INFO: writing canvas with plots to PDF...", end=' ')
 c.Print(fileps + "[")
 for i_plot, plot in enumerate(plotsAN):
-    # print()
-    # print("INFO: draw plot:", plot.name, flush=True)
-    # print()
+    print()
+    print("INFO: draw plot:", plot.name, flush=True)
+    print()
     try: 
         plot.Draw(fileps, i_plot + 1)
     except Exception as e:
