@@ -660,7 +660,6 @@ def GetSystematicGraphAndHist(bkgTotalHist, systNames, verbose=False):
     systGraph = TGraphAsymmErrors(len(nominals), np.array(xBins), np.array(nominals), np.array(xBinsLow), np.array(xBinsHigh), downErrsComb, upErrsComb)
     return systHist, systGraph
 
-
 # The Plot class: add members if needed
 class Plot:
     def __init__(self):
@@ -673,6 +672,7 @@ class Plot:
             []
         )  # list of keys to be put in the legend (1 key per histo) -- stack histo format
         self.xtit = ""  # xtitle
+        self.xtitPaper = ""  # xtitle
         self.ytit = ""  # ytitle
         self.xmin = ""  # min x axis range (need to set both min and max. Leave it as is for full range)
         self.xmax = ""  # max x axis range (need to set both min and max. Leave it as is for full range)
@@ -727,9 +727,9 @@ class Plot:
         self.cmsTextSize = 1.4
         self.cmsLumiTextOffset = 0.275
         self.cmsLumiTextScaleFactor = 1.4
-        self.padRightMargin = 0.03
+        self.padRightMargin = 0.02
 
-    def Draw(self, fileps, page_number=-1):
+    def Draw(self, fileps, page_number=-1, style="AN"):
         if self.isInteractive:
             gROOT.SetBatch(False)
 
@@ -753,7 +753,6 @@ class Plot:
             minBinW = resultArray[1]
 
         if self.is_integral:
-
             integral_histoStack = []
             integral_histos = []
             integral_histodata = generateIntegralHisto(self.histodata)
@@ -771,19 +770,37 @@ class Plot:
             self.histosStack = integral_histoStack
             self.histos = integral_histos
 
+        if style == "paper":
+            self.makeRatio = 1
+            self.makeNSigma = 0
+            self.suffix = "paper"
+            self.ratioLabelTextSizeScaleFactor = 3
+            self.cmsLumiTextOffset = 0.25
+            self.cmsTextSize = 1.05
+            self.cmsLumiTextScaleFactor = self.cmsTextSize * 1.25
+
         # -- create canvas
         canvas = TCanvas()
 
         if self.makeNSigma == 0:
             if self.makeRatio == 1:
-                fPads1 = TPad("pad1", "", 0.00, 0.20, 0.99, 0.99)
-                fPads2 = TPad("pad2", "", 0.00, 0.00, 0.99, 0.20)
+                yLow = 0.25 if style == "paper" else 0.20
+                fPads1 = TPad("pad1", "", 0.00, yLow, 0.99, 0.99)
+                fPads2 = TPad("pad2", "", 0.00, 0.00, 0.99, yLow)
                 fPads1.SetRightMargin(self.padRightMargin)
                 fPads2.SetRightMargin(self.padRightMargin)
                 fPads1.SetFillColor(0)
                 fPads1.SetLineColor(0)
                 fPads2.SetFillColor(0)
                 fPads2.SetLineColor(0)
+                if style == "paper":
+                    # margins, top/bottom, of fPads1 (stack pad) affect the cmsTextSize, etc., specified just above
+                    fPads2.SetTopMargin(0.05)
+                    fPads2.SetBottomMargin(0.4)
+                    fPads1.SetBottomMargin(0.0015)
+                    fPads1.SetTopMargin(0.075)
+                    fPads1.SetLeftMargin(0.12)
+                    fPads2.SetLeftMargin(0.12)
                 fPads1.Draw()
                 fPads2.Draw()
             else:
@@ -845,16 +862,14 @@ class Plot:
             #            ystart=0.63
             ystart = 0.54
         else:
-            # xstart=0.68
-            # xstart = 0.65
             xstart = 0.65
-            # ystart = 0.52
             ystart = 0.55
             if self.makeRatio == 0 and self.makeNSigma == 0:
                 ystart = 0.65
                 vsize = 0.25
-        #            xstart=0.65
-        #            ystart=0.63
+            if style == "paper":
+                xstart = 0.58
+                ystart = 0.53
         legend = CMS.cmsLeg(xstart, ystart, xstart + hsize, ystart + vsize)
         legend.SetFillColor(kWhite)
         legend.SetBorderSize(0)
@@ -891,27 +906,9 @@ class Plot:
             stackedHistos[-1].SetLineWidth(self.lineWidth)
             stackedHistos[-1].SetFillColor(self.stackColorIndexes[index])
             stackedHistos[-1].SetFillStyle(self.stackFillStyleIds[index])
-            # set style
-            # stackedHistos[-1].SetTitle("")
-            # stackedHistos[-1].GetXaxis().SetTitle(self.xtit)
-            # stackedHistos[-1].GetXaxis().SetTitleFont(132)
-            # stackedHistos[-1].GetXaxis().SetTitleOffset(0.8)
-            # stackedHistos[-1].GetXaxis().SetLabelOffset(0.0)
-            # stackedHistos[-1].GetXaxis().SetTitleSize(0.065)
-            # stackedHistos[-1].GetXaxis().SetLabelSize(0.055)
-            # stackedHistos[-1].GetXaxis().SetLabelFont(132)
-            # stackedHistos[-1].GetYaxis().SetTitleFont(132)
-            # stackedHistos[-1].GetYaxis().SetTitleOffset(0.7)
-            # stackedHistos[-1].GetYaxis().SetTitleSize(0.065)
-            # stackedHistos[-1].GetYaxis().SetLabelSize(0.055)
-            # stackedHistos[-1].GetYaxis().SetLabelOffset(0.0)
-            # stackedHistos[-1].GetYaxis().SetLabelFont(132)
-            # stackedHistos[-1].GetYaxis().SetTitle(self.ytit + " #times ("+ str(minBinW) + ")/(bin width)") # units omitted or no units for x-axis
-            # stackedHistos[iter].GetYaxis().SetTitle((self.ytit + " #times (%.0f GeV)/(bin width)")%(minBinW)) # for x-axis in units of GeV
             if (self.ymin == "" and self.ymax != "") or (self.ymax == "" and self.ymin != ""):
                 raise RuntimeError("For plot {}, you specified ymax='{}' and ymin='{}', but both need to be specified for the y-axis scale to be adjusted.".format(self.name, self.ymax, self.ymin))
             if self.ymin != "" and self.ymax != "":
-                # stackedHistos[iter].GetYaxis().SetLimits(self.ymin,self.ymax)
                 stackedHistos[-1].GetYaxis().SetRangeUser(self.ymin, self.ymax)
                 my_ymin = self.ymin
                 my_ymax = self.ymax
@@ -977,20 +974,21 @@ class Plot:
         thStack.SetTitle("")
         thStack.Draw()
         # print("INFO: Draw stack for thStack xtit={}".format(self.xtit), flush=True)
-        thStack.GetXaxis().SetTitle(self.xtit)
+        thStack.GetXaxis().SetTitle("" if style == "paper" else self.xtit)
         thStack.GetXaxis().SetTitleOffset(0.9)
         thStack.GetXaxis().SetLabelOffset(1e-3)
         thStack.GetXaxis().SetTitleSize(self.titleSize)
-        thStack.GetXaxis().SetLabelSize(self.labelSize)
-        thStack.GetYaxis().SetTitleOffset(0.75)
+        thStack.GetXaxis().SetLabelSize(0.0 if style == "paper" else self.labelSize)
+        thStack.GetYaxis().SetTitleOffset(1.1 if style == "paper" else 0.75)
         thStack.GetYaxis().SetTitleSize(self.titleSize)
         thStack.GetYaxis().SetLabelSize(self.labelSize)
-        thStack.GetYaxis().SetLabelOffset(0.0)
+        thStack.GetYaxis().SetLabelOffset(0.01 if style =="paper" else 0.0)
         thStack.GetXaxis().SetTitleFont(self.titleFont)
         thStack.GetXaxis().SetLabelFont(self.titleFont)
         thStack.GetYaxis().SetTitleFont(self.titleFont)
         thStack.GetYaxis().SetLabelFont(self.titleFont)
         thStack.GetYaxis().SetTitle(
+            "Events / bin" if style == "paper" else
             self.ytit + " #times (" + str(minBinW) + ")/(bin width)"
         )  # units omitted or no units for x-axis
         # draw the stack!
@@ -1152,6 +1150,7 @@ class Plot:
                 h_ratio1.GetXaxis().SetLabelSize(self.labelSize*self.ratioLabelTextSizeScaleFactor)
                 h_ratio1.GetYaxis().SetRangeUser(0.0, 2)
                 h_ratio1.GetYaxis().SetTitle("data / bkg.")
+                h_ratio1.GetXaxis().SetTitle(self.xtitPaper if style == "paper" else "")
                 h_ratio1.GetYaxis().SetLabelSize(self.labelSize*self.ratioLabelTextSizeScaleFactor)
                 h_ratio1.GetYaxis().SetTitleSize(self.titleSize*self.ratioLabelTextSizeScaleFactor)
                 h_ratio1.GetYaxis().SetTitleOffset(0.3)
@@ -1198,13 +1197,15 @@ class Plot:
                     bgRatioErrs.SetLineColor(kGray + 1)
                     bgRatioErrs.SetFillStyle(3001)
                     bgRatioErrs.SetMarkerSize(0)
-                    bgRatioErrs.GetXaxis().SetTitle("")
+                    bgRatioErrs.GetXaxis().SetTitle(self.xtitPaper if style == "paper" else "")
+                    bgRatioErrs.GetXaxis().SetTitleOffset(1.0 if style == "paper" else 0.3)
+                    bgRatioErrs.GetXaxis().SetTitleSize(self.titleSize*self.ratioLabelTextSizeScaleFactor)
                     bgRatioErrs.GetXaxis().SetLabelSize(self.labelSize*self.ratioLabelTextSizeScaleFactor)
                     bgRatioErrs.GetYaxis().SetRangeUser(0.0, 2)
                     bgRatioErrs.GetYaxis().SetTitle("data / bkg.")
                     bgRatioErrs.GetYaxis().SetLabelSize(self.labelSize*self.ratioLabelTextSizeScaleFactor)
                     bgRatioErrs.GetYaxis().SetTitleSize(self.titleSize*self.ratioLabelTextSizeScaleFactor)
-                    bgRatioErrs.GetYaxis().SetTitleOffset(0.3)
+                    bgRatioErrs.GetYaxis().SetTitleOffset(0.35 if style == "paper" else 0.3)
                     bgRatioErrs.GetXaxis().SetTitleFont(self.titleFont)
                     bgRatioErrs.GetXaxis().SetLabelFont(self.titleFont)
                     bgRatioErrs.GetYaxis().SetTitleFont(self.titleFont)
@@ -1341,49 +1342,40 @@ class Plot:
         if not os.path.isdir(self.root_folder) and self.root_folder != "":
             "Making directory", self.root_folder
             os.mkdir(self.root_folder)
+
         if self.suffix == "":
-            if self.eps_folder != "":
-                canvas.SaveAs(self.eps_folder + "/" + self.name + ".eps", "eps")
-            if self.gif_folder != "":
-                canvas.SaveAs(self.gif_folder + "/" + self.name + ".gif", "gif")
-            if self.png_folder != "":
-                canvas.SaveAs(self.png_folder + "/" + self.name + ".png", "png")
-            if self.pdf_folder != "":
-                canvas.SaveAs(self.pdf_folder + "/" + self.name + ".pdf", "pdf")
-            if self.c_folder != "":
-                canvas.SaveAs(self.c_folder + "/" + self.name + ".C", "C")
-            if self.root_folder != "":
-                canvas.SaveAs(self.root_folder + "/" + self.name + ".root", "root")
+            suffix = ""
         else:
-            if self.eps_folder != "":
-                canvas.SaveAs(
-                    self.eps_folder + "/" + self.name + "_" + self.suffix + ".eps",
-                    "eps",
-                )
-            if self.gif_folder != "":
-                canvas.SaveAs(
-                    self.gif_folder + "/" + self.name + "_" + self.suffix + ".gif",
-                    "gif",
-                )
-            if self.png_folder != "":
-                canvas.SaveAs(
-                    self.png_folder + "/" + self.name + "_" + self.suffix + ".png",
-                    "png",
-                )
-            if self.pdf_folder != "":
-                canvas.SaveAs(
-                    self.pdf_folder + "/" + self.name + "_" + self.suffix + ".pdf",
-                    "pdf",
-                )
-            if self.c_folder != "":
-                canvas.SaveAs(
-                    self.c_folder + "/" + self.name + "_" + self.suffix + ".C", "C"
-                )
-            if self.root_folder != "":
-                canvas.SaveAs(
-                    self.root_folder + "/" + self.name + "_" + self.suffix + ".root",
-                    "root",
-                )
+            suffix = "_" + self.suffix
+        if self.eps_folder != "":
+            canvas.SaveAs(
+                self.eps_folder + "/" + self.name + suffix + ".eps",
+                "eps",
+            )
+        if self.gif_folder != "":
+            canvas.SaveAs(
+                self.gif_folder + "/" + self.name + suffix + ".gif",
+                "gif",
+            )
+        if self.png_folder != "":
+            canvas.SaveAs(
+                self.png_folder + "/" + self.name + suffix + ".png",
+                "png",
+            )
+        if self.pdf_folder != "":
+            canvas.SaveAs(
+                self.pdf_folder + "/" + self.name + suffix + ".pdf",
+                "pdf",
+            )
+        if self.c_folder != "":
+            canvas.SaveAs(
+                self.c_folder + "/" + self.name + suffix + ".C", "C"
+            )
+        if self.root_folder != "":
+            canvas.SaveAs(
+                self.root_folder + "/" + self.name + suffix + ".root",
+                "root",
+            )
         # canvas.SaveAs(self.name + ".png","png")
         # canvas.SaveAs(self.name + ".root","root")
         # canvas.SaveAs(self.name + ".pdf","pdf") # do not use this line because root creates rotated pdf plot - see end of the file instead
@@ -1453,7 +1445,7 @@ class Plot2D:
     stackColorIndexes = []
     stackFillStyleIds = []
 
-    def Draw(self, fileps, page_number=-1):
+    def Draw(self, fileps, page_number=-1, style=""):
 
         # setStyle()
 
