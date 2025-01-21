@@ -712,7 +712,7 @@ class Plot:
         self.doPageNumbers = False
         self.addBkgUncBand = False
         self.bkgUncKey = "Bkg. syst."
-        self.bkgTotalHist = ""
+        self.bkgTotalHist = ""  # holds the full 2-D histogram with the systematics
         self.systNames = []
         self.histos2DStack = []
         self.isInteractive = False  # draw the plot to the screen; use when running with python -i
@@ -727,7 +727,7 @@ class Plot:
         self.cmsTextSize = 1.4
         self.cmsLumiTextOffset = 0.275
         self.cmsLumiTextScaleFactor = 1.4
-        self.padRightMargin = 0.02
+        self.padRightMargin = 0.04
 
     def Draw(self, fileps, page_number=-1, style="AN"):
         if self.isInteractive:
@@ -778,6 +778,8 @@ class Plot:
             self.cmsLumiTextOffset = 0.25
             self.cmsTextSize = 1.05
             self.cmsLumiTextScaleFactor = self.cmsTextSize * 1.25
+            self.bkgUncKey = "Bkg. unc. (stat. #oplus syst.)"
+            self.stackFillStyleIds = [3013, 3006, 3005, 3004]
 
         # -- create canvas
         canvas = TCanvas()
@@ -928,22 +930,14 @@ class Plot:
             # draw first histo
             # stackedHistos[-1].Draw("HIST")
             stkcp.append(copy.deepcopy(stackedHistos[-1]))
-            # legend.AddEntry(stackedHistos[-1], self.keysStack[index],"lf")
             thStack.Add(histo)
             # print("INFO: Add histo name={} with entries={} to thStack".format(histo.GetName(), histo.GetEntries()), flush=True)
             if index == 0:
                 bkgTotalHist = histo.Clone()
             else:
                 bkgTotalHist.Add(histo)
-            ## XXX SIC TEST
             # print 'draw hist: entries=',stackedHistos[iter].GetEntries()
             # print 'draw hist: mean=',stackedHistos[iter].GetMean()
-            ### wait for input to keep the GUI (which lives on a ROOT event dispatcher) alive
-            # rep = ''
-            # while not rep in [ 'c', 'C' ]:
-            #   rep = raw_input( 'enter "c" to continue: ' )
-            #   if 1 < len(rep):
-            #      rep = rep[0]
 
         for index in range(len(self.histosStack) - 1, -1, -1):
             legend.AddEntry(stkcp[index], self.keysStack[index], "lf")
@@ -1017,6 +1011,12 @@ class Plot:
             #for xBin in range(0, self.bkgUncHist.GetNbinsX()+2):
             #    if self.bkgUncHist.GetBinContent(xBin) != 0:
             #        print("INFO: for xBin={}, center={}, binError={} vs. nominal={}; binError/nominal={}".format(xBin, self.bkgUncHist.GetXaxis().GetBinCenter(xBin), self.bkgUncHist.GetBinError(xBin), self.bkgUncHist.GetBinContent(xBin), self.bkgUncHist.GetBinError(xBin)/self.bkgUncHist.GetBinContent(xBin)))
+            if style == "paper":
+                # here we take syst (+) stat as the bin error
+                for binn in range(0, self.bkgUncHist.GetNbinsX()+2):
+                    binContent = self.bkgUncHist.GetBinContent(binn)
+                    if binContent != 0:
+                        self.bkgUncHist.SetBinError(binn, math.sqrt(pow(self.bkgUncHist.GetBinError(binn), 2) + pow(bkgTotalHist.GetBinError(binn), 2)) )
             self.bkgUncHist.SetMarkerStyle(0)
             self.bkgUncHist.SetLineColor(0)
             self.bkgUncHist.SetFillColor(kGray + 2)
@@ -1024,7 +1024,6 @@ class Plot:
             self.bkgUncHist.SetFillStyle(3001)
             self.bkgUncHist.SetMarkerSize(0)
             self.bkgUncHist.Draw("E2same")
-            #self.bkgUncHist.Draw("3same")
             legend.AddEntry(self.bkgUncHist, self.bkgUncKey, "f")
             # verbose syst output
             for hist in self.histos2DStack:
@@ -1180,12 +1179,8 @@ class Plot:
                     ##for binn in range(0,bgRatioErrs.GetNbinsX()):
                     ##    print 'bin=',bgRatioErrs.GetBinContent(binn),'+/-',bgRatioErrs.GetBinError(binn)
                     ##bgRatioErrs.SetFillColor(kOrange-6)
-                    #
-                    #h_ratioSyst.Divide(h_bkgUnc1)  # just divide by the bkgTotal hist with the systs as errors
-                    # bgRatioErrs = h_ratioSyst
                     h_bkgUncRatio = copy.deepcopy(h_bkgUnc1)
                     # set bin contents to 1
-                    # for binn in range(0, bgRatioErrs.GetNbinsX()+2):
                     for binn in range(0, h_bkgUncRatio.GetNbinsX()+2):
                         binContent = h_bkgUncRatio.GetBinContent(binn)
                         if binContent != 0:

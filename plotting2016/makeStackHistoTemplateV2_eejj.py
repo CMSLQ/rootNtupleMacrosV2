@@ -252,7 +252,8 @@ if doQCD:
     stackColorIndexes = [CMS.p8.kCyan, CMS.p8.kAzure, CMS.p8.kBlue, CMS.p8.kRed]
 else:
     stackColorIndexes = [CMS.p8.kAzure, CMS.p8.kBlue, CMS.p8.kRed]
-stackFillStyleIds = [1001, 1001, 1001, 1001]
+# stackFillStyleIds = [1001, 1001, 1001, 1001]
+stackFillStyleIds = [3013, 3006, 3005, 3004]
 
 ##keysStack             = [ "Other backgrounds", "t#bar{t} (Madgraph)"  ,  "Z/#gamma* + jets (MG Inc)"  ]
 ##stackColorIndexes     = [ 9                  , 600         ,  kRed           ]
@@ -270,7 +271,8 @@ stackFillStyleIds = [1001, 1001, 1001, 1001]
 ##stackFillStyleIds.reverse()
 
 signalSampleName = "LQToDEle_M-{}_pair"
-signalSampleLabel = "LQToDEle, M={} GeV"
+# signalSampleLabel = "LQToDEle, M={} GeV"
+signalSampleLabel = "m_{{LQ}} = {} GeV, #beta = 1"
 samplesForHistos = [signalSampleName.format(lqmass) for lqmass in LQmasses]
 for sample in samplesForHistos:
     if doRunII:
@@ -607,7 +609,7 @@ if doPreselPlots:
     plots[-1].xmax = 200
     plots[-1].ylog = "yes"
     plots[-1].xtit = "1st Muon p_{T} (GeV) [Preselection]"
-    plots[-1].xtitPaper = "p_{T}(#mu1) (GeV)"
+    plots[-1].xtitPaper = "p_{T}(#mu 1) (GeV)"
 
     plots.append(makeDefaultPlot("Pt2ndMuon_PAS", dataBlindAbove=dataBlindAbovePt2))
     # plots[-1].rebin = 2
@@ -617,7 +619,7 @@ if doPreselPlots:
     plots[-1].xmax = 200
     plots[-1].ylog = "yes"
     plots[-1].xtit = "2nd Muon p_{T} (GeV) [Preselection]"
-    plots[-1].xtitPaper = "p_{T}(#mu2) (GeV)"
+    plots[-1].xtitPaper = "p_{T}(#mu 2) (GeV)"
 
     plots.append(makeDefaultPlot("Eta1stEle_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
     plots[-1].rebin = 2
@@ -4011,7 +4013,10 @@ for i_plot, plot in enumerate(plotsAN):
     # print()
     # print("INFO: draw plot:", plot.name, flush=True)
     # print()
-    plot.Draw(fileps, i_plot + 1)
+    try: 
+        plot.Draw(fileps, i_plot + 1)
+    except Exception as e:
+        raise RuntimeError("Caught exception while making plot", plot.name, ":", e)
 c.Print(fileps + "]")
 print("DONE")
 print("INFO: MakeTOC()")
@@ -4023,7 +4028,10 @@ print("INFO: Doing paper plots")
 print("INFO: writing canvas with plots to PDF...", end=' ')
 c.Print(fileps + "[")
 for i_plot, plot in enumerate(plotsPaper):
-    plot.Draw(fileps, i_plot + 1, style="paper")
+    try:
+        plot.Draw(fileps, i_plot + 1, style="paper")
+    except Exception as e:
+        raise RuntimeError("Caught exception while making plot", plot.name, ":", e)
 c.Print(fileps + "]")
 print("DONE")
 print("INFO: MakeTOC()")
