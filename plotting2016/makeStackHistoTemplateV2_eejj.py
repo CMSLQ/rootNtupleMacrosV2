@@ -35,6 +35,7 @@ ttbarNormSyst = 0.1
 doPreselPlots = True
 doBTagPlots = False
 doFinalSelectionPlots = False
+blindFinalSelectionData = True
 do2016 = False
 do2016pre = False
 do2016post = False
@@ -364,7 +365,7 @@ def makeDefaultPlot(
     plot.histos = generateHistoList(
         histoBaseName, samplesForHistos, variableName, [dataMCFilesDict[sample] for sample in samplesForHistos]
     )
-    if sampleForDataHisto != "":
+    if dataBlindAbove != 0 and sampleForDataHisto != "":
         scale = 1.0
         plot.histodata = generateHisto(
             histoBaseName,
@@ -1727,18 +1728,19 @@ if doPreselPlots:
     plots[-1].xtitPaper = "BDT score"
 
     # bdtRebin = 125
+    bdtBlindAbove = 0.8
     bdtRebin = 200
     bdtYMax = 1e8
-    plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ500", dataBlindAbove=0.7, systs=doSystematics))  # above 0.7 covers most of the mass ranges
-    plots[-1].xtit = "BDT output [TrainRegion, M_{LQ} = 500 GeV]"
+    plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ500", dataBlindAbove=bdtBlindAbove, systs=doSystematics))  # above 0.7 covers most of the mass ranges
+    plots[-1].xtit = "BDT output [Preselection, M_{LQ} = 500 GeV]"
     plots[-1].rebin = 10
     plots[-1].xmax = 1
     plots[-1].xmin = -1
     plots[-1].ylog = "yes"
     plots[-1].xtitPaper = "BDT score"
 
-    plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ500", dataBlindAbove=0.7, systs=doSystematics))  # above 0.7 covers most of the mass ranges
-    plots[-1].xtit = "BDT output [TrainRegion, M_{LQ} = 500 GeV]"
+    plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ500", dataBlindAbove=bdtBlindAbove, systs=doSystematics))  # above 0.7 covers most of the mass ranges
+    plots[-1].xtit = "BDT output [Preselection, M_{LQ} = 500 GeV]"
     plots[-1].rebin = bdtRebin
     plots[-1].ymax = bdtYMax
     plots[-1].ymin = 1e-1
@@ -1749,16 +1751,16 @@ if doPreselPlots:
     plots[-1].extraText = "m_{LQ} = 500 GeV"
     plots[-1].xtitPaper = "BDT score"
 
-    plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ1000", dataBlindAbove=0.7, systs=doSystematics))  # above 0.7 covers most of the mass ranges
-    plots[-1].xtit = "BDT output [TrainRegion, M_{LQ} = 1000 GeV]"
+    plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ1000", dataBlindAbove=bdtBlindAbove, systs=doSystematics))  # above 0.7 covers most of the mass ranges
+    plots[-1].xtit = "BDT output [Preselection, M_{LQ} = 1000 GeV]"
     plots[-1].rebin = 10
     plots[-1].xmax = 1
     plots[-1].xmin = -1
     plots[-1].ylog = "yes"
     plots[-1].xtitPaper = "BDT score"
 
-    plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ1000", dataBlindAbove=0.7, systs=doSystematics))  # above 0.7 covers most of the mass ranges
-    plots[-1].xtit = "BDT output [TrainRegion, M_{LQ} = 1000 GeV]"
+    plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ1000", dataBlindAbove=bdtBlindAbove, systs=doSystematics))  # above 0.7 covers most of the mass ranges
+    plots[-1].xtit = "BDT output [Preselection, M_{LQ} = 1000 GeV]"
     plots[-1].rebin = bdtRebin
     plots[-1].ymax = bdtYMax
     plots[-1].ymin = 1e-1
@@ -1769,16 +1771,16 @@ if doPreselPlots:
     plots[-1].extraText = "m_{LQ} = 1000 GeV"
     plots[-1].xtitPaper = "BDT score"
 
-    plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ1500", dataBlindAbove=0.7, systs=doSystematics))  # above 0.7 covers most of the mass ranges
-    plots[-1].xtit = "BDT output [TrainRegion, M_{LQ} = 1500 GeV]"
+    plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ1500", dataBlindAbove=bdtBlindAbove, systs=doSystematics))  # above 0.7 covers most of the mass ranges
+    plots[-1].xtit = "BDT output [Preselection, M_{LQ} = 1500 GeV]"
     plots[-1].rebin = 10
     plots[-1].xmax = 1
     plots[-1].xmin = -1
     plots[-1].ylog = "yes"
     plots[-1].xtitPaper = "BDT score"
 
-    plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ1500", dataBlindAbove=0.7, systs=doSystematics))  # above 0.7 covers most of the mass ranges
-    plots[-1].xtit = "BDT output [TrainRegion, M_{LQ} = 1500 GeV]"
+    plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ1500", dataBlindAbove=bdtBlindAbove, systs=doSystematics))  # above 0.7 covers most of the mass ranges
+    plots[-1].xtit = "BDT output [Preselection, M_{LQ} = 1500 GeV]"
     plots[-1].rebin = bdtRebin
     plots[-1].ymax = bdtYMax
     plots[-1].ymin = 1e-1
@@ -2734,6 +2736,8 @@ if doFinalSelectionPlots:
     for mass_point in LQmassesFinalSelection:
         samplesForHistos = [signalSampleName.format(mass_point)]
         keys = [signalSampleLabel.format(mass_point)]
+        if blindFinalSelectionData:
+            sampleForDataHisto = ""
 
         plots.append(
             makeDefaultPlot(
@@ -2751,7 +2755,13 @@ if doFinalSelectionPlots:
         plots[-1].xtit = (
             "1st Electron p_{T} (GeV) [LQ M = " + str(mass_point) + " selection]"
         )
+        plots[-1].xtitPaper = "1st Electron p_{T} (GeV)"
         plots[-1].rebin = 2
+        plots[-1].ylog = "yes"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
         plots.append(
             makeDefaultPlot(
@@ -2770,42 +2780,48 @@ if doFinalSelectionPlots:
             "2nd Electron p_{T} (GeV) [LQ M = " + str(mass_point) + " selection]"
         )
         plots[-1].rebin = 2
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "2nd Electron p_{T} (GeV)"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
-        plots.append(
-            makeDefaultPlot(
-                "Pt1stMuon_LQ" + str(mass_point),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xtit = (
-            "1st Muon p_{T} (GeV) [LQ M = " + str(mass_point) + " selection]"
-        )
-        plots[-1].rebin = 2
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "Pt1stMuon_LQ" + str(mass_point),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xtit = (
+        #     "1st Muon p_{T} (GeV) [LQ M = " + str(mass_point) + " selection]"
+        # )
+        # plots[-1].rebin = 2
 
-        plots.append(
-            makeDefaultPlot(
-                "Pt1stMuon_LQ" + str(mass_point),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xtit = (
-            "2nd Muon p_{T} (GeV) [LQ M = " + str(mass_point) + " selection]"
-        )
-        plots[-1].rebin = 2
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "Pt1stMuon_LQ" + str(mass_point),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xtit = (
+        #     "2nd Muon p_{T} (GeV) [LQ M = " + str(mass_point) + " selection]"
+        # )
+        # plots[-1].rebin = 2
 
         plots.append(
             makeDefaultPlot(
@@ -2822,6 +2838,12 @@ if doFinalSelectionPlots:
         )
         plots[-1].xtit = "1st Electron #eta [LQ M = " + str(mass_point) + " selection]"
         plots[-1].rebin = 2
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "1st Electron #eta"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
         plots.append(
             makeDefaultPlot(
@@ -2838,6 +2860,12 @@ if doFinalSelectionPlots:
         )
         plots[-1].xtit = "2nd Electron #eta [LQ M = " + str(mass_point) + " selection]"
         plots[-1].rebin = 2
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "2nd Electron #eta"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
         plots.append(
             makeDefaultPlot(
@@ -2854,6 +2882,12 @@ if doFinalSelectionPlots:
         )
         plots[-1].xtit = "1st Electron #phi [LQ M = " + str(mass_point) + " selection]"
         plots[-1].rebin = 4
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "1st Electron #phi"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
         plots.append(
             makeDefaultPlot(
@@ -2870,6 +2904,12 @@ if doFinalSelectionPlots:
         )
         plots[-1].xtit = "2nd Electron #phi [LQ M = " + str(mass_point) + " selection]"
         plots[-1].rebin = 4
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "2nd Electron #phi"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
         plots.append(
             makeDefaultPlot(
@@ -2888,6 +2928,12 @@ if doFinalSelectionPlots:
             "1st Jet p_{T} (GeV) [LQ M = " + str(mass_point) + " selection]"
         )
         plots[-1].rebin = 2
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "1st Jet p_{T} (GeV)"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
         plots.append(
             makeDefaultPlot(
@@ -2906,6 +2952,12 @@ if doFinalSelectionPlots:
             "2nd Jet p_{T} (GeV) [LQ M = " + str(mass_point) + " selection]"
         )
         plots[-1].rebin = 2
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "2nd Jet p_{T} (GeV)"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
         plots.append(
             makeDefaultPlot(
@@ -2922,6 +2974,12 @@ if doFinalSelectionPlots:
         )
         plots[-1].xtit = "1st Jet #eta [LQ M = " + str(mass_point) + " selection]"
         plots[-1].rebin = 2
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "1st Jet #eta"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
         plots.append(
             makeDefaultPlot(
@@ -2938,6 +2996,12 @@ if doFinalSelectionPlots:
         )
         plots[-1].xtit = "2nd Jet #eta [LQ M = " + str(mass_point) + " selection]"
         plots[-1].rebin = 2
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "2nd Jet #eta"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
         plots.append(
             makeDefaultPlot(
@@ -2954,6 +3018,12 @@ if doFinalSelectionPlots:
         )
         plots[-1].xtit = "1st Jet #phi [LQ M = " + str(mass_point) + " selection]"
         plots[-1].rebin = 4
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "1st Jet #phi"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
         plots.append(
             makeDefaultPlot(
@@ -2970,8 +3040,14 @@ if doFinalSelectionPlots:
         )
         plots[-1].xtit = "2nd Jet #phi [LQ M = " + str(mass_point) + " selection]"
         plots[-1].rebin = 4
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "2nd Jet #phi"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
-        mej_rebin = 1
+        mej_rebin = 2
         mej_xmin = 0
         mej_xmax = 3000
         mee_rebin = 1
@@ -2994,6 +3070,12 @@ if doFinalSelectionPlots:
         plots[-1].xtit = "M_{e1j1} (GeV), (LQ M = " + str(mass_point) + " selection)"
         plots[-1].xmin = mej_xmin
         plots[-1].xmax = mej_xmax
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "M_{e1j1} (GeV)"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
         plots.append(
             makeDefaultPlot(
@@ -3012,6 +3094,12 @@ if doFinalSelectionPlots:
         plots[-1].xtit = "M_{e1j2} (GeV), (LQ M = " + str(mass_point) + " selection)"
         plots[-1].xmin = mej_xmin
         plots[-1].xmax = mej_xmax
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "M_{e1j2} (GeV)"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
         plots.append(
             makeDefaultPlot(
@@ -3030,6 +3118,12 @@ if doFinalSelectionPlots:
         plots[-1].xtit = "M_{e2j1} (GeV), (LQ M = " + str(mass_point) + " selection)"
         plots[-1].xmin = mej_xmin
         plots[-1].xmax = mej_xmax
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "M_{e2j1} (GeV)"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
         plots.append(
             makeDefaultPlot(
@@ -3048,6 +3142,12 @@ if doFinalSelectionPlots:
         plots[-1].xtit = "M_{e2j2} (GeV), (LQ M = " + str(mass_point) + " selection)"
         plots[-1].xmin = mej_xmin
         plots[-1].xmax = mej_xmax
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "M_{e2j2} (GeV)"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
         plots.append(
             makeDefaultPlot(
@@ -3068,6 +3168,12 @@ if doFinalSelectionPlots:
         )
         plots[-1].xmin = mej_xmin
         plots[-1].xmax = mej_xmax
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "M_{ej}^{avg} (GeV)"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
         # plots.append ( makeDefaultPlot ( "Mej_selected_avg_LQ" + str ( mass_point) , histoBaseName_userDef, samplesForHistos, keys, samplesForStackHistos, keysStack, sampleForDataHisto, zUncBand, makeRatio) )
         # plots[-1].rebin = mej_rebin
@@ -3094,6 +3200,14 @@ if doFinalSelectionPlots:
         )
         plots[-1].xmin = mej_xmin
         plots[-1].xmax = mej_xmax
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "M_{ej}^{min} (GeV)"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
+        if blindFinalSelectionData:
+            plots[-1].labelSize = 0.04
 
         plots.append(
             makeDefaultPlot(
@@ -3114,6 +3228,12 @@ if doFinalSelectionPlots:
         )
         plots[-1].xmin = mej_xmin
         plots[-1].xmax = mej_xmax
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "M_{ej}^{max} (GeV)"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
         plots.append(
             makeDefaultPlot(
@@ -3131,6 +3251,41 @@ if doFinalSelectionPlots:
         plots[-1].rebin = mej_rebin
         plots[-1].xtit = "M_{ej} (GeV), (LQ M = " + str(mass_point) + " selection)"
         plots[-1].ytit = "2 #times Entries"
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "M_{ej} (GeV)"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
+
+        plots.append(
+            makeDefaultPlot(
+                "Meejj_LQ" + str(mass_point),
+                histoBaseName_userDef,
+                samplesForHistos,
+                keys,
+                samplesForStackHistos,
+                keysStack,
+                sampleForDataHisto,
+                zUncBand,
+                makeRatio,
+            )
+        )
+        plots[-1].rebin = mej_rebin
+        plots[-1].xtit = (
+            "M_{eejj} (GeV), (LQ M = " + str(mass_point) + " selection)"
+        )
+        # plots[-1].xmin = mej_xmin
+        # plots[-1].xmax = mej_xmax
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "M_{eejj} (GeV)"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
+        plots[-1].rebin = 10
+        if blindFinalSelectionData:
+            plots[-1].labelSize = 0.04
 
         plots.append(
             makeDefaultPlot(
@@ -3146,6 +3301,14 @@ if doFinalSelectionPlots:
             )
         )
         plots[-1].xtit = "S_{T} (GeV), (LQ M = " + str(mass_point) + " selection)"
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "S_{T} (GeV)"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
+        if blindFinalSelectionData:
+            plots[-1].labelSize = 0.04
 
         plots.append(
             makeDefaultPlot(
@@ -3166,6 +3329,12 @@ if doFinalSelectionPlots:
             + " selection)"
         )
         plots[-1].rebin = 10
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "S_{T} (1st Electron, 2nd Electron) (GeV)"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
         plots.append(
             makeDefaultPlot(
@@ -3184,136 +3353,142 @@ if doFinalSelectionPlots:
             "S_{T} (1st Jet, 2nd Jet) (GeV), (LQ M = " + str(mass_point) + " selection)"
         )
         plots[-1].rebin = 10
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "S_{T} (1st Jet, 2nd Jet) (GeV)"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
-        plots.append(
-            makeDefaultPlot(
-                "sTfrac_Jet1_LQ" + str(mass_point),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xmin = 0.0
-        plots[-1].xmax = 1.0
-        plots[-1].rebin = 4
-        plots[-1].xtit = (
-            "Fraction S_{T} from jet 1 (GeV), (LQ M = "
-            + str(mass_point)
-            + " selection)"
-        )
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "sTfrac_Jet1_LQ" + str(mass_point),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xmin = 0.0
+        # plots[-1].xmax = 1.0
+        # plots[-1].rebin = 4
+        # plots[-1].xtit = (
+        #     "Fraction S_{T} from jet 1 (GeV), (LQ M = "
+        #     + str(mass_point)
+        #     + " selection)"
+        # )
 
-        plots.append(
-            makeDefaultPlot(
-                "sTfrac_Jet2_LQ" + str(mass_point),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xmin = 0.0
-        plots[-1].xmax = 1.0
-        plots[-1].rebin = 4
-        plots[-1].xtit = (
-            "Fraction S_{T} from jet 2 (GeV), (LQ M = "
-            + str(mass_point)
-            + " selection)"
-        )
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "sTfrac_Jet2_LQ" + str(mass_point),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xmin = 0.0
+        # plots[-1].xmax = 1.0
+        # plots[-1].rebin = 4
+        # plots[-1].xtit = (
+        #     "Fraction S_{T} from jet 2 (GeV), (LQ M = "
+        #     + str(mass_point)
+        #     + " selection)"
+        # )
 
-        plots.append(
-            makeDefaultPlot(
-                "sTfrac_Ele1_LQ" + str(mass_point),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xmin = 0.0
-        plots[-1].xmax = 1.0
-        plots[-1].rebin = 4
-        plots[-1].xtit = (
-            "Fraction S_{T} from ele 1 (GeV), (LQ M = "
-            + str(mass_point)
-            + " selection)"
-        )
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "sTfrac_Ele1_LQ" + str(mass_point),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xmin = 0.0
+        # plots[-1].xmax = 1.0
+        # plots[-1].rebin = 4
+        # plots[-1].xtit = (
+        #     "Fraction S_{T} from ele 1 (GeV), (LQ M = "
+        #     + str(mass_point)
+        #     + " selection)"
+        # )
 
-        plots.append(
-            makeDefaultPlot(
-                "sTfrac_Ele2_LQ" + str(mass_point),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xmin = 0.0
-        plots[-1].xmax = 1.0
-        plots[-1].rebin = 4
-        plots[-1].xtit = (
-            "Fraction S_{T} from ele 2 (GeV), (LQ M = "
-            + str(mass_point)
-            + " selection)"
-        )
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "sTfrac_Ele2_LQ" + str(mass_point),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xmin = 0.0
+        # plots[-1].xmax = 1.0
+        # plots[-1].rebin = 4
+        # plots[-1].xtit = (
+        #     "Fraction S_{T} from ele 2 (GeV), (LQ M = "
+        #     + str(mass_point)
+        #     + " selection)"
+        # )
 
-        plots.append(
-            makeDefaultPlot(
-                "sTfrac_Ele_LQ" + str(mass_point),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xmin = 0.0
-        plots[-1].xmax = 1.0
-        plots[-1].rebin = 4
-        plots[-1].xtit = (
-            "Fraction S_{T} from electrons (GeV), (LQ M = "
-            + str(mass_point)
-            + " selection)"
-        )
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "sTfrac_Ele_LQ" + str(mass_point),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xmin = 0.0
+        # plots[-1].xmax = 1.0
+        # plots[-1].rebin = 4
+        # plots[-1].xtit = (
+        #     "Fraction S_{T} from electrons (GeV), (LQ M = "
+        #     + str(mass_point)
+        #     + " selection)"
+        # )
 
-        plots.append(
-            makeDefaultPlot(
-                "sTfrac_Jet_LQ" + str(mass_point),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xmin = 0.0
-        plots[-1].xmax = 1.0
-        plots[-1].rebin = 4
-        plots[-1].xtit = (
-            "Fraction S_{T} from jets (GeV), (LQ M = " + str(mass_point) + " selection)"
-        )
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "sTfrac_Jet_LQ" + str(mass_point),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xmin = 0.0
+        # plots[-1].xmax = 1.0
+        # plots[-1].rebin = 4
+        # plots[-1].xtit = (
+        #     "Fraction S_{T} from jets (GeV), (LQ M = " + str(mass_point) + " selection)"
+        # )
 
         plots.append(
             makeDefaultPlot(
@@ -3331,7 +3506,13 @@ if doFinalSelectionPlots:
         plots[-1].rebin = 2
         plots[-1].xmin = 0
         plots[-1].xmax = 1000
-        plots[-1].xtit = "P_{T}(ee), (LQ M = " + str(mass_point) + " selection)"
+        plots[-1].xtit = "P_{T}(ee) (GeV), (LQ M = " + str(mass_point) + " selection)"
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "P_{T}(ee) (GeV)"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
         plots.append(
             makeDefaultPlot(
@@ -3348,43 +3529,49 @@ if doFinalSelectionPlots:
         )
         plots[-1].rebin = 4
         plots[-1].xtit = "Dijet Mass (GeV) (LQ M = " + str(mass_point) + " selection)"
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "M_{jj} (GeV)"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
-        plots.append(
-            makeDefaultPlot(
-                "Ptj1j2_LQ" + str(mass_point),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].rebin = 2
-        plots[-1].xmin = 0
-        plots[-1].xmax = 1000
-        plots[-1].xtit = (
-            "P_{T}(j_{1}, j_{2}) (GeV), (LQ M = " + str(mass_point) + " selection)"
-        )
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "Ptj1j2_LQ" + str(mass_point),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].rebin = 2
+        # plots[-1].xmin = 0
+        # plots[-1].xmax = 1000
+        # plots[-1].xtit = (
+        #     "P_{T}(j_{1}, j_{2}) (GeV), (LQ M = " + str(mass_point) + " selection)"
+        # )
 
-        plots.append(
-            makeDefaultPlot(
-                "nVertex_LQ" + str(mass_point),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xmin = -0.5
-        plots[-1].xmax = 40.5
-        plots[-1].xtit = "n(vertexes) [Preselection]"
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "nVertex_LQ" + str(mass_point),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xmin = -0.5
+        # plots[-1].xmax = 40.5
+        # plots[-1].xtit = "n(vertexes) [Preselection]"
 
         plots.append(
             makeDefaultPlot(
@@ -3401,6 +3588,12 @@ if doFinalSelectionPlots:
         )
         plots[-1].rebin = mee_rebin
         plots[-1].xtit = "M(ee) (GeV), (LQ M = " + str(mass_point) + " selection)"
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "M_{ee} (GeV)"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
         plots.append(
             makeDefaultPlot(
@@ -3419,19 +3612,31 @@ if doFinalSelectionPlots:
         plots[-1].xtit = (
             "#DeltaR(e1,j1) (GeV), (LQ M = " + str(mass_point) + " selection)"
         )
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "#DeltaR(e1,j1) (GeV)"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
-        plots.append(
-            makeDefaultPlot2D(
-                "Mej_selected_min_vs_max_LQ" + str(mass_point),
-                histoBaseName2D_userDef,
-                samplesForStackHistos,
-                sampleForDataHisto,
-            )
-        )
-        plots[-1].xrebin = 2
-        plots[-1].yrebin = 2
-        plots[-1].xtit = "M(ej)^{min} (GeV), (LQ M = " + str(mass_point) + " selection)"
-        plots[-1].ytit = "M(ej)^{max} (GeV), (LQ M = " + str(mass_point) + " selection)"
+        # plots.append(
+        #     makeDefaultPlot2D(
+        #         "Mej_selected_min_vs_max_LQ" + str(mass_point),
+        #         histoBaseName2D_userDef,
+        #         samplesForStackHistos,
+        #         sampleForDataHisto,
+        #     )
+        # )
+        # plots[-1].xrebin = 2
+        # plots[-1].yrebin = 2
+        # plots[-1].xtit = "M(ej)^{min} (GeV), (LQ M = " + str(mass_point) + " selection)"
+        # plots[-1].ytit = "M(ej)^{max} (GeV), (LQ M = " + str(mass_point) + " selection)"
+        # plots[-1].ylog = "yes"
+        # plots[-1].xtitPaper = "#DeltaR(e1,j1) (GeV)"
+        # plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        # plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        # plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        # plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
         # FIXME
         # plots.append(
@@ -3468,93 +3673,93 @@ if doFinalSelectionPlots:
         # plots.append ( makeDefaultPlot ("Classif_2ndEle_LQ" + str ( int ( mass_point )  )               , histoBaseName_userDef, samplesForHistos, keys, samplesForStackHistos, keysStack, sampleForDataHisto, zUncBand, makeRatio) )
         # plots[-1].xtit  = "2nd Electron classification, (LQ M = " + str ( mass_point ) + " selection)"
 
-        plots.append(
-            makeDefaultPlot(
-                "CorrIsolation_1stEle_LQ" + str(int(mass_point)),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xtit = (
-            "1st Electron corrected HEEP isolation, (LQ M = "
-            + str(mass_point)
-            + " selection)"
-        )
-        plots[-1].xmax = 1.0
-        plots[-1].xmin = -25
-        plots[-1].rebin = 4
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "CorrIsolation_1stEle_LQ" + str(int(mass_point)),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xtit = (
+        #     "1st Electron corrected HEEP isolation, (LQ M = "
+        #     + str(mass_point)
+        #     + " selection)"
+        # )
+        # plots[-1].xmax = 1.0
+        # plots[-1].xmin = -25
+        # plots[-1].rebin = 4
 
-        plots.append(
-            makeDefaultPlot(
-                "CorrIsolation_2ndEle_LQ" + str(int(mass_point)),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xtit = (
-            "2nd Electron corrected HEEP isolation, (LQ M = "
-            + str(mass_point)
-            + " selection)"
-        )
-        plots[-1].xmax = 1.0
-        plots[-1].xmin = -25
-        plots[-1].rebin = 4
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "CorrIsolation_2ndEle_LQ" + str(int(mass_point)),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xtit = (
+        #     "2nd Electron corrected HEEP isolation, (LQ M = "
+        #     + str(mass_point)
+        #     + " selection)"
+        # )
+        # plots[-1].xmax = 1.0
+        # plots[-1].xmin = -25
+        # plots[-1].rebin = 4
 
-        plots.append(
-            makeDefaultPlot(
-                "DeltaEtaTrkSC_1stEle_LQ" + str(int(mass_point)),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xtit = (
-            "1st Electron #Delta#eta(track, SC), (LQ M = "
-            + str(mass_point)
-            + " selection)"
-        )
-        plots[-1].xmin = -0.007
-        plots[-1].xmax = 0.007
-        plots[-1].rebin = 4
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "DeltaEtaTrkSC_1stEle_LQ" + str(int(mass_point)),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xtit = (
+        #     "1st Electron #Delta#eta(track, SC), (LQ M = "
+        #     + str(mass_point)
+        #     + " selection)"
+        # )
+        # plots[-1].xmin = -0.007
+        # plots[-1].xmax = 0.007
+        # plots[-1].rebin = 4
 
-        plots.append(
-            makeDefaultPlot(
-                "DeltaEtaTrkSC_2ndEle_LQ" + str(int(mass_point)),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xtit = (
-            "2nd Electron #Delta#eta(track, SC), (LQ M = "
-            + str(mass_point)
-            + " selection)"
-        )
-        plots[-1].xmin = -0.007
-        plots[-1].xmax = 0.007
-        plots[-1].rebin = 4
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "DeltaEtaTrkSC_2ndEle_LQ" + str(int(mass_point)),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xtit = (
+        #     "2nd Electron #Delta#eta(track, SC), (LQ M = "
+        #     + str(mass_point)
+        #     + " selection)"
+        # )
+        # plots[-1].xmin = -0.007
+        # plots[-1].xmax = 0.007
+        # plots[-1].rebin = 4
 
         # plots.append ( makeDefaultPlot ("DeltaPhiTrkSC_1stEle_LQ" + str ( int ( mass_point )  )         , histoBaseName_userDef, samplesForHistos, keys, samplesForStackHistos, keysStack, sampleForDataHisto, zUncBand, makeRatio) )
         # plots[-1].xtit  = "1st Electron #Delta#phi(track, SC), (LQ M = " + str ( mass_point ) + " selection)"
@@ -3592,133 +3797,133 @@ if doFinalSelectionPlots:
         # plots[-1].xmax  =  1.40
         # plots[-1].rebin = 4
 
-        plots.append(
-            makeDefaultPlot(
-                "EcalIsolation_1stEle_LQ" + str(int(mass_point)),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xtit = (
-            "1st Electron HEEP ECAL isolation, (LQ M = "
-            + str(mass_point)
-            + " selection)"
-        )
-        plots[-1].xmin = 0.00
-        plots[-1].xmax = 15.00
-        plots[-1].rebin = 4
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "EcalIsolation_1stEle_LQ" + str(int(mass_point)),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xtit = (
+        #     "1st Electron HEEP ECAL isolation, (LQ M = "
+        #     + str(mass_point)
+        #     + " selection)"
+        # )
+        # plots[-1].xmin = 0.00
+        # plots[-1].xmax = 15.00
+        # plots[-1].rebin = 4
 
-        plots.append(
-            makeDefaultPlot(
-                "EcalIsolation_2ndEle_LQ" + str(int(mass_point)),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xtit = (
-            "2nd Electron HEEP ECAL isolation, (LQ M = "
-            + str(mass_point)
-            + " selection)"
-        )
-        plots[-1].xmin = 0.00
-        plots[-1].xmax = 15.00
-        plots[-1].rebin = 4
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "EcalIsolation_2ndEle_LQ" + str(int(mass_point)),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xtit = (
+        #     "2nd Electron HEEP ECAL isolation, (LQ M = "
+        #     + str(mass_point)
+        #     + " selection)"
+        # )
+        # plots[-1].xmin = 0.00
+        # plots[-1].xmax = 15.00
+        # plots[-1].rebin = 4
 
-        plots.append(
-            makeDefaultPlot(
-                "HcalIsolation_1stEle_LQ" + str(int(mass_point)),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xtit = (
-            "1st Electron HEEP HCAL isolation, (LQ M = "
-            + str(mass_point)
-            + " selection)"
-        )
-        plots[-1].xmin = 0.00
-        plots[-1].xmax = 15.00
-        plots[-1].rebin = 4
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "HcalIsolation_1stEle_LQ" + str(int(mass_point)),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xtit = (
+        #     "1st Electron HEEP HCAL isolation, (LQ M = "
+        #     + str(mass_point)
+        #     + " selection)"
+        # )
+        # plots[-1].xmin = 0.00
+        # plots[-1].xmax = 15.00
+        # plots[-1].rebin = 4
 
-        plots.append(
-            makeDefaultPlot(
-                "HcalIsolation_2ndEle_LQ" + str(int(mass_point)),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xtit = (
-            "2nd Electron HEEP HCAL isolation, (LQ M = "
-            + str(mass_point)
-            + " selection)"
-        )
-        plots[-1].xmin = 0.00
-        plots[-1].xmax = 15.00
-        plots[-1].rebin = 4
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "HcalIsolation_2ndEle_LQ" + str(int(mass_point)),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xtit = (
+        #     "2nd Electron HEEP HCAL isolation, (LQ M = "
+        #     + str(mass_point)
+        #     + " selection)"
+        # )
+        # plots[-1].xmin = 0.00
+        # plots[-1].xmax = 15.00
+        # plots[-1].rebin = 4
 
-        plots.append(
-            makeDefaultPlot(
-                "TrkIsolation_1stEle_LQ" + str(int(mass_point)),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xtit = (
-            "1st Electron HEEP tracker isolation, (LQ M = "
-            + str(mass_point)
-            + " selection)"
-        )
-        plots[-1].rebin = 4
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "TrkIsolation_1stEle_LQ" + str(int(mass_point)),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xtit = (
+        #     "1st Electron HEEP tracker isolation, (LQ M = "
+        #     + str(mass_point)
+        #     + " selection)"
+        # )
+        # plots[-1].rebin = 4
 
-        plots.append(
-            makeDefaultPlot(
-                "TrkIsolation_2ndEle_LQ" + str(int(mass_point)),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xtit = (
-            "2nd Electron HEEP tracker isolation, (LQ M = "
-            + str(mass_point)
-            + " selection)"
-        )
-        plots[-1].rebin = 4
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "TrkIsolation_2ndEle_LQ" + str(int(mass_point)),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xtit = (
+        #     "2nd Electron HEEP tracker isolation, (LQ M = "
+        #     + str(mass_point)
+        #     + " selection)"
+        # )
+        # plots[-1].rebin = 4
 
         # plots.append ( makeDefaultPlot ("FBrem_1stEle_LQ" + str ( int ( mass_point )  )                 , histoBaseName_userDef, samplesForHistos, keys, samplesForStackHistos, keysStack, sampleForDataHisto, zUncBand, makeRatio) )
         # plots[-1].xtit  = "1st Electron brem fraction, (LQ M = " + str ( mass_point ) + " selection)"
@@ -3748,189 +3953,189 @@ if doFinalSelectionPlots:
         # plots.append ( makeDefaultPlot ("GsfScPixCharge_2ndEle_LQ" + str ( int ( mass_point )  )        , histoBaseName_userDef, samplesForHistos, keys, samplesForStackHistos, keysStack, sampleForDataHisto, zUncBand, makeRatio) )
         # plots[-1].xtit  = "2nd Electron GSF SC Pixel charge, (LQ M = " + str ( mass_point ) + " selection)"
 
-        plots.append(
-            makeDefaultPlot(
-                "HasMatchedPhot_1stEle_LQ" + str(int(mass_point)),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xtit = (
-            "1st Electron has matched photon, (LQ M = "
-            + str(mass_point)
-            + " selection)"
-        )
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "HasMatchedPhot_1stEle_LQ" + str(int(mass_point)),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xtit = (
+        #     "1st Electron has matched photon, (LQ M = "
+        #     + str(mass_point)
+        #     + " selection)"
+        # )
 
-        plots.append(
-            makeDefaultPlot(
-                "HasMatchedPhot_2ndEle_LQ" + str(int(mass_point)),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xtit = (
-            "2nd Electron has matched photon, (LQ M = "
-            + str(mass_point)
-            + " selection)"
-        )
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "HasMatchedPhot_2ndEle_LQ" + str(int(mass_point)),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xtit = (
+        #     "2nd Electron has matched photon, (LQ M = "
+        #     + str(mass_point)
+        #     + " selection)"
+        # )
 
-        plots.append(
-            makeDefaultPlot(
-                "HoE_1stEle_LQ" + str(int(mass_point)),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xtit = "1st Electron H/E, (LQ M = " + str(mass_point) + " selection)"
-        plots[-1].rebin = 4
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "HoE_1stEle_LQ" + str(int(mass_point)),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xtit = "1st Electron H/E, (LQ M = " + str(mass_point) + " selection)"
+        # plots[-1].rebin = 4
 
-        plots.append(
-            makeDefaultPlot(
-                "HoE_2ndEle_LQ" + str(int(mass_point)),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xtit = "2nd Electron H/E, (LQ M = " + str(mass_point) + " selection)"
-        plots[-1].rebin = 4
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "HoE_2ndEle_LQ" + str(int(mass_point)),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xtit = "2nd Electron H/E, (LQ M = " + str(mass_point) + " selection)"
+        # plots[-1].rebin = 4
 
-        plots.append(
-            makeDefaultPlot(
-                "LeadVtxDistXY_1stEle_LQ" + str(int(mass_point)),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xtit = (
-            "1st Electron D_{XY} vs leading vertex, (LQ M = "
-            + str(mass_point)
-            + " selection)"
-        )
-        plots[-1].rebin = 4
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "LeadVtxDistXY_1stEle_LQ" + str(int(mass_point)),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xtit = (
+        #     "1st Electron D_{XY} vs leading vertex, (LQ M = "
+        #     + str(mass_point)
+        #     + " selection)"
+        # )
+        # plots[-1].rebin = 4
 
-        plots.append(
-            makeDefaultPlot(
-                "LeadVtxDistXY_2ndEle_LQ" + str(int(mass_point)),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xtit = (
-            "2nd Electron D_{XY} vs leading vertex, (LQ M = "
-            + str(mass_point)
-            + " selection)"
-        )
-        plots[-1].rebin = 4
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "LeadVtxDistXY_2ndEle_LQ" + str(int(mass_point)),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xtit = (
+        #     "2nd Electron D_{XY} vs leading vertex, (LQ M = "
+        #     + str(mass_point)
+        #     + " selection)"
+        # )
+        # plots[-1].rebin = 4
 
-        plots.append(
-            makeDefaultPlot(
-                "LeadVtxDistZ_1stEle_LQ" + str(int(mass_point)),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xtit = (
-            "1st Electron D_{Z} vs leading vertex, (LQ M = "
-            + str(mass_point)
-            + " selection)"
-        )
-        plots[-1].rebin = 4
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "LeadVtxDistZ_1stEle_LQ" + str(int(mass_point)),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xtit = (
+        #     "1st Electron D_{Z} vs leading vertex, (LQ M = "
+        #     + str(mass_point)
+        #     + " selection)"
+        # )
+        # plots[-1].rebin = 4
 
-        plots.append(
-            makeDefaultPlot(
-                "LeadVtxDistZ_2ndEle_LQ" + str(int(mass_point)),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xtit = (
-            "2nd Electron D_{Z} vs leading vertex, (LQ M = "
-            + str(mass_point)
-            + " selection)"
-        )
-        plots[-1].rebin = 4
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "LeadVtxDistZ_2ndEle_LQ" + str(int(mass_point)),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xtit = (
+        #     "2nd Electron D_{Z} vs leading vertex, (LQ M = "
+        #     + str(mass_point)
+        #     + " selection)"
+        # )
+        # plots[-1].rebin = 4
 
-        plots.append(
-            makeDefaultPlot(
-                "MissingHits_1stEle_LQ" + str(int(mass_point)),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xtit = (
-            "1st Electron N(missing hits), (LQ M = " + str(mass_point) + " selection)"
-        )
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "MissingHits_1stEle_LQ" + str(int(mass_point)),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xtit = (
+        #     "1st Electron N(missing hits), (LQ M = " + str(mass_point) + " selection)"
+        # )
 
-        plots.append(
-            makeDefaultPlot(
-                "MissingHits_2ndEle_LQ" + str(int(mass_point)),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xtit = (
-            "2nd Electron N(missing hits), (LQ M = " + str(mass_point) + " selection)"
-        )
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "MissingHits_2ndEle_LQ" + str(int(mass_point)),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xtit = (
+        #     "2nd Electron N(missing hits), (LQ M = " + str(mass_point) + " selection)"
+        # )
 
         # plots.append ( makeDefaultPlot ("NBrems_1stEle_LQ" + str ( int ( mass_point )  )                , histoBaseName_userDef, samplesForHistos, keys, samplesForStackHistos, keysStack, sampleForDataHisto, zUncBand, makeRatio) )
         # plots[-1].xtit  = "1st Electron N(brems), (LQ M = " + str ( mass_point ) + " selection)"
@@ -4018,26 +4223,26 @@ if doFinalSelectionPlots:
         # plots[-1].xmax  = 1.50
         # plots[-1].rebin = 4
 
-        plots.append(
-            makeDefaultPlot(
-                "EleChargeSum_LQ" + str(int(mass_point)),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-            )
-        )
-        plots[-1].xtit = (
-            "Electron 1 charge + Electron 2 charge, (LQ M = "
-            + str(mass_point)
-            + " selection)"
-        )
-        plots[-1].xmin = -1.5
-        plots[-1].xmax = 1.5
+        # plots.append(
+        #     makeDefaultPlot(
+        #         "EleChargeSum_LQ" + str(int(mass_point)),
+        #         histoBaseName_userDef,
+        #         samplesForHistos,
+        #         keys,
+        #         samplesForStackHistos,
+        #         keysStack,
+        #         sampleForDataHisto,
+        #         zUncBand,
+        #         makeRatio,
+        #     )
+        # )
+        # plots[-1].xtit = (
+        #     "Electron 1 charge + Electron 2 charge, (LQ M = "
+        #     + str(mass_point)
+        #     + " selection)"
+        # )
+        # plots[-1].xmin = -1.5
+        # plots[-1].xmax = 1.5
 
         plots.append(
             makeDefaultPlot(
@@ -4056,6 +4261,12 @@ if doFinalSelectionPlots:
         plots[-1].rebin = 4
         plots[-1].xmax = 500
         plots[-1].xmin = 0
+        plots[-1].ylog = "yes"
+        plots[-1].xtitPaper = "PFMET (GeV)"
+        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+        plots[-1].makeNSigma = False if blindFinalSelectionData else True
+        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
     print("Done")
 
 ####################################################################################################

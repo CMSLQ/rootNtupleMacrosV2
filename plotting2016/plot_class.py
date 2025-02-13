@@ -729,6 +729,7 @@ class Plot:
         self.cmsLumiTextScaleFactor = 1.4
         self.padRightMargin = 0.04
         self.extraText = ""
+        self.xNDivisions = 510
 
     def Draw(self, fileps, page_number=-1, style="AN"):
         if self.isInteractive:
@@ -772,7 +773,7 @@ class Plot:
             self.histos = integral_histos
 
         if style == "paper":
-            self.makeRatio = 1
+            # self.makeRatio = 1
             self.makeNSigma = 0
             self.suffix = "paper"
             self.ratioLabelTextSizeScaleFactor = 3
@@ -871,8 +872,16 @@ class Plot:
                 ystart = 0.65
                 vsize = 0.25
             if style == "paper":
-                xstart = 0.58
-                ystart = 0.53
+                if self.makeRatio:
+                    xstart = 0.58
+                    ystart = 0.53
+                else:
+                    xstart = 0.52
+                    ystart = 0.65
+            else:
+                if not self.makeRatio:
+                    xstart = 0.52
+                    ystart = 0.65
         legend = CMS.cmsLeg(xstart, ystart, xstart + hsize, ystart + vsize)
         legend.SetFillColor(kWhite)
         legend.SetBorderSize(0)
@@ -969,17 +978,28 @@ class Plot:
         thStack.SetTitle("")
         thStack.Draw()
         # print("INFO: Draw stack for thStack xtit={}".format(self.xtit), flush=True)
-        thStack.GetXaxis().SetTitle("" if style == "paper" else self.xtit)
-        thStack.GetXaxis().SetTitleOffset(0.9)
-        thStack.GetXaxis().SetLabelOffset(1e-3)
+        xTitle = self.xtitPaper
+        xLabelSize = self.labelSize
+        if self.makeRatio:
+            xTitle = ""
+            xLabelSize = 0
+        elif style != "paper":
+            xTitle = self.xtit
+        thStack.GetXaxis().SetTitle(xTitle)
+        if self.makeRatio:
+            thStack.GetXaxis().SetTitleOffset(0.0)
+            thStack.GetXaxis().SetLabelOffset(0.0)
+        else:
+            thStack.GetXaxis().SetTitleOffset(1.0)
+            thStack.GetXaxis().SetLabelOffset(0.002)
         thStack.GetXaxis().SetTitleSize(self.titleSize)
-        thStack.GetXaxis().SetLabelSize(0.0 if style == "paper" else self.labelSize)
+        thStack.GetXaxis().SetLabelSize(xLabelSize)
+        thStack.GetXaxis().SetTitleFont(self.titleFont)
+        thStack.GetXaxis().SetLabelFont(self.titleFont)
         thStack.GetYaxis().SetTitleOffset(1.1 if style == "paper" else 0.75)
         thStack.GetYaxis().SetTitleSize(self.titleSize)
         thStack.GetYaxis().SetLabelSize(self.labelSize)
         thStack.GetYaxis().SetLabelOffset(0.01 if style =="paper" else 0.0)
-        thStack.GetXaxis().SetTitleFont(self.titleFont)
-        thStack.GetXaxis().SetLabelFont(self.titleFont)
         thStack.GetYaxis().SetTitleFont(self.titleFont)
         thStack.GetYaxis().SetLabelFont(self.titleFont)
         thStack.GetYaxis().SetTitle(

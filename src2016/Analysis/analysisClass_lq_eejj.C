@@ -738,17 +738,23 @@ void analysisClass::Loop()
     CreateUserHistWithSysts(cut_name,2000,-1,1.001);
     sprintf(cut_name, "BDTOutput_TTBarCRRegion_LQ%d"   , lq_mass );
     CreateUserHistWithSysts(cut_name,2000,-1,1.001);
-    sprintf(cut_name, "BDTOutput_TrainRegion_LQ%d"   , lq_mass );
+    sprintf(cut_name, "BDTOutput_PAS_LQ%d"   , lq_mass );
     CreateUserHistWithSysts(cut_name,2000,-1,1.001);
-    sprintf(cut_name, "BDTOutput_noWeight_TrainRegion_LQ%d"   , lq_mass );
+    sprintf(cut_name, "BDTOutput_noWeight_PAS_LQ%d"   , lq_mass );
+    CreateUserHistWithSysts(cut_name,2000,-1,1.001);
+    sprintf(cut_name, "BDTOutput_TrainRegionNoMeejj_LQ%d"   , lq_mass );
+    CreateUserHistWithSysts(cut_name,2000,-1,1.001);
+    sprintf(cut_name, "BDTOutput_TrainRegion_LQ%d"   , lq_mass );
     CreateUserHistWithSysts(cut_name,2000,-1,1.001);
     sprintf(cut_name, "MeeVsBDTOutput_BkgControlRegion_LQ%d", lq_mass );
     CreateUserHist2D(cut_name, 400, -1, 1.001, 1000, 0, 2000);
     sprintf(cut_name, "MeeVsBDTOutput_gteTwoBtaggedJets_BkgControlRegion_LQ%d", lq_mass );
     CreateUserHist2D(cut_name, 400, -1, 1.001, 1000, 0, 2000);
     sprintf(cut_name, "BDTOutput_LQ%d"   , lq_mass );
-    if(hasCut(cut_name))
+    if(hasCut(cut_name)) {
       doFinalSelections = true;
+      CreateUserHistWithSysts(cut_name,2000,-1,1.001);
+    }
   }
   if(doFinalSelections && !evaluateBDT) {
     STDOUT("ERROR: No BDTWeightFileName specified, yet asked to do final selections. Quitting here.");
@@ -763,122 +769,122 @@ void analysisClass::Loop()
   {
     for (int i_lq_mass = 0; i_lq_mass < n_lq_mass ; ++i_lq_mass ) { 
       int lq_mass = LQ_MASS[i_lq_mass];
-      sprintf(plot_name, "GeneratorWeight_LQ%d"        , lq_mass ); CreateUserHist ( plot_name, 200 , -2 , 2 );
-      sprintf(plot_name, "Mej_selected_avg_LQ%d"       , lq_mass ); CreateUserHist ( plot_name, 60  , 0 , 3000 );
-      sprintf(plot_name, "Mej_selected_min_LQ%d"       , lq_mass ); CreateUserHist ( plot_name, 60  , 0 , 3000 );
-      sprintf(plot_name, "Mej_selected_max_LQ%d"       , lq_mass ); CreateUserHist ( plot_name, 60  , 0 , 3000 );
-      sprintf(plot_name, "Mej_minmax_LQ%d"             , lq_mass ); CreateUserHist ( plot_name, 60  , 0 , 3000 );
-      sprintf(plot_name, "sT_eejj_LQ%d"                , lq_mass ); CreateUserHist ( plot_name, 30  , 0 , 3000 );
-      sprintf(plot_name, "Mee_LQ%d"                    , lq_mass ); CreateUserHist ( plot_name, 40  , 0 , 2000 );
+      sprintf(plot_name, "GeneratorWeight_LQ%d"        , lq_mass ); CreateUserHistWithSysts ( plot_name, 200 , -2 , 2 );
+      sprintf(plot_name, "Mej_selected_avg_LQ%d"       , lq_mass ); CreateUserHistWithSysts ( plot_name, 60  , 0 , 3000 );
+      sprintf(plot_name, "Mej_selected_min_LQ%d"       , lq_mass ); CreateUserHistWithSysts ( plot_name, 60  , 0 , 3000 );
+      sprintf(plot_name, "Mej_selected_max_LQ%d"       , lq_mass ); CreateUserHistWithSysts ( plot_name, 60  , 0 , 3000 );
+      sprintf(plot_name, "Mej_minmax_LQ%d"             , lq_mass ); CreateUserHistWithSysts ( plot_name, 60  , 0 , 3000 );
+      sprintf(plot_name, "sT_eejj_LQ%d"                , lq_mass ); CreateUserHistWithSysts ( plot_name, 30  , 0 , 3000 );
+      sprintf(plot_name, "Mee_LQ%d"                    , lq_mass ); CreateUserHistWithSysts ( plot_name, 40  , 0 , 2000 );
       sprintf(plot_name, "Mej_selected_min_vs_max_LQ%d", lq_mass ); CreateUserHist2D ( plot_name, 150  , 0 , 3000, 150  , 0 , 3000 );
-      sprintf(plot_name, "DR_Ele1Jet1_LQ%d"            , lq_mass ); CreateUserHist ( plot_name, 
+      sprintf(plot_name, "DR_Ele1Jet1_LQ%d"            , lq_mass ); CreateUserHistWithSysts ( plot_name, 
           getHistoNBins("DR_Ele1Jet1"), 
           getHistoMin  ("DR_Ele1Jet1"), 
           getHistoMax  ("DR_Ele1Jet1"));
 
-      sprintf(plot_name, "nElectron_LQ%d"          , lq_mass ); CreateUserHist( plot_name , 5,  -0.5 ,   4.5  );
-      sprintf(plot_name, "CorrIsolation_1stEle_LQ%d"        , lq_mass ); CreateUserHist( plot_name , 200,-25.0 ,  25.0  );
-      sprintf(plot_name, "DeltaEtaTrkSC_1stEle_LQ%d"        , lq_mass ); CreateUserHist( plot_name , 200, -0.01,   0.01 );
-      sprintf(plot_name, "EcalIsolation_1stEle_LQ%d"        , lq_mass ); CreateUserHist( plot_name , 200,  0.0 ,  20.0  );
-      sprintf(plot_name, "HcalIsolation_1stEle_LQ%d"        , lq_mass ); CreateUserHist( plot_name , 200,  0.0 ,  20.0  );
-      sprintf(plot_name, "TrkIsolation_1stEle_LQ%d"         , lq_mass ); CreateUserHist( plot_name , 200,  0.0,    5.0  );
-      sprintf(plot_name, "Energy_1stEle_LQ%d"               , lq_mass ); CreateUserHist( plot_name , 200,  0.0 ,3000.0  );
-      sprintf(plot_name, "HasMatchedPhot_1stEle_LQ%d"       , lq_mass ); CreateUserHist( plot_name , 2,   -0.5 ,   1.5  );
-      sprintf(plot_name, "HoE_1stEle_LQ%d"                  , lq_mass ); CreateUserHist( plot_name , 200,  0.0 ,   0.05 );
-      sprintf(plot_name, "LeadVtxDistXY_1stEle_LQ%d"        , lq_mass ); CreateUserHist( plot_name , 200, -0.05,   0.05 );
-      sprintf(plot_name, "LeadVtxDistZ_1stEle_LQ%d"         , lq_mass ); CreateUserHist( plot_name , 200, -0.2 ,   0.2  );
-      sprintf(plot_name, "MissingHits_1stEle_LQ%d"          , lq_mass ); CreateUserHist( plot_name , 2  , -0.5,    1.5  );
-      sprintf(plot_name, "Full5x5SigmaIEtaIEta_Barrel_1stEle_LQ%d" , lq_mass ); CreateUserHist( plot_name , 200,  0.0,    0.02 );
-      sprintf(plot_name, "Full5x5SigmaIEtaIEta_Endcap_1stEle_LQ%d" , lq_mass ); CreateUserHist( plot_name , 200,  0.0,    0.1  );
+      sprintf(plot_name, "nElectron_LQ%d"          , lq_mass ); CreateUserHistWithSysts( plot_name , 5,  -0.5 ,   4.5  );
+      sprintf(plot_name, "CorrIsolation_1stEle_LQ%d"        , lq_mass ); CreateUserHistWithSysts( plot_name , 200,-25.0 ,  25.0  );
+      sprintf(plot_name, "DeltaEtaTrkSC_1stEle_LQ%d"        , lq_mass ); CreateUserHistWithSysts( plot_name , 200, -0.01,   0.01 );
+      sprintf(plot_name, "EcalIsolation_1stEle_LQ%d"        , lq_mass ); CreateUserHistWithSysts( plot_name , 200,  0.0 ,  20.0  );
+      sprintf(plot_name, "HcalIsolation_1stEle_LQ%d"        , lq_mass ); CreateUserHistWithSysts( plot_name , 200,  0.0 ,  20.0  );
+      sprintf(plot_name, "TrkIsolation_1stEle_LQ%d"         , lq_mass ); CreateUserHistWithSysts( plot_name , 200,  0.0,    5.0  );
+      sprintf(plot_name, "Energy_1stEle_LQ%d"               , lq_mass ); CreateUserHistWithSysts( plot_name , 200,  0.0 ,3000.0  );
+      sprintf(plot_name, "HasMatchedPhot_1stEle_LQ%d"       , lq_mass ); CreateUserHistWithSysts( plot_name , 2,   -0.5 ,   1.5  );
+      sprintf(plot_name, "HoE_1stEle_LQ%d"                  , lq_mass ); CreateUserHistWithSysts( plot_name , 200,  0.0 ,   0.05 );
+      sprintf(plot_name, "LeadVtxDistXY_1stEle_LQ%d"        , lq_mass ); CreateUserHistWithSysts( plot_name , 200, -0.05,   0.05 );
+      sprintf(plot_name, "LeadVtxDistZ_1stEle_LQ%d"         , lq_mass ); CreateUserHistWithSysts( plot_name , 200, -0.2 ,   0.2  );
+      sprintf(plot_name, "MissingHits_1stEle_LQ%d"          , lq_mass ); CreateUserHistWithSysts( plot_name , 2  , -0.5,    1.5  );
+      sprintf(plot_name, "Full5x5SigmaIEtaIEta_Barrel_1stEle_LQ%d" , lq_mass ); CreateUserHistWithSysts( plot_name , 200,  0.0,    0.02 );
+      sprintf(plot_name, "Full5x5SigmaIEtaIEta_Endcap_1stEle_LQ%d" , lq_mass ); CreateUserHistWithSysts( plot_name , 200,  0.0,    0.1  );
 
 
-      sprintf(plot_name, "CorrIsolation_2ndEle_LQ%d"        , lq_mass ); CreateUserHist( plot_name , 200,-25.0 ,  25.0  );
-      sprintf(plot_name, "DeltaEtaTrkSC_2ndEle_LQ%d"        , lq_mass ); CreateUserHist( plot_name , 200, -0.01,   0.01 );
-      sprintf(plot_name, "EcalIsolation_2ndEle_LQ%d"        , lq_mass ); CreateUserHist( plot_name , 200,  0.0 ,  20.0  );
-      sprintf(plot_name, "HcalIsolation_2ndEle_LQ%d"        , lq_mass ); CreateUserHist( plot_name , 200,  0.0 ,  20.0  );
-      sprintf(plot_name, "TrkIsolation_2ndEle_LQ%d"         , lq_mass ); CreateUserHist( plot_name , 200,  0.0,    5.0  );
-      sprintf(plot_name, "Energy_2ndEle_LQ%d"               , lq_mass ); CreateUserHist( plot_name , 200,  0.0 ,3000.0  );
-      sprintf(plot_name, "HasMatchedPhot_2ndEle_LQ%d"       , lq_mass ); CreateUserHist( plot_name , 2,   -0.5 ,   1.5  );
-      sprintf(plot_name, "HoE_2ndEle_LQ%d"                  , lq_mass ); CreateUserHist( plot_name , 200,  0.0 ,   0.05 );
-      sprintf(plot_name, "LeadVtxDistXY_2ndEle_LQ%d"        , lq_mass ); CreateUserHist( plot_name , 200, -0.05,   0.05 );
-      sprintf(plot_name, "LeadVtxDistZ_2ndEle_LQ%d"         , lq_mass ); CreateUserHist( plot_name , 200, -0.2 ,   0.2  );
-      sprintf(plot_name, "MissingHits_2ndEle_LQ%d"          , lq_mass ); CreateUserHist( plot_name , 2  , -0.5,    1.5  );
-      sprintf(plot_name, "Full5x5SigmaIEtaIEta_Barrel_2ndEle_LQ%d" , lq_mass ); CreateUserHist( plot_name , 200,  0.0,    0.02 );
-      sprintf(plot_name, "Full5x5SigmaIEtaIEta_Endcap_2ndEle_LQ%d" , lq_mass ); CreateUserHist( plot_name , 200,  0.0,    0.1  );
+      sprintf(plot_name, "CorrIsolation_2ndEle_LQ%d"        , lq_mass ); CreateUserHistWithSysts( plot_name , 200,-25.0 ,  25.0  );
+      sprintf(plot_name, "DeltaEtaTrkSC_2ndEle_LQ%d"        , lq_mass ); CreateUserHistWithSysts( plot_name , 200, -0.01,   0.01 );
+      sprintf(plot_name, "EcalIsolation_2ndEle_LQ%d"        , lq_mass ); CreateUserHistWithSysts( plot_name , 200,  0.0 ,  20.0  );
+      sprintf(plot_name, "HcalIsolation_2ndEle_LQ%d"        , lq_mass ); CreateUserHistWithSysts( plot_name , 200,  0.0 ,  20.0  );
+      sprintf(plot_name, "TrkIsolation_2ndEle_LQ%d"         , lq_mass ); CreateUserHistWithSysts( plot_name , 200,  0.0,    5.0  );
+      sprintf(plot_name, "Energy_2ndEle_LQ%d"               , lq_mass ); CreateUserHistWithSysts( plot_name , 200,  0.0 ,3000.0  );
+      sprintf(plot_name, "HasMatchedPhot_2ndEle_LQ%d"       , lq_mass ); CreateUserHistWithSysts( plot_name , 2,   -0.5 ,   1.5  );
+      sprintf(plot_name, "HoE_2ndEle_LQ%d"                  , lq_mass ); CreateUserHistWithSysts( plot_name , 200,  0.0 ,   0.05 );
+      sprintf(plot_name, "LeadVtxDistXY_2ndEle_LQ%d"        , lq_mass ); CreateUserHistWithSysts( plot_name , 200, -0.05,   0.05 );
+      sprintf(plot_name, "LeadVtxDistZ_2ndEle_LQ%d"         , lq_mass ); CreateUserHistWithSysts( plot_name , 200, -0.2 ,   0.2  );
+      sprintf(plot_name, "MissingHits_2ndEle_LQ%d"          , lq_mass ); CreateUserHistWithSysts( plot_name , 2  , -0.5,    1.5  );
+      sprintf(plot_name, "Full5x5SigmaIEtaIEta_Barrel_2ndEle_LQ%d" , lq_mass ); CreateUserHistWithSysts( plot_name , 200,  0.0,    0.02 );
+      sprintf(plot_name, "Full5x5SigmaIEtaIEta_Endcap_2ndEle_LQ%d" , lq_mass ); CreateUserHistWithSysts( plot_name , 200,  0.0,    0.1  );
 
 
-      sprintf(plot_name, "EleChargeSum_LQ%d"        , lq_mass ); CreateUserHist( plot_name ,      3 , -2.5    , 2.5      );
-      sprintf(plot_name, "sTfrac_Jet1_LQ%d"         , lq_mass ); CreateUserHist( plot_name ,    100 ,  0.0    , 1.0      );
-      sprintf(plot_name, "sTfrac_Jet2_LQ%d"         , lq_mass ); CreateUserHist( plot_name ,    100 ,  0.0    , 1.0      );
-      sprintf(plot_name, "sTfrac_Ele1_LQ%d"         , lq_mass ); CreateUserHist( plot_name ,    100 ,  0.0    , 1.0      );
-      sprintf(plot_name, "sTfrac_Ele2_LQ%d"         , lq_mass ); CreateUserHist( plot_name ,    100 ,  0.0    , 1.0      );
-      sprintf(plot_name, "sTfrac_Jet_LQ%d"          , lq_mass ); CreateUserHist( plot_name ,    100 ,  0.0    , 1.0      );
-      sprintf(plot_name, "sTfrac_Ele_LQ%d"          , lq_mass ); CreateUserHist( plot_name ,    100 ,  0.0    , 1.0      );
-      sprintf(plot_name, "nJet_LQ%d"                , lq_mass ); CreateUserHist( plot_name ,     10 , -0.5    , 9.5      );
-      sprintf(plot_name, "Pt1stEle_LQ%d"	           , lq_mass ); CreateUserHist( plot_name ,    100 ,  0.0    , 1000     ); 
-      sprintf(plot_name, "Eta1stEle_LQ%d"           , lq_mass ); CreateUserHist( plot_name ,    100 , -5.0    , 5.0      ); 
-      sprintf(plot_name, "Phi1stEle_LQ%d"           , lq_mass ); CreateUserHist( plot_name ,     60 , -3.1416 , +3.1416  ); 
-      sprintf(plot_name, "Pt2ndEle_LQ%d"	           , lq_mass ); CreateUserHist( plot_name ,    100 ,  0.0    , 1000     ); 
-      sprintf(plot_name, "Eta2ndEle_LQ%d"           , lq_mass ); CreateUserHist( plot_name ,    100 , -5.0    , 5.0      ); 
-      sprintf(plot_name, "Phi2ndEle_LQ%d"           , lq_mass ); CreateUserHist( plot_name ,     60 , -3.1416 , 3.1416   ); 
-      sprintf(plot_name, "MET_LQ%d"                 , lq_mass ); CreateUserHist( plot_name ,    200 ,  0.0    , 1000     ); 
-      sprintf(plot_name, "Pt1stJet_LQ%d"            , lq_mass ); CreateUserHist( plot_name ,    100 ,  0.0    , 1000     ); 
-      sprintf(plot_name, "Pt2ndJet_LQ%d"            , lq_mass ); CreateUserHist( plot_name ,    100 ,  0.0    , 1000     ); 
-      sprintf(plot_name, "Eta1stJet_LQ%d"           , lq_mass ); CreateUserHist( plot_name ,    100 , -5.0    , 5.0      ); 
-      sprintf(plot_name, "Eta2ndJet_LQ%d"           , lq_mass ); CreateUserHist( plot_name ,    100 , -5.0    , 5.0      ); 
-      sprintf(plot_name, "Phi1stJet_LQ%d"           , lq_mass ); CreateUserHist( plot_name ,     60 , -3.1416 , 3.1416   ); 
-      sprintf(plot_name, "Phi2ndJet_LQ%d"           , lq_mass ); CreateUserHist( plot_name ,     60 , -3.1416 , 3.1416   ); 
-      sprintf(plot_name, "sTlep_LQ%d"               , lq_mass ); CreateUserHist( plot_name ,    200 ,  0.0    , 2000     ); 
-      sprintf(plot_name, "sTjet_LQ%d"               , lq_mass ); CreateUserHist( plot_name ,    200 ,  0.0    , 2000     ); 
-      sprintf(plot_name, "sT_zjj_LQ%d"              , lq_mass ); CreateUserHist( plot_name ,    200 ,  0.0    , 2000     ); 
-      sprintf(plot_name, "Mjj_LQ%d"		   , lq_mass ); CreateUserHist( plot_name ,    200 ,  0.0    , 2000     ); 
-      sprintf(plot_name, "Meejj_LQ%d"               , lq_mass ); CreateUserHist( plot_name ,    400 ,  0.0    , 4000     );
-      sprintf(plot_name, "Mejj_LQ%d"                , lq_mass ); CreateUserHist( plot_name ,    400 ,  0.0    , 4000     );
-      sprintf(plot_name, "Meej_LQ%d"                , lq_mass ); CreateUserHist( plot_name ,    400 ,  0.0    , 4000     );
-      sprintf(plot_name, "Ptj1j2j3_LQ%d"            , lq_mass ); CreateUserHist( plot_name ,    200 ,  0.0    , 2000     );
-      sprintf(plot_name, "Ptj1j2_LQ%d"              , lq_mass ); CreateUserHist( plot_name ,    200 ,  0.0    , 2000     );
-      sprintf(plot_name, "Ptj2j3_LQ%d"              , lq_mass ); CreateUserHist( plot_name ,    200 ,  0.0    , 2000     );
-      sprintf(plot_name, "Ptj1j3_LQ%d"              , lq_mass ); CreateUserHist( plot_name ,    200 ,  0.0    , 2000     );
-      sprintf(plot_name, "Ptee_Minus_Ptj1j2_LQ%d"   , lq_mass ); CreateUserHist( plot_name ,    200 , -500    ,  500     );
-      sprintf(plot_name, "Ptee_Minus_Ptj1j2j3_LQ%d" , lq_mass ); CreateUserHist( plot_name ,    200 , -500    ,  500     );
-      sprintf(plot_name, "Ptee_LQ%d"                , lq_mass ); CreateUserHist( plot_name ,    200 ,  0.0    , 2000     );
-      sprintf(plot_name, "Me1j1_LQ%d"               , lq_mass ); CreateUserHist( plot_name ,    200 ,  0.0    , 2000     );
-      sprintf(plot_name, "Me1j2_LQ%d"               , lq_mass ); CreateUserHist( plot_name ,    200 ,  0.0    , 2000     );
-      sprintf(plot_name, "Me2j1_LQ%d"               , lq_mass ); CreateUserHist( plot_name ,    200 ,  0.0    , 2000     );
-      sprintf(plot_name, "Me2j2_LQ%d"               , lq_mass ); CreateUserHist( plot_name ,    200 ,  0.0    , 2000     );
-      sprintf(plot_name, "M_j1j3_LQ%d"              , lq_mass ); CreateUserHist( plot_name ,    200 ,  0.0    , 2000     );    
-      sprintf(plot_name, "M_j2j3_LQ%d"              , lq_mass ); CreateUserHist( plot_name ,    200 ,  0.0    , 2000     ); 
-      sprintf(plot_name, "M_e1j3_LQ%d"              , lq_mass ); CreateUserHist( plot_name ,    200 ,  0.0    , 2000     );    
-      sprintf(plot_name, "M_e2j3_LQ%d"              , lq_mass ); CreateUserHist( plot_name ,    200 ,  0.0    , 2000     ); 
-      sprintf(plot_name, "M_eejjj_LQ%d"             , lq_mass ); CreateUserHist( plot_name ,    500 ,  0.0    , 5000     ); 
-      sprintf(plot_name, "nVertex_LQ%d"             , lq_mass ); CreateUserHist( plot_name ,    101 , -0.5    ,  100.5   ); 
+      sprintf(plot_name, "EleChargeSum_LQ%d"        , lq_mass ); CreateUserHistWithSysts( plot_name ,      3 , -2.5    , 2.5      );
+      sprintf(plot_name, "sTfrac_Jet1_LQ%d"         , lq_mass ); CreateUserHistWithSysts( plot_name ,    100 ,  0.0    , 1.0      );
+      sprintf(plot_name, "sTfrac_Jet2_LQ%d"         , lq_mass ); CreateUserHistWithSysts( plot_name ,    100 ,  0.0    , 1.0      );
+      sprintf(plot_name, "sTfrac_Ele1_LQ%d"         , lq_mass ); CreateUserHistWithSysts( plot_name ,    100 ,  0.0    , 1.0      );
+      sprintf(plot_name, "sTfrac_Ele2_LQ%d"         , lq_mass ); CreateUserHistWithSysts( plot_name ,    100 ,  0.0    , 1.0      );
+      sprintf(plot_name, "sTfrac_Jet_LQ%d"          , lq_mass ); CreateUserHistWithSysts( plot_name ,    100 ,  0.0    , 1.0      );
+      sprintf(plot_name, "sTfrac_Ele_LQ%d"          , lq_mass ); CreateUserHistWithSysts( plot_name ,    100 ,  0.0    , 1.0      );
+      sprintf(plot_name, "nJet_LQ%d"                , lq_mass ); CreateUserHistWithSysts( plot_name ,     10 , -0.5    , 9.5      );
+      sprintf(plot_name, "Pt1stEle_LQ%d"	           , lq_mass ); CreateUserHistWithSysts( plot_name ,    100 ,  0.0    , 1000     ); 
+      sprintf(plot_name, "Eta1stEle_LQ%d"           , lq_mass ); CreateUserHistWithSysts( plot_name ,    100 , -5.0    , 5.0      ); 
+      sprintf(plot_name, "Phi1stEle_LQ%d"           , lq_mass ); CreateUserHistWithSysts( plot_name ,     60 , -3.1416 , +3.1416  ); 
+      sprintf(plot_name, "Pt2ndEle_LQ%d"	           , lq_mass ); CreateUserHistWithSysts( plot_name ,    100 ,  0.0    , 1000     ); 
+      sprintf(plot_name, "Eta2ndEle_LQ%d"           , lq_mass ); CreateUserHistWithSysts( plot_name ,    100 , -5.0    , 5.0      ); 
+      sprintf(plot_name, "Phi2ndEle_LQ%d"           , lq_mass ); CreateUserHistWithSysts( plot_name ,     60 , -3.1416 , 3.1416   ); 
+      sprintf(plot_name, "MET_LQ%d"                 , lq_mass ); CreateUserHistWithSysts( plot_name ,    200 ,  0.0    , 1000     ); 
+      sprintf(plot_name, "Pt1stJet_LQ%d"            , lq_mass ); CreateUserHistWithSysts( plot_name ,    100 ,  0.0    , 1000     ); 
+      sprintf(plot_name, "Pt2ndJet_LQ%d"            , lq_mass ); CreateUserHistWithSysts( plot_name ,    100 ,  0.0    , 1000     ); 
+      sprintf(plot_name, "Eta1stJet_LQ%d"           , lq_mass ); CreateUserHistWithSysts( plot_name ,    100 , -5.0    , 5.0      ); 
+      sprintf(plot_name, "Eta2ndJet_LQ%d"           , lq_mass ); CreateUserHistWithSysts( plot_name ,    100 , -5.0    , 5.0      ); 
+      sprintf(plot_name, "Phi1stJet_LQ%d"           , lq_mass ); CreateUserHistWithSysts( plot_name ,     60 , -3.1416 , 3.1416   ); 
+      sprintf(plot_name, "Phi2ndJet_LQ%d"           , lq_mass ); CreateUserHistWithSysts( plot_name ,     60 , -3.1416 , 3.1416   ); 
+      sprintf(plot_name, "sTlep_LQ%d"               , lq_mass ); CreateUserHistWithSysts( plot_name ,    200 ,  0.0    , 2000     ); 
+      sprintf(plot_name, "sTjet_LQ%d"               , lq_mass ); CreateUserHistWithSysts( plot_name ,    200 ,  0.0    , 2000     ); 
+      sprintf(plot_name, "sT_zjj_LQ%d"              , lq_mass ); CreateUserHistWithSysts( plot_name ,    200 ,  0.0    , 2000     ); 
+      sprintf(plot_name, "Mjj_LQ%d"		   , lq_mass ); CreateUserHistWithSysts( plot_name ,    200 ,  0.0    , 2000     ); 
+      sprintf(plot_name, "Meejj_LQ%d"               , lq_mass ); CreateUserHistWithSysts( plot_name ,    400 ,  0.0    , 4000     );
+      sprintf(plot_name, "Mejj_LQ%d"                , lq_mass ); CreateUserHistWithSysts( plot_name ,    400 ,  0.0    , 4000     );
+      sprintf(plot_name, "Meej_LQ%d"                , lq_mass ); CreateUserHistWithSysts( plot_name ,    400 ,  0.0    , 4000     );
+      sprintf(plot_name, "Ptj1j2j3_LQ%d"            , lq_mass ); CreateUserHistWithSysts( plot_name ,    200 ,  0.0    , 2000     );
+      sprintf(plot_name, "Ptj1j2_LQ%d"              , lq_mass ); CreateUserHistWithSysts( plot_name ,    200 ,  0.0    , 2000     );
+      sprintf(plot_name, "Ptj2j3_LQ%d"              , lq_mass ); CreateUserHistWithSysts( plot_name ,    200 ,  0.0    , 2000     );
+      sprintf(plot_name, "Ptj1j3_LQ%d"              , lq_mass ); CreateUserHistWithSysts( plot_name ,    200 ,  0.0    , 2000     );
+      sprintf(plot_name, "Ptee_Minus_Ptj1j2_LQ%d"   , lq_mass ); CreateUserHistWithSysts( plot_name ,    200 , -500    ,  500     );
+      sprintf(plot_name, "Ptee_Minus_Ptj1j2j3_LQ%d" , lq_mass ); CreateUserHistWithSysts( plot_name ,    200 , -500    ,  500     );
+      sprintf(plot_name, "Ptee_LQ%d"                , lq_mass ); CreateUserHistWithSysts( plot_name ,    200 ,  0.0    , 2000     );
+      sprintf(plot_name, "Me1j1_LQ%d"               , lq_mass ); CreateUserHistWithSysts( plot_name ,    200 ,  0.0    , 2000     );
+      sprintf(plot_name, "Me1j2_LQ%d"               , lq_mass ); CreateUserHistWithSysts( plot_name ,    200 ,  0.0    , 2000     );
+      sprintf(plot_name, "Me2j1_LQ%d"               , lq_mass ); CreateUserHistWithSysts( plot_name ,    200 ,  0.0    , 2000     );
+      sprintf(plot_name, "Me2j2_LQ%d"               , lq_mass ); CreateUserHistWithSysts( plot_name ,    200 ,  0.0    , 2000     );
+      sprintf(plot_name, "M_j1j3_LQ%d"              , lq_mass ); CreateUserHistWithSysts( plot_name ,    200 ,  0.0    , 2000     );    
+      sprintf(plot_name, "M_j2j3_LQ%d"              , lq_mass ); CreateUserHistWithSysts( plot_name ,    200 ,  0.0    , 2000     ); 
+      sprintf(plot_name, "M_e1j3_LQ%d"              , lq_mass ); CreateUserHistWithSysts( plot_name ,    200 ,  0.0    , 2000     );    
+      sprintf(plot_name, "M_e2j3_LQ%d"              , lq_mass ); CreateUserHistWithSysts( plot_name ,    200 ,  0.0    , 2000     ); 
+      sprintf(plot_name, "M_eejjj_LQ%d"             , lq_mass ); CreateUserHistWithSysts( plot_name ,    500 ,  0.0    , 5000     ); 
+      sprintf(plot_name, "nVertex_LQ%d"             , lq_mass ); CreateUserHistWithSysts( plot_name ,    101 , -0.5    ,  100.5   ); 
       sprintf(plot_name, "MeeVsST_LQ%d"             , lq_mass ); CreateUserHist2D( plot_name ,    200 ,  0.0, 2000, 200, 0, 2000) ;
-      sprintf(plot_name, "minDR_ZJet_LQ%d"          , lq_mass ); CreateUserHist( plot_name ,    getHistoNBins("DR_Jet1Jet2"), getHistoMin("DR_Jet1Jet2"), getHistoMax("DR_Jet1Jet2")     ) ; 
-      sprintf(plot_name, "DR_ZJet1_LQ%d"            , lq_mass ); CreateUserHist( plot_name ,    getHistoNBins("DR_Jet1Jet2"), getHistoMin("DR_Jet1Jet2"), getHistoMax("DR_Jet1Jet2")     ) ; 
-      sprintf(plot_name, "DR_ZJet2_LQ%d"            , lq_mass ); CreateUserHist( plot_name ,    getHistoNBins("DR_Jet1Jet2"), getHistoMin("DR_Jet1Jet2"), getHistoMax("DR_Jet1Jet2")     ) ; 
+      sprintf(plot_name, "minDR_ZJet_LQ%d"          , lq_mass ); CreateUserHistWithSysts( plot_name ,    getHistoNBins("DR_Jet1Jet2"), getHistoMin("DR_Jet1Jet2"), getHistoMax("DR_Jet1Jet2")     ) ; 
+      sprintf(plot_name, "DR_ZJet1_LQ%d"            , lq_mass ); CreateUserHistWithSysts( plot_name ,    getHistoNBins("DR_Jet1Jet2"), getHistoMin("DR_Jet1Jet2"), getHistoMax("DR_Jet1Jet2")     ) ; 
+      sprintf(plot_name, "DR_ZJet2_LQ%d"            , lq_mass ); CreateUserHistWithSysts( plot_name ,    getHistoNBins("DR_Jet1Jet2"), getHistoMin("DR_Jet1Jet2"), getHistoMax("DR_Jet1Jet2")     ) ; 
       // checking electrons
-      sprintf(plot_name, "SCEta_1stEle_LQ%d", lq_mass ); CreateUserHist( plot_name , 4000,0,10);
-      sprintf(plot_name, "EleEta_1stEle_LQ%d", lq_mass ); CreateUserHist( plot_name , 4000,0,10);
-      sprintf(plot_name, "SCEtaMinusEleEta_1stEle_LQ%d", lq_mass ); CreateUserHist( plot_name , 4000,0,10);
-      sprintf(plot_name, "DeltaEtaTrkSC_Minus_SCEtaMinusEleEta_1stEle_LQ%d", lq_mass ); CreateUserHist( plot_name , 4000,0,10);
-      sprintf(plot_name, "SCEta_2ndEle_LQ%d", lq_mass ); CreateUserHist( plot_name , 4000,0,10);
-      sprintf(plot_name, "EleEta_2ndEle_LQ%d", lq_mass ); CreateUserHist( plot_name , 4000,0,10);
-      sprintf(plot_name, "SCEtaMinusEleEta_2ndEle_LQ%d", lq_mass ); CreateUserHist( plot_name , 4000,0,10);
-      sprintf(plot_name, "DeltaEtaTrkSC_Minus_SCEtaMinusEleEta_2ndEle_LQ%d", lq_mass ); CreateUserHist( plot_name , 4000,0,10);
+      sprintf(plot_name, "SCEta_1stEle_LQ%d", lq_mass ); CreateUserHistWithSysts( plot_name , 4000,0,10);
+      sprintf(plot_name, "EleEta_1stEle_LQ%d", lq_mass ); CreateUserHistWithSysts( plot_name , 4000,0,10);
+      sprintf(plot_name, "SCEtaMinusEleEta_1stEle_LQ%d", lq_mass ); CreateUserHistWithSysts( plot_name , 4000,0,10);
+      sprintf(plot_name, "DeltaEtaTrkSC_Minus_SCEtaMinusEleEta_1stEle_LQ%d", lq_mass ); CreateUserHistWithSysts( plot_name , 4000,0,10);
+      sprintf(plot_name, "SCEta_2ndEle_LQ%d", lq_mass ); CreateUserHistWithSysts( plot_name , 4000,0,10);
+      sprintf(plot_name, "EleEta_2ndEle_LQ%d", lq_mass ); CreateUserHistWithSysts( plot_name , 4000,0,10);
+      sprintf(plot_name, "SCEtaMinusEleEta_2ndEle_LQ%d", lq_mass ); CreateUserHistWithSysts( plot_name , 4000,0,10);
+      sprintf(plot_name, "DeltaEtaTrkSC_Minus_SCEtaMinusEleEta_2ndEle_LQ%d", lq_mass ); CreateUserHistWithSysts( plot_name , 4000,0,10);
       // muon kinematics
-      sprintf(plot_name, "Pt1stMuon_LQ%d"	           , lq_mass ); CreateUserHist( plot_name ,    100 ,  0.0    , 1000     ); 
-      sprintf(plot_name, "Eta1stMuon_LQ%d"           , lq_mass ); CreateUserHist( plot_name ,    100 , -5.0    , 5.0      ); 
-      sprintf(plot_name, "Phi1stMuon_LQ%d"           , lq_mass ); CreateUserHist( plot_name ,     60 , -3.1416 , +3.1416  ); 
-      sprintf(plot_name, "Pt2ndMuon_LQ%d"	           , lq_mass ); CreateUserHist( plot_name ,    100 ,  0.0    , 1000     ); 
-      sprintf(plot_name, "Eta2ndMuon_LQ%d"           , lq_mass ); CreateUserHist( plot_name ,    100 , -5.0    , 5.0      ); 
-      sprintf(plot_name, "Phi2ndMuon_LQ%d"           , lq_mass ); CreateUserHist( plot_name ,     60 , -3.1416 , 3.1416   ); 
+      sprintf(plot_name, "Pt1stMuon_LQ%d"	           , lq_mass ); CreateUserHistWithSysts( plot_name ,    100 ,  0.0    , 1000     ); 
+      sprintf(plot_name, "Eta1stMuon_LQ%d"           , lq_mass ); CreateUserHistWithSysts( plot_name ,    100 , -5.0    , 5.0      ); 
+      sprintf(plot_name, "Phi1stMuon_LQ%d"           , lq_mass ); CreateUserHistWithSysts( plot_name ,     60 , -3.1416 , +3.1416  ); 
+      sprintf(plot_name, "Pt2ndMuon_LQ%d"	           , lq_mass ); CreateUserHistWithSysts( plot_name ,    100 ,  0.0    , 1000     ); 
+      sprintf(plot_name, "Eta2ndMuon_LQ%d"           , lq_mass ); CreateUserHistWithSysts( plot_name ,    100 , -5.0    , 5.0      ); 
+      sprintf(plot_name, "Phi2ndMuon_LQ%d"           , lq_mass ); CreateUserHistWithSysts( plot_name ,     60 , -3.1416 , 3.1416   ); 
     }
     // for SF at final selections
-    CreateUserHist( "Mee_70_110_LQ300", 200, 60, 120 );
-    CreateUserHist( "Mee_70_110_LQ600", 200, 60, 120 );
-    CreateUserHist( "Mee_70_110_LQ800", 200, 60, 120 );
-    CreateUserHist( "Mee_70_110_LQ900", 200, 60, 120 );
-    CreateUserHist( "Mee_70_110_LQ1000", 200, 60, 120 );
+    CreateUserHistWithSysts( "Mee_70_110_LQ300", 200, 60, 120 );
+    CreateUserHistWithSysts( "Mee_70_110_LQ600", 200, 60, 120 );
+    CreateUserHistWithSysts( "Mee_70_110_LQ800", 200, 60, 120 );
+    CreateUserHistWithSysts( "Mee_70_110_LQ900", 200, 60, 120 );
+    CreateUserHistWithSysts( "Mee_70_110_LQ1000", 200, 60, 120 );
   }
 
   //--------------------------------------------------------------------------
@@ -1575,6 +1581,8 @@ void analysisClass::Loop()
     fillVariableWithValue( "PFMET_Type1_Pt", PFMET_Type1_Pt, gen_weight * pileup_weight  ) ;
     fillVariableWithValue( "PFMET_Type1_Phi", PFMET_Type1_Phi, gen_weight * pileup_weight  ) ;
 
+    double M_j1j2 = readerTools_->ReadValueBranch<Float_t>("M_j1j2");
+    fillVariableWithValue("M_j1j2", M_j1j2, gen_weight * pileup_weight);
     // Dummy variables
     fillVariableWithValue ("skim_selection", 1, gen_weight * pileup_weight ); 
     fillVariableWithValue ("preselection", 1, gen_weight * pileup_weight ); 
@@ -1963,6 +1971,7 @@ void analysisClass::Loop()
           int lq_mass = LQ_MASS[i_lq_mass];
           sprintf(cut_name, "BDTOutput_LQ%d", lq_mass );
           float bdtOutput = getVariableValue(cut_name);
+          FillUserHist(cut_name, bdtOutput, pileup_weight * gen_weight, cut_name);
           sprintf(cut_name, "MeeVsBDTOutput_BkgControlRegion_LQ%d", lq_mass );
           FillUserHist2D(cut_name, bdtOutput, M_e1e2, pileup_weight * gen_weight);
           if(nBJet_ptCut >= 2) {
@@ -2794,10 +2803,18 @@ void analysisClass::Loop()
           int lq_mass = LQ_MASS[i_lq_mass];
           sprintf(cut_name, "BDTOutput_LQ%d", lq_mass );
           float bdtOutput = getVariableValue(cut_name);
-          sprintf(cut_name, "BDTOutput_TrainRegion_LQ%d", lq_mass );
+          sprintf(cut_name, "BDTOutput_PAS_LQ%d", lq_mass );
           FillUserHist(cut_name, bdtOutput, gen_weight * pileup_weight  , "preselection");
-          sprintf(cut_name, "BDTOutput_noWeight_TrainRegion_LQ%d", lq_mass );
+          sprintf(cut_name, "BDTOutput_noWeight_PAS_LQ%d", lq_mass );
           FillUserHist(cut_name, bdtOutput  , 1.0, "preselection");
+          if(passedCut("trainingSelection")) {
+            sprintf(cut_name, "BDTOutput_TrainRegionNoMeejj_LQ%d", lq_mass );
+            FillUserHist(cut_name, bdtOutput, gen_weight * pileup_weight, "M_e1e2");
+            if(passedCut("MeejjLQ" + to_string(lq_mass))) {
+              sprintf(cut_name, "BDTOutput_TrainRegion_LQ%d"   , lq_mass );
+              FillUserHist(cut_name, bdtOutput, gen_weight * pileup_weight, "BDTOutput_LQ" + to_string(lq_mass));
+            }
+          }
         }
       }
 
@@ -2911,125 +2928,127 @@ void analysisClass::Loop()
           int lq_mass = LQ_MASS[i_lq_mass];
           bool pass = passed_vector[i_lq_mass];
           if ( !pass ) continue;
+          sprintf(cut_name, "BDTOutput_LQ%d", lq_mass );
+          float bdtOutput = getVariableValue(cut_name);
 
-          sprintf(plot_name, "GeneratorWeight_LQ%d"        , lq_mass ); FillUserHist ( plot_name, gen_weight        );
-          sprintf(plot_name, "Mej_selected_avg_LQ%d"       , lq_mass ); FillUserHist ( plot_name, M_ej_avg          , pileup_weight * gen_weight );
-          sprintf(plot_name, "Mej_selected_min_LQ%d"       , lq_mass ); FillUserHist ( plot_name, M_ej_min          , pileup_weight * gen_weight );
-          sprintf(plot_name, "Mej_selected_max_LQ%d"       , lq_mass ); FillUserHist ( plot_name, M_ej_max          , pileup_weight * gen_weight );
-          sprintf(plot_name, "Mej_minmax_LQ%d"             , lq_mass ); FillUserHist ( plot_name, M_ej_min          , pileup_weight * gen_weight );
-          sprintf(plot_name, "Mej_minmax_LQ%d"             , lq_mass ); FillUserHist ( plot_name, M_ej_max          , pileup_weight * gen_weight );
-          sprintf(plot_name, "sT_eejj_LQ%d"                , lq_mass ); FillUserHist ( plot_name, sT_eejj           , pileup_weight * gen_weight );
-          sprintf(plot_name, "Mee_LQ%d"                    , lq_mass ); FillUserHist ( plot_name, M_e1e2            , pileup_weight * gen_weight );
-          sprintf(plot_name, "DR_Ele1Jet1_LQ%d"            , lq_mass ); FillUserHist ( plot_name, DR_Ele1Jet1       , pileup_weight * gen_weight );
+          sprintf(plot_name, "GeneratorWeight_LQ%d"        , lq_mass ); FillUserHist ( plot_name, gen_weight        , 1.0                       , cut_name);
+          sprintf(plot_name, "Mej_selected_avg_LQ%d"       , lq_mass ); FillUserHist ( plot_name, M_ej_avg          , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Mej_selected_min_LQ%d"       , lq_mass ); FillUserHist ( plot_name, M_ej_min          , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Mej_selected_max_LQ%d"       , lq_mass ); FillUserHist ( plot_name, M_ej_max          , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Mej_minmax_LQ%d"             , lq_mass ); FillUserHist ( plot_name, M_ej_min          , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Mej_minmax_LQ%d"             , lq_mass ); FillUserHist ( plot_name, M_ej_max          , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "sT_eejj_LQ%d"                , lq_mass ); FillUserHist ( plot_name, sT_eejj           , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Mee_LQ%d"                    , lq_mass ); FillUserHist ( plot_name, M_e1e2            , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "DR_Ele1Jet1_LQ%d"            , lq_mass ); FillUserHist ( plot_name, DR_Ele1Jet1       , pileup_weight * gen_weight, cut_name );
           sprintf(plot_name, "Mej_selected_min_vs_max_LQ%d", lq_mass ); FillUserHist2D ( plot_name, M_ej_min, M_ej_max, pileup_weight * gen_weight );
 
 
-          sprintf(plot_name, "CorrIsolation_1stEle_LQ%d"      , lq_mass );   FillUserHist(plot_name,  Ele1_CorrIsolation             , pileup_weight * gen_weight ); 
-          sprintf(plot_name, "DeltaEtaTrkSC_1stEle_LQ%d"      , lq_mass );   FillUserHist(plot_name,  Ele1_DeltaEtaTrkSC             , pileup_weight * gen_weight ); 
-          sprintf(plot_name, "EcalIsolation_1stEle_LQ%d"      , lq_mass );   FillUserHist(plot_name,  Ele1_EcalIsolation             , pileup_weight * gen_weight ); 
-          sprintf(plot_name, "HcalIsolation_1stEle_LQ%d"      , lq_mass );   FillUserHist(plot_name,  Ele1_HcalIsolation             , pileup_weight * gen_weight ); 
-          sprintf(plot_name, "TrkIsolation_1stEle_LQ%d"       , lq_mass );   FillUserHist(plot_name,  Ele1_TrkIsolation              , pileup_weight * gen_weight ); 
-          sprintf(plot_name, "HasMatchedPhot_1stEle_LQ%d"     , lq_mass );   FillUserHist(plot_name,  Ele1_HasMatchedPhot            , pileup_weight * gen_weight ); 
-          sprintf(plot_name, "HoE_1stEle_LQ%d"                , lq_mass );   FillUserHist(plot_name,  Ele1_HoE                       , pileup_weight * gen_weight ); 
-          sprintf(plot_name, "LeadVtxDistXY_1stEle_LQ%d"      , lq_mass );   FillUserHist(plot_name,  Ele1_LeadVtxDistXY             , pileup_weight * gen_weight ); 
-          sprintf(plot_name, "LeadVtxDistZ_1stEle_LQ%d"       , lq_mass );   FillUserHist(plot_name,  Ele1_LeadVtxDistZ              , pileup_weight * gen_weight ); 
-          sprintf(plot_name, "MissingHits_1stEle_LQ%d"        , lq_mass );   FillUserHist(plot_name,  Ele1_MissingHits               , pileup_weight * gen_weight ); 
+          sprintf(plot_name, "CorrIsolation_1stEle_LQ%d"      , lq_mass );   FillUserHist(plot_name,  Ele1_CorrIsolation             , pileup_weight * gen_weight, cut_name ); 
+          sprintf(plot_name, "DeltaEtaTrkSC_1stEle_LQ%d"      , lq_mass );   FillUserHist(plot_name,  Ele1_DeltaEtaTrkSC             , pileup_weight * gen_weight, cut_name ); 
+          sprintf(plot_name, "EcalIsolation_1stEle_LQ%d"      , lq_mass );   FillUserHist(plot_name,  Ele1_EcalIsolation             , pileup_weight * gen_weight, cut_name ); 
+          sprintf(plot_name, "HcalIsolation_1stEle_LQ%d"      , lq_mass );   FillUserHist(plot_name,  Ele1_HcalIsolation             , pileup_weight * gen_weight, cut_name ); 
+          sprintf(plot_name, "TrkIsolation_1stEle_LQ%d"       , lq_mass );   FillUserHist(plot_name,  Ele1_TrkIsolation              , pileup_weight * gen_weight, cut_name ); 
+          sprintf(plot_name, "HasMatchedPhot_1stEle_LQ%d"     , lq_mass );   FillUserHist(plot_name,  Ele1_HasMatchedPhot            , pileup_weight * gen_weight, cut_name ); 
+          sprintf(plot_name, "HoE_1stEle_LQ%d"                , lq_mass );   FillUserHist(plot_name,  Ele1_HoE                       , pileup_weight * gen_weight, cut_name ); 
+          sprintf(plot_name, "LeadVtxDistXY_1stEle_LQ%d"      , lq_mass );   FillUserHist(plot_name,  Ele1_LeadVtxDistXY             , pileup_weight * gen_weight, cut_name ); 
+          sprintf(plot_name, "LeadVtxDistZ_1stEle_LQ%d"       , lq_mass );   FillUserHist(plot_name,  Ele1_LeadVtxDistZ              , pileup_weight * gen_weight, cut_name ); 
+          sprintf(plot_name, "MissingHits_1stEle_LQ%d"        , lq_mass );   FillUserHist(plot_name,  Ele1_MissingHits               , pileup_weight * gen_weight, cut_name ); 
 
           if ( fabs(Ele1_Eta) < eleEta_bar ) { 
-            sprintf(plot_name, "Full5x5SigmaIEtaIEta_Barrel_1stEle_LQ%d", lq_mass ); FillUserHist( plot_name , Ele1_Full5x5SigmaIEtaIEta , pileup_weight * gen_weight    ); 
+            sprintf(plot_name, "Full5x5SigmaIEtaIEta_Barrel_1stEle_LQ%d", lq_mass ); FillUserHist( plot_name , Ele1_Full5x5SigmaIEtaIEta , pileup_weight * gen_weight, cut_name    ); 
           }
           else if ( fabs(Ele1_Eta) > eleEta_end1_min && fabs(Ele2_Eta) < eleEta_end2_max ){
-            sprintf(plot_name, "Full5x5SigmaIEtaIEta_Endcap_1stEle_LQ%d", lq_mass ); FillUserHist( plot_name , Ele1_Full5x5SigmaIEtaIEta , pileup_weight * gen_weight    ); 
+            sprintf(plot_name, "Full5x5SigmaIEtaIEta_Endcap_1stEle_LQ%d", lq_mass ); FillUserHist( plot_name , Ele1_Full5x5SigmaIEtaIEta , pileup_weight * gen_weight, cut_name    ); 
           }
 
-          sprintf(plot_name, "CorrIsolation_2ndEle_LQ%d"      , lq_mass );   FillUserHist(plot_name,  Ele2_CorrIsolation             , pileup_weight * gen_weight ); 
-          sprintf(plot_name, "DeltaEtaTrkSC_2ndEle_LQ%d"      , lq_mass );   FillUserHist(plot_name,  Ele2_DeltaEtaTrkSC             , pileup_weight * gen_weight ); 
-          sprintf(plot_name, "EcalIsolation_2ndEle_LQ%d"      , lq_mass );   FillUserHist(plot_name,  Ele2_EcalIsolation             , pileup_weight * gen_weight ); 
-          sprintf(plot_name, "HcalIsolation_2ndEle_LQ%d"      , lq_mass );   FillUserHist(plot_name,  Ele2_HcalIsolation             , pileup_weight * gen_weight ); 
-          sprintf(plot_name, "TrkIsolation_2ndEle_LQ%d"       , lq_mass );   FillUserHist(plot_name,  Ele2_TrkIsolation              , pileup_weight * gen_weight ); 
-          sprintf(plot_name, "HasMatchedPhot_2ndEle_LQ%d"     , lq_mass );   FillUserHist(plot_name,  Ele2_HasMatchedPhot            , pileup_weight * gen_weight ); 
-          sprintf(plot_name, "HoE_2ndEle_LQ%d"                , lq_mass );   FillUserHist(plot_name,  Ele2_HoE                       , pileup_weight * gen_weight ); 
-          sprintf(plot_name, "LeadVtxDistXY_2ndEle_LQ%d"      , lq_mass );   FillUserHist(plot_name,  Ele2_LeadVtxDistXY             , pileup_weight * gen_weight ); 
-          sprintf(plot_name, "LeadVtxDistZ_2ndEle_LQ%d"       , lq_mass );   FillUserHist(plot_name,  Ele2_LeadVtxDistZ              , pileup_weight * gen_weight ); 
-          sprintf(plot_name, "MissingHits_2ndEle_LQ%d"        , lq_mass );   FillUserHist(plot_name,  Ele2_MissingHits               , pileup_weight * gen_weight ); 
+          sprintf(plot_name, "CorrIsolation_2ndEle_LQ%d"      , lq_mass );   FillUserHist(plot_name,  Ele2_CorrIsolation             , pileup_weight * gen_weight, cut_name ); 
+          sprintf(plot_name, "DeltaEtaTrkSC_2ndEle_LQ%d"      , lq_mass );   FillUserHist(plot_name,  Ele2_DeltaEtaTrkSC             , pileup_weight * gen_weight, cut_name ); 
+          sprintf(plot_name, "EcalIsolation_2ndEle_LQ%d"      , lq_mass );   FillUserHist(plot_name,  Ele2_EcalIsolation             , pileup_weight * gen_weight, cut_name ); 
+          sprintf(plot_name, "HcalIsolation_2ndEle_LQ%d"      , lq_mass );   FillUserHist(plot_name,  Ele2_HcalIsolation             , pileup_weight * gen_weight, cut_name ); 
+          sprintf(plot_name, "TrkIsolation_2ndEle_LQ%d"       , lq_mass );   FillUserHist(plot_name,  Ele2_TrkIsolation              , pileup_weight * gen_weight, cut_name ); 
+          sprintf(plot_name, "HasMatchedPhot_2ndEle_LQ%d"     , lq_mass );   FillUserHist(plot_name,  Ele2_HasMatchedPhot            , pileup_weight * gen_weight, cut_name ); 
+          sprintf(plot_name, "HoE_2ndEle_LQ%d"                , lq_mass );   FillUserHist(plot_name,  Ele2_HoE                       , pileup_weight * gen_weight, cut_name ); 
+          sprintf(plot_name, "LeadVtxDistXY_2ndEle_LQ%d"      , lq_mass );   FillUserHist(plot_name,  Ele2_LeadVtxDistXY             , pileup_weight * gen_weight, cut_name ); 
+          sprintf(plot_name, "LeadVtxDistZ_2ndEle_LQ%d"       , lq_mass );   FillUserHist(plot_name,  Ele2_LeadVtxDistZ              , pileup_weight * gen_weight, cut_name ); 
+          sprintf(plot_name, "MissingHits_2ndEle_LQ%d"        , lq_mass );   FillUserHist(plot_name,  Ele2_MissingHits               , pileup_weight * gen_weight, cut_name ); 
 
           if ( fabs(Ele2_Eta) < eleEta_bar ) { 
-            sprintf(plot_name, "Full5x5SigmaIEtaIEta_Barrel_2ndEle_LQ%d", lq_mass ); FillUserHist( plot_name , Ele2_Full5x5SigmaIEtaIEta , pileup_weight * gen_weight    ); 
+            sprintf(plot_name, "Full5x5SigmaIEtaIEta_Barrel_2ndEle_LQ%d", lq_mass ); FillUserHist( plot_name , Ele2_Full5x5SigmaIEtaIEta , pileup_weight * gen_weight, cut_name    ); 
           }
           else if ( fabs(Ele2_Eta) > eleEta_end2_min && fabs(Ele2_Eta) < eleEta_end2_max ){
-            sprintf(plot_name, "Full5x5SigmaIEtaIEta_Endcap_2ndEle_LQ%d", lq_mass ); FillUserHist( plot_name , Ele2_Full5x5SigmaIEtaIEta , pileup_weight * gen_weight    ); 
+            sprintf(plot_name, "Full5x5SigmaIEtaIEta_Endcap_2ndEle_LQ%d", lq_mass ); FillUserHist( plot_name , Ele2_Full5x5SigmaIEtaIEta , pileup_weight * gen_weight, cut_name    ); 
           }
 
-          sprintf(plot_name, "Me1j1_LQ%d"             , lq_mass ); FillUserHist( plot_name , M_e1j1                         , pileup_weight * gen_weight );
-          sprintf(plot_name, "Me1j2_LQ%d"             , lq_mass ); FillUserHist( plot_name , M_e1j2                         , pileup_weight * gen_weight );
-          sprintf(plot_name, "Me2j1_LQ%d"             , lq_mass ); FillUserHist( plot_name , M_e2j1                         , pileup_weight * gen_weight );
-          sprintf(plot_name, "Me2j2_LQ%d"             , lq_mass ); FillUserHist( plot_name , M_e2j2                         , pileup_weight * gen_weight );
-          sprintf(plot_name, "Ptee_LQ%d"              , lq_mass ); FillUserHist( plot_name , Pt_e1e2                        , pileup_weight * gen_weight );
-          sprintf(plot_name, "Eta1stJet_LQ%d"         , lq_mass ); FillUserHist( plot_name , Jet1_Eta                       , pileup_weight * gen_weight );
-          sprintf(plot_name, "Eta2ndJet_LQ%d"         , lq_mass ); FillUserHist( plot_name , Jet2_Eta                       , pileup_weight * gen_weight );
-          sprintf(plot_name, "Eta1stEle_LQ%d"         , lq_mass ); FillUserHist( plot_name , Ele1_Eta                       , pileup_weight * gen_weight );
-          sprintf(plot_name, "Eta2ndEle_LQ%d"         , lq_mass ); FillUserHist( plot_name , Ele2_Eta                       , pileup_weight * gen_weight );
-          sprintf(plot_name, "Phi1stJet_LQ%d"         , lq_mass ); FillUserHist( plot_name , Jet1_Phi                       , pileup_weight * gen_weight );
-          sprintf(plot_name, "Phi2ndJet_LQ%d"         , lq_mass ); FillUserHist( plot_name , Jet2_Phi                       , pileup_weight * gen_weight );
-          sprintf(plot_name, "Phi1stEle_LQ%d"         , lq_mass ); FillUserHist( plot_name , Ele1_Phi                       , pileup_weight * gen_weight );
-          sprintf(plot_name, "Phi2ndEle_LQ%d"         , lq_mass ); FillUserHist( plot_name , Ele2_Phi                       , pileup_weight * gen_weight );
-          sprintf(plot_name, "MeeVsST_LQ%d"           , lq_mass ); FillUserHist2D( plot_name , M_e1e2, sT_eejj                , pileup_weight * gen_weight );	   
-          sprintf(plot_name, "sT_zjj_LQ%d"            , lq_mass ); FillUserHist( plot_name , sT_zjj                         , pileup_weight * gen_weight );
-          sprintf(plot_name, "nVertex_LQ%d"           , lq_mass ); FillUserHist( plot_name , nVertex                        , pileup_weight * gen_weight );
-          sprintf(plot_name, "nJet_LQ%d"              , lq_mass ); FillUserHist( plot_name , nJet_ptCut                     , pileup_weight * gen_weight );
-          sprintf(plot_name, "EleChargeSum_LQ%d"      , lq_mass ); FillUserHist( plot_name , Ele1_Charge + Ele2_Charge      , pileup_weight * gen_weight );
-          sprintf(plot_name, "Meejj_LQ%d"             , lq_mass ); FillUserHist( plot_name , M_eejj                         , pileup_weight * gen_weight );
-          sprintf(plot_name, "Meej_LQ%d"              , lq_mass ); FillUserHist( plot_name , M_eej                          , pileup_weight * gen_weight );
-          sprintf(plot_name, "Mejj_LQ%d"              , lq_mass ); FillUserHist( plot_name , M_ejj                          , pileup_weight * gen_weight );
-          sprintf(plot_name, "Mjj_LQ%d"               , lq_mass ); FillUserHist( plot_name , M_j1j2                         , pileup_weight * gen_weight );
-          sprintf(plot_name, "minDR_ZJet_LQ%d"        , lq_mass ); FillUserHist( plot_name , min_DeltaR_Zj                  , pileup_weight * gen_weight );
-          sprintf(plot_name, "DR_ZJet1_LQ%d"          , lq_mass ); FillUserHist( plot_name , DR_ZJ1                         , pileup_weight * gen_weight );
-          sprintf(plot_name, "DR_ZJet2_LQ%d"          , lq_mass ); FillUserHist( plot_name , DR_ZJ2                         , pileup_weight * gen_weight );
-          sprintf(plot_name, "MET_LQ%d"               , lq_mass ); FillUserHist( plot_name , PFMET_Type1_Pt              , pileup_weight * gen_weight );
-          sprintf(plot_name, "sTlep_LQ%d"             , lq_mass ); FillUserHist( plot_name , Ele1_Pt + Ele2_Pt              , pileup_weight * gen_weight );
-          sprintf(plot_name, "sTjet_LQ%d"             , lq_mass ); FillUserHist( plot_name , Jet1_Pt + Jet2_Pt              , pileup_weight * gen_weight );
-          sprintf(plot_name, "Pt1stEle_LQ%d"          , lq_mass ); FillUserHist( plot_name , Ele1_Pt                        , pileup_weight * gen_weight );
-          sprintf(plot_name, "Pt2ndEle_LQ%d"          , lq_mass ); FillUserHist( plot_name , Ele2_Pt                        , pileup_weight * gen_weight );
-          sprintf(plot_name, "Pt1stJet_LQ%d"          , lq_mass ); FillUserHist( plot_name , Jet1_Pt                        , pileup_weight * gen_weight );
-          sprintf(plot_name, "Pt2ndJet_LQ%d"          , lq_mass ); FillUserHist( plot_name , Jet2_Pt                        , pileup_weight * gen_weight );
-          sprintf(plot_name, "sTfrac_Jet1_LQ%d"       , lq_mass ); FillUserHist( plot_name , Jet1_Pt / sT_eejj              , pileup_weight * gen_weight );
-          sprintf(plot_name, "sTfrac_Jet2_LQ%d"       , lq_mass ); FillUserHist( plot_name , Jet2_Pt / sT_eejj              , pileup_weight * gen_weight );
-          sprintf(plot_name, "sTfrac_Ele1_LQ%d"       , lq_mass ); FillUserHist( plot_name , Ele1_Pt / sT_eejj              , pileup_weight * gen_weight );
-          sprintf(plot_name, "sTfrac_Ele2_LQ%d"       , lq_mass ); FillUserHist( plot_name , Ele2_Pt / sT_eejj              , pileup_weight * gen_weight );
-          sprintf(plot_name, "sTfrac_Jet_LQ%d"        , lq_mass ); FillUserHist( plot_name , ( Jet1_Pt + Jet2_Pt ) / sT_eejj, pileup_weight * gen_weight );
-          sprintf(plot_name, "sTfrac_Ele_LQ%d"        , lq_mass ); FillUserHist( plot_name , ( Ele1_Pt + Ele2_Pt ) / sT_eejj, pileup_weight * gen_weight );
-          sprintf(plot_name, "Ptj1j2_LQ%d"            , lq_mass ); FillUserHist( plot_name , Pt_j1j2                        , pileup_weight * gen_weight );
-          sprintf(plot_name, "Ptee_Minus_Ptj1j2_LQ%d" , lq_mass ); FillUserHist( plot_name , Pt_e1e2 - Pt_j1j2              , pileup_weight * gen_weight );
+          sprintf(plot_name, "Me1j1_LQ%d"             , lq_mass ); FillUserHist( plot_name , M_e1j1                         , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Me1j2_LQ%d"             , lq_mass ); FillUserHist( plot_name , M_e1j2                         , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Me2j1_LQ%d"             , lq_mass ); FillUserHist( plot_name , M_e2j1                         , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Me2j2_LQ%d"             , lq_mass ); FillUserHist( plot_name , M_e2j2                         , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Ptee_LQ%d"              , lq_mass ); FillUserHist( plot_name , Pt_e1e2                        , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Eta1stJet_LQ%d"         , lq_mass ); FillUserHist( plot_name , Jet1_Eta                       , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Eta2ndJet_LQ%d"         , lq_mass ); FillUserHist( plot_name , Jet2_Eta                       , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Eta1stEle_LQ%d"         , lq_mass ); FillUserHist( plot_name , Ele1_Eta                       , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Eta2ndEle_LQ%d"         , lq_mass ); FillUserHist( plot_name , Ele2_Eta                       , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Phi1stJet_LQ%d"         , lq_mass ); FillUserHist( plot_name , Jet1_Phi                       , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Phi2ndJet_LQ%d"         , lq_mass ); FillUserHist( plot_name , Jet2_Phi                       , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Phi1stEle_LQ%d"         , lq_mass ); FillUserHist( plot_name , Ele1_Phi                       , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Phi2ndEle_LQ%d"         , lq_mass ); FillUserHist( plot_name , Ele2_Phi                       , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "MeeVsST_LQ%d"           , lq_mass ); FillUserHist2D( plot_name , M_e1e2, sT_eejj                , pileup_weight * gen_weight);	   
+          sprintf(plot_name, "sT_zjj_LQ%d"            , lq_mass ); FillUserHist( plot_name , sT_zjj                         , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "nVertex_LQ%d"           , lq_mass ); FillUserHist( plot_name , nVertex                        , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "nJet_LQ%d"              , lq_mass ); FillUserHist( plot_name , nJet_ptCut                     , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "EleChargeSum_LQ%d"      , lq_mass ); FillUserHist( plot_name , Ele1_Charge + Ele2_Charge      , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Meejj_LQ%d"             , lq_mass ); FillUserHist( plot_name , M_eejj                         , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Meej_LQ%d"              , lq_mass ); FillUserHist( plot_name , M_eej                          , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Mejj_LQ%d"              , lq_mass ); FillUserHist( plot_name , M_ejj                          , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Mjj_LQ%d"               , lq_mass ); FillUserHist( plot_name , M_j1j2                         , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "minDR_ZJet_LQ%d"        , lq_mass ); FillUserHist( plot_name , min_DeltaR_Zj                  , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "DR_ZJet1_LQ%d"          , lq_mass ); FillUserHist( plot_name , DR_ZJ1                         , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "DR_ZJet2_LQ%d"          , lq_mass ); FillUserHist( plot_name , DR_ZJ2                         , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "MET_LQ%d"               , lq_mass ); FillUserHist( plot_name , PFMET_Type1_Pt              , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "sTlep_LQ%d"             , lq_mass ); FillUserHist( plot_name , Ele1_Pt + Ele2_Pt              , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "sTjet_LQ%d"             , lq_mass ); FillUserHist( plot_name , Jet1_Pt + Jet2_Pt              , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Pt1stEle_LQ%d"          , lq_mass ); FillUserHist( plot_name , Ele1_Pt                        , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Pt2ndEle_LQ%d"          , lq_mass ); FillUserHist( plot_name , Ele2_Pt                        , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Pt1stJet_LQ%d"          , lq_mass ); FillUserHist( plot_name , Jet1_Pt                        , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Pt2ndJet_LQ%d"          , lq_mass ); FillUserHist( plot_name , Jet2_Pt                        , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "sTfrac_Jet1_LQ%d"       , lq_mass ); FillUserHist( plot_name , Jet1_Pt / sT_eejj              , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "sTfrac_Jet2_LQ%d"       , lq_mass ); FillUserHist( plot_name , Jet2_Pt / sT_eejj              , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "sTfrac_Ele1_LQ%d"       , lq_mass ); FillUserHist( plot_name , Ele1_Pt / sT_eejj              , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "sTfrac_Ele2_LQ%d"       , lq_mass ); FillUserHist( plot_name , Ele2_Pt / sT_eejj              , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "sTfrac_Jet_LQ%d"        , lq_mass ); FillUserHist( plot_name , ( Jet1_Pt + Jet2_Pt ) / sT_eejj, pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "sTfrac_Ele_LQ%d"        , lq_mass ); FillUserHist( plot_name , ( Ele1_Pt + Ele2_Pt ) / sT_eejj, pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Ptj1j2_LQ%d"            , lq_mass ); FillUserHist( plot_name , Pt_j1j2                        , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Ptee_Minus_Ptj1j2_LQ%d" , lq_mass ); FillUserHist( plot_name , Pt_e1e2 - Pt_j1j2              , pileup_weight * gen_weight, cut_name );
           // checking electrons
-          sprintf(plot_name,"SCEta_1stEle_LQ%d" , lq_mass );                                FillUserHist(plot_name,Ele1_SCEta, pileup_weight*gen_weight);
-          sprintf(plot_name,"EleEta_1stEle_LQ%d" , lq_mass );                               FillUserHist(plot_name,Ele1_Eta,pileup_weight*gen_weight);
-          sprintf(plot_name,"DeltaEtaTrkSC_1stEle_LQ%d" , lq_mass );                        FillUserHist(plot_name,Ele1_DeltaEtaTrkSC,pileup_weight*gen_weight);
-          sprintf(plot_name,"SCEtaMinusEleEta_1stEle_LQ%d" , lq_mass );                     FillUserHist(plot_name,Ele1_SCEta-Ele1_Eta,pileup_weight*gen_weight);
-          sprintf(plot_name,"DeltaEtaTrkSC_Minus_SCEtaMinusEleEta_1stEle_LQ%d" , lq_mass ); FillUserHist(plot_name,Ele1_DeltaEtaTrkSC-(Ele1_SCEta-Ele1_Eta),pileup_weight*gen_weight);
-          sprintf(plot_name,"SCEta_2ndEle_LQ%d" , lq_mass );                                FillUserHist(plot_name,Ele2_SCEta, pileup_weight*gen_weight);
-          sprintf(plot_name,"EleEta_2ndEle_LQ%d" , lq_mass );                               FillUserHist(plot_name,Ele2_Eta,pileup_weight*gen_weight);
-          sprintf(plot_name,"DeltaEtaTrkSC_2ndEle_LQ%d" , lq_mass );                        FillUserHist(plot_name,Ele2_DeltaEtaTrkSC,pileup_weight*gen_weight);
-          sprintf(plot_name,"SCEtaMinusEleEta_2ndEle_LQ%d", lq_mass );                      FillUserHist(plot_name,Ele2_SCEta-Ele2_Eta,pileup_weight*gen_weight);
-          sprintf(plot_name,"DeltaEtaTrkSC_Minus_SCEtaMinusEleEta_2ndEle_LQ%d" , lq_mass ); FillUserHist(plot_name,Ele2_DeltaEtaTrkSC-(Ele2_SCEta-Ele2_Eta),pileup_weight*gen_weight);
+          sprintf(plot_name,"SCEta_1stEle_LQ%d" , lq_mass );                                FillUserHist(plot_name,Ele1_SCEta, pileup_weight*gen_weight, cut_name);
+          sprintf(plot_name,"EleEta_1stEle_LQ%d" , lq_mass );                               FillUserHist(plot_name,Ele1_Eta,pileup_weight*gen_weight, cut_name);
+          sprintf(plot_name,"DeltaEtaTrkSC_1stEle_LQ%d" , lq_mass );                        FillUserHist(plot_name,Ele1_DeltaEtaTrkSC,pileup_weight*gen_weight, cut_name);
+          sprintf(plot_name,"SCEtaMinusEleEta_1stEle_LQ%d" , lq_mass );                     FillUserHist(plot_name,Ele1_SCEta-Ele1_Eta,pileup_weight*gen_weight, cut_name);
+          sprintf(plot_name,"DeltaEtaTrkSC_Minus_SCEtaMinusEleEta_1stEle_LQ%d" , lq_mass ); FillUserHist(plot_name,Ele1_DeltaEtaTrkSC-(Ele1_SCEta-Ele1_Eta),pileup_weight*gen_weight, cut_name);
+          sprintf(plot_name,"SCEta_2ndEle_LQ%d" , lq_mass );                                FillUserHist(plot_name,Ele2_SCEta, pileup_weight*gen_weight, cut_name);
+          sprintf(plot_name,"EleEta_2ndEle_LQ%d" , lq_mass );                               FillUserHist(plot_name,Ele2_Eta,pileup_weight*gen_weight, cut_name);
+          sprintf(plot_name,"DeltaEtaTrkSC_2ndEle_LQ%d" , lq_mass );                        FillUserHist(plot_name,Ele2_DeltaEtaTrkSC,pileup_weight*gen_weight, cut_name);
+          sprintf(plot_name,"SCEtaMinusEleEta_2ndEle_LQ%d", lq_mass );                      FillUserHist(plot_name,Ele2_SCEta-Ele2_Eta,pileup_weight*gen_weight, cut_name);
+          sprintf(plot_name,"DeltaEtaTrkSC_Minus_SCEtaMinusEleEta_2ndEle_LQ%d" , lq_mass ); FillUserHist(plot_name,Ele2_DeltaEtaTrkSC-(Ele2_SCEta-Ele2_Eta),pileup_weight*gen_weight, cut_name);
           // muon kinematics
-          sprintf(plot_name, "Eta1stMuon_LQ%d"         , lq_mass ); FillUserHist( plot_name , Muon1_Eta                       , pileup_weight * gen_weight );
-          sprintf(plot_name, "Eta2ndMuon_LQ%d"         , lq_mass ); FillUserHist( plot_name , Muon2_Eta                       , pileup_weight * gen_weight );
-          sprintf(plot_name, "Phi1stMuon_LQ%d"         , lq_mass ); FillUserHist( plot_name , Muon1_Phi                       , pileup_weight * gen_weight );
-          sprintf(plot_name, "Pt1stMuon_LQ%d"          , lq_mass ); FillUserHist( plot_name , Muon1_Pt                        , pileup_weight * gen_weight );
-          sprintf(plot_name, "Pt2ndMuon_LQ%d"          , lq_mass ); FillUserHist( plot_name , Muon2_Pt                        , pileup_weight * gen_weight );
+          sprintf(plot_name, "Eta1stMuon_LQ%d"         , lq_mass ); FillUserHist( plot_name , Muon1_Eta                       , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Eta2ndMuon_LQ%d"         , lq_mass ); FillUserHist( plot_name , Muon2_Eta                       , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Phi1stMuon_LQ%d"         , lq_mass ); FillUserHist( plot_name , Muon1_Phi                       , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Pt1stMuon_LQ%d"          , lq_mass ); FillUserHist( plot_name , Muon1_Pt                        , pileup_weight * gen_weight, cut_name );
+          sprintf(plot_name, "Pt2ndMuon_LQ%d"          , lq_mass ); FillUserHist( plot_name , Muon2_Pt                        , pileup_weight * gen_weight, cut_name );
 
         } // End final selection
 
         if( hasCut("sT_eejj_LQ300") && passedCut("sT_eejj_LQ300") && passedCut("min_M_ej_LQ300"))
-          FillUserHist("Mee_70_110_LQ300", M_e1e2 , pileup_weight * gen_weight );
+          FillUserHist("Mee_70_110_LQ300", M_e1e2 , pileup_weight * gen_weight, cut_name );
         if( hasCut("sT_eejj_LQ600") && passedCut("sT_eejj_LQ600") && passedCut("min_M_ej_LQ600"))
-          FillUserHist("Mee_70_110_LQ600", M_e1e2 , pileup_weight * gen_weight );
+          FillUserHist("Mee_70_110_LQ600", M_e1e2 , pileup_weight * gen_weight, cut_name );
         if( hasCut("sT_eejj_LQ800") && passedCut("sT_eejj_LQ800") && passedCut("min_M_ej_LQ800"))
-          FillUserHist("Mee_70_110_LQ800", M_e1e2 , pileup_weight * gen_weight );
+          FillUserHist("Mee_70_110_LQ800", M_e1e2 , pileup_weight * gen_weight, cut_name );
         if( hasCut("sT_eejj_LQ900") && passedCut("sT_eejj_LQ900") && passedCut("min_M_ej_LQ900"))
-          FillUserHist("Mee_70_110_LQ900", M_e1e2 , pileup_weight * gen_weight );
+          FillUserHist("Mee_70_110_LQ900", M_e1e2 , pileup_weight * gen_weight, cut_name );
         if( hasCut("sT_eejj_LQ1000") && passedCut("sT_eejj_LQ1000") && passedCut("min_M_ej_LQ1000"))
-          FillUserHist("Mee_70_110_LQ1000", M_e1e2 , pileup_weight * gen_weight );
+          FillUserHist("Mee_70_110_LQ1000", M_e1e2 , pileup_weight * gen_weight, cut_name );
 
       }
 
