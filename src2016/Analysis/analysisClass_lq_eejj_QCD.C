@@ -1908,8 +1908,8 @@ void analysisClass::Loop()
     fillVariableWithValue( "PFMET_Type1_Pt", PFMET_Type1_Pt,  fakeRateEffective * min_prescale * gen_weight ) ;
     fillVariableWithValue( "PFMET_Type1_Phi", PFMET_Type1_Phi, fakeRateEffective * min_prescale * gen_weight ) ;
 
-    double M_j1j2 = readerTools_->ReadValueBranch<Float_t>("M_j1j2");
-    fillVariableWithValue("M_j1j2", M_j1j2, fakeRateEffective * min_prescale * gen_weight);
+    //double M_j1j2 = readerTools_->ReadValueBranch<Float_t>("M_j1j2");
+    //fillVariableWithValue("M_j1j2", M_j1j2, fakeRateEffective * min_prescale * gen_weight);
     // Dummy variables
     fillVariableWithValue ("skim_selection", 1, fakeRateEffective * min_prescale * gen_weight ); 
     fillVariableWithValue ("preselection", 1, fakeRateEffective * min_prescale * gen_weight ); 

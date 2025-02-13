@@ -1581,8 +1581,8 @@ void analysisClass::Loop()
     fillVariableWithValue( "PFMET_Type1_Pt", PFMET_Type1_Pt, gen_weight * pileup_weight  ) ;
     fillVariableWithValue( "PFMET_Type1_Phi", PFMET_Type1_Phi, gen_weight * pileup_weight  ) ;
 
-    double M_j1j2 = readerTools_->ReadValueBranch<Float_t>("M_j1j2");
-    fillVariableWithValue("M_j1j2", M_j1j2, gen_weight * pileup_weight);
+    //double M_j1j2 = readerTools_->ReadValueBranch<Float_t>("M_j1j2");
+    //fillVariableWithValue("M_j1j2", M_j1j2, gen_weight * pileup_weight);
     // Dummy variables
     fillVariableWithValue ("skim_selection", 1, gen_weight * pileup_weight ); 
     fillVariableWithValue ("preselection", 1, gen_weight * pileup_weight ); 
