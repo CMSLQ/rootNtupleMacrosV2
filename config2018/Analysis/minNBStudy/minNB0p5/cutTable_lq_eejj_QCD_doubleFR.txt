@@ -21,12 +21,6 @@ eleEta_end1           1.566            2.0              -               -       
 eleEta_end2           2.000            2.5              -               -               -1
 eleMinFRPt            50               -                -               -               -1
 #-----------------------------------------------------------------------------------------------------------------------------
-# Fake rates
-#-----------------------------------------------------------------------------------------------------------------------------
-QCDFakeRateFilename	   ${LQINPUTS}/fakeRate/2016preVFP/fr2DpreVFP.root - - - -1
-QCDCalcType            single   -   -   -   -1
-PrescaleProviderInfo       ${LQINPUTS}/prescales/2016/triggerData2016 - - - -1
-#-----------------------------------------------------------------------------------------------------------------------------
 # BDT
 #-----------------------------------------------------------------------------------------------------------------------------
 BDTWeightFileLQM300   /eos/user/e/eipearso/LQ_BDTWeightFiles/LQToDEle/HTLO-amcatnlo_11Nov2024/weights/TMVAClassification_LQToDEle_M-300_pair_bMassZero_TuneCP2_13TeV-madgraph-pythia8_BDTG.weights.xml - - - -1
@@ -58,9 +52,15 @@ BDTWeightFileLQM2800   /eos/user/e/eipearso/LQ_BDTWeightFiles/LQToDEle/HTLO-amca
 BDTWeightFileLQM2900   /eos/user/e/eipearso/LQ_BDTWeightFiles/LQToDEle/HTLO-amcatnlo_11Nov2024/weights/TMVAClassification_LQToDEle_M-2900_pair_bMassZero_TuneCP2_13TeV-madgraph-pythia8_BDTG.weights.xml - - - -1
 BDTWeightFileLQM3000   /eos/user/e/eipearso/LQ_BDTWeightFiles/LQToDEle/HTLO-amcatnlo_11Nov2024/weights/TMVAClassification_LQToDEle_M-3000_pair_bMassZero_TuneCP2_13TeV-madgraph-pythia8_BDTG.weights.xml - - - -1
 #-----------------------------------------------------------------------------------------------------------------------------
+# Fake rates
+#-----------------------------------------------------------------------------------------------------------------------------
+QCDFakeRateFilename	   /afs/cern.ch/user/s/scooper/work/public/Leptoquarks/ul-analysis-inputs/fakeRate/2018/fr2D2018.root - - - -1
+QCDCalcType            double   -   -   -   -1
+PrescaleProviderInfo   /afs/cern.ch/user/s/scooper/work/public/Leptoquarks/ul-analysis-inputs/prescales/2018/hltData2018 - - - -1
+#-----------------------------------------------------------------------------------------------------------------------------
 # Analysis year
 #-----------------------------------------------------------------------------------------------------------------------------
-AnalysisYear   2016preVFP  - - - -1
+AnalysisYear   2018  - - - -1
 #------------------------------------------------------------------------------------------------------
 # Electron ID
 #------------------------------------------------------------------------------------------------------
@@ -71,9 +71,16 @@ electronIDType             HEEP  - - - -1
 #-----------------------------------------------------------------------------------------------------------------------------
 BTagAlgo       DeepJet  - - - -1
 #BTagWP         Loose    - - - -1
-#BTagCutValue   0.0508   - - - -1
+#BTagCutValue   0.0494   - - - -1
+#BTagAlgo       DeepJet  - - - -1
 BTagWP         Medium   - - - -1
-BTagCutValue   0.2598   - - - -1
+BTagCutValue   0.2770   - - - -1
+#BTagAlgo       DeepCSV  - - - -1
+#BTagWP         Loose    - - - -1
+#BTagCutValue   0.1241   - - - -1
+#BTagAlgo       DeepCSV  - - - -1
+#BTagWP         Medium   - - - -1
+#BTagCutValue   0.4184   - - - -1
 #
 #-----------------------------------------------------------------------------------------------------------------------------
 #--------------------------------- Cuts (level 0,1,2,3 ... n) below --------------------------------------------
@@ -153,55 +160,49 @@ Meejj                              -inf           +inf           -           -  
 Pt_e1e2_skim                       50             +inf           -           -           0           200           0              2000
 sT_eejj_skim                       200            +inf           -           -           0           200           0              2000
 M_e1e2_skim                        40             +inf           -           -           0           200           0              2000
-skim_selection                     -inf           +inf           -           -           0           2             -0.5           1.5
-Ele1_Pt                            50             +inf           -           -           0           200           0              2000
-Ele2_Pt                            50             +inf           -           -           0           200           0              2000
-Jet1_Pt                            50             +inf           -           -           0           200           0              2000
-Jet2_Pt                            50             +inf           -           -           0           200           0              2000
-Pt_e1e2                            70             +inf           -           -           0           200           0              2000
-sT_eejj_bkgCR                      300            +inf           -           -           0           200           0              2000
-M_e1e2_bkgCR                       50             +inf           -           -           0           200           0              2000
-preselection                       -inf           +inf           -           -           0           2             -0.5           1.5
-sT_eejj                            400            +inf           -           -           0           200           0              2000
-M_e1e2                             220            +inf           -           -           0           200           0              2000
+skim_selection                     -inf           +inf           -           -           1           2             -0.5           1.5
+Ele1_Pt                            50             +inf           -           -           1           200           0              2000
+Ele2_Pt                            50             +inf           -           -           1           200           0              2000
+Jet1_Pt                            50             +inf           -           -           1           200           0              2000
+Jet2_Pt                            50             +inf           -           -           1           200           0              2000
+Pt_e1e2                            70             +inf           -           -           1           200           0              2000
+sT_eejj_bkgCR                      300            +inf           -           -           1           200           0              2000
+M_e1e2_bkgCR                       50             +inf           -           -           1           200           0              2000
+preselection                       -inf           +inf           -           -           1           2             -0.5           1.5
+sT_eejj                            400            +inf           -           -           1           200           0              2000
+M_e1e2                             220            +inf           -           -           1           200           0              2000
 trainingSelection                  -inf           +inf           -           -           1           2             -0.5           1.5
-#-----------------------------------------------------------------------------------------------------------------------------
-#  __ _             _            _           _   _                                                                        
-# / _(_)_ __   __ _| |  ___  ___| | ___  ___| |_(_) ___  _ __                                                             
-#| |_| | '_ \ / _` | | / __|/ _ \ |/ _ \/ __| __| |/ _ \| '_ \                                                            
-#|  _| | | | | (_| | | \__ \  __/ |  __/ (__| |_| | (_) | | | |                                                           
-#|_| |_|_| |_|\__,_|_| |___/\___|_|\___|\___|\__|_|\___/|_| |_|                                                           
-#-----------------------------------------------------------------------------------------------------------------------------
-# CUTS GET PROGRESSIVELY TIGHTER
-##------------------------------------------------------------------------------------------------
+#--------------------------------------------------------------------
+# BDT CUTS
+#--------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------------------
 # LQ M 1500 optimization
 #------------------------------------------------------------------------------------------------------------------
 MeejjLQ1500                   1500                 +inf                    -                   -   2       500 0 5000 minselection:trainingSelection
-BDTOutput_LQ1500                         0.99                +inf 		-		-	2	100 -1 1    TMVACut:BDT,BDTWeightFileLQM1500,MeejjLQ1500
+BDTOutput_LQ1500                         0.97                +inf 		-		-	2	100 -1 1    TMVACut:BDT,BDTWeightFileLQM1500,MeejjLQ1500
 #------------------------------------------------------------------------------------------------------------------
 # LQ M 1600 optimization
 #------------------------------------------------------------------------------------------------------------------
 MeejjLQ1600                   1600                 +inf                    -                   -   2       500 0 5000 minselection:trainingSelection
-BDTOutput_LQ1600                         0.98                +inf 		-		-	2	100 -1 1    TMVACut:BDT,BDTWeightFileLQM1600,MeejjLQ1600
+BDTOutput_LQ1600                         0.96                +inf 		-		-	2	100 -1 1    TMVACut:BDT,BDTWeightFileLQM1600,MeejjLQ1600
 #------------------------------------------------------------------------------------------------------------------
 # LQ M 1700 optimization
 #------------------------------------------------------------------------------------------------------------------
 MeejjLQ1700                   1700                 +inf                    -                   -   2       500 0 5000 minselection:trainingSelection
-BDTOutput_LQ1700                         0.99                +inf 		-		-	2	100 -1 1    TMVACut:BDT,BDTWeightFileLQM1700,MeejjLQ1700
+BDTOutput_LQ1700                         0.94                +inf 		-		-	2	100 -1 1    TMVACut:BDT,BDTWeightFileLQM1700,MeejjLQ1700
 #------------------------------------------------------------------------------------------------------------------
 # LQ M 1800 optimization
 #------------------------------------------------------------------------------------------------------------------
 MeejjLQ1800                   1800                 +inf                    -                   -   2       500 0 5000 minselection:trainingSelection
-BDTOutput_LQ1800                         0.99                +inf 		-		-	2	100 -1 1    TMVACut:BDT,BDTWeightFileLQM1800,MeejjLQ1800
+BDTOutput_LQ1800                         0.9                +inf 		-		-	2	100 -1 1    TMVACut:BDT,BDTWeightFileLQM1800,MeejjLQ1800
 #------------------------------------------------------------------------------------------------------------------
 # LQ M 1900 optimization
 #------------------------------------------------------------------------------------------------------------------
 MeejjLQ1900                   1900                 +inf                    -                   -   2       500 0 5000 minselection:trainingSelection
-BDTOutput_LQ1900                         0.99                +inf 		-		-	2	100 -1 1    TMVACut:BDT,BDTWeightFileLQM1900,MeejjLQ1900
+BDTOutput_LQ1900                         0.84                +inf 		-		-	2	100 -1 1    TMVACut:BDT,BDTWeightFileLQM1900,MeejjLQ1900
 #------------------------------------------------------------------------------------------------------------------
 # LQ M 2000 optimization
 #------------------------------------------------------------------------------------------------------------------
 MeejjLQ2000                   2000                 +inf                    -                   -   2       500 0 5000 minselection:trainingSelection
-BDTOutput_LQ2000                         0.99                +inf 		-		-	2	100 -1 1    TMVACut:BDT,BDTWeightFileLQM2000,MeejjLQ2000
+BDTOutput_LQ2000                         0.75                +inf 		-		-	2	100 -1 1    TMVACut:BDT,BDTWeightFileLQM2000,MeejjLQ2000
