@@ -19,13 +19,6 @@ produceSkim           1                 -               -               -       
 eleEta_bar            1.4442           -                -               -               -1
 eleEta_end1           1.566            2.0              -               -               -1
 eleEta_end2           2.000            2.5              -               -               -1
-eleMinFRPt            50               -                -               -               -1
-#-----------------------------------------------------------------------------------------------------------------------------
-# Fake rates
-#-----------------------------------------------------------------------------------------------------------------------------
-QCDFakeRateFilename	   ${LQINPUTS}/fakeRate/2016preVFP/fr2DpreVFP.root - - - -1
-QCDCalcType            single   -   -   -   -1
-PrescaleProviderInfo       ${LQINPUTS}/prescales/2016/triggerData2016 - - - -1
 #-----------------------------------------------------------------------------------------------------------------------------
 # BDT
 #-----------------------------------------------------------------------------------------------------------------------------
@@ -60,22 +53,45 @@ BDTWeightFileLQM3000   /eos/user/e/eipearso/LQ_BDTWeightFiles/LQToDEle/HTLO-amca
 #-----------------------------------------------------------------------------------------------------------------------------
 # Analysis year
 #-----------------------------------------------------------------------------------------------------------------------------
-AnalysisYear   2016preVFP  - - - -1
-#------------------------------------------------------------------------------------------------------
-# Electron ID
-#------------------------------------------------------------------------------------------------------
-electronIDType             HEEP  - - - -1
+AnalysisYear   2017  - - - -1
 #-----------------------------------------------------------------------------------------------------------------------------
 # B-tagging
-# See: https://twiki.cern.ch/twiki/bin/viewauth/CMS/BtagRecommendation
 #-----------------------------------------------------------------------------------------------------------------------------
 BTagAlgo       DeepJet  - - - -1
 #BTagWP         Loose    - - - -1
-#BTagCutValue   0.0508   - - - -1
+#BTagCutValue   0.0532   - - - -1
+#BTagAlgo       DeepJet  - - - -1
 BTagWP         Medium   - - - -1
-BTagCutValue   0.2598   - - - -1
+BTagCutValue   0.3040   - - - -1
 #
 #-----------------------------------------------------------------------------------------------------------------------------
+# systematics
+#-----------------------------------------------------------------------------------------------------------------------------
+#         name              source/formula/branch                                       cutVars
+#         ------------      ------------------------------------------------------      --------------------------------------
+#SYST      FivePercentUp      1.05
+SYST      PrefireDown        PrefireWeight_Dn/PrefireWeight
+SYST      PrefireUp          PrefireWeight_Up/PrefireWeight
+SYST      JERDown            regex=".+jerdown.*"                                         sT_eejj,Jet2_Pt,Jet1_Pt,Jet3_Pt,M_e1j1,M_e1j2,M_e2j1,M_e2j2,PFMET_Type1_Pt,PFMET_Type1_Phi,Masym,MejMin,MejMax,Meejj
+SYST      JERUp              regex=".+jerup.*"                                           sT_eejj,Jet2_Pt,Jet1_Pt,Jet3_Pt,M_e1j1,M_e1j2,M_e2j1,M_e2j2,PFMET_Type1_Pt,PFMET_Type1_Phi,Masym,MejMin,MejMax,Meejj
+SYST      JESDown            regex=".+jesTotaldown.*"                                    sT_eejj,Jet2_Pt,Jet1_Pt,Jet3_Pt,M_e1j1,M_e1j2,M_e2j1,M_e2j2,PFMET_Type1_Pt,PFMET_Type1_Phi,Masym,MejMin,MejMax,Meejj
+SYST      JESUp              regex=".+jesTotalup.*"                                      sT_eejj,Jet2_Pt,Jet1_Pt,Jet3_Pt,M_e1j1,M_e1j2,M_e2j1,M_e2j2,PFMET_Type1_Pt,PFMET_Type1_Phi,Masym,MejMin,MejMax,Meejj
+SYST      UnclusteredEneUp   regex=".+unclustEnup.*"                                     PFMET_Type1_Pt,PFMET_Type1_Phi
+SYST      UnclusteredEneDown regex=".+unclustEndown.*"                                   PFMET_Type1_Pt,PFMET_Type1_Phi
+SYST      EERDown            regex=".+EER_Dn.*|.+eerdown.*"                              sT_eejj,M_e1e2,Ele1_Pt,Ele2_Pt,M_e1j1,M_e1j2,M_e2j1,M_e2j2,Pt_e1e2,Masym,MejMin,MejMax,Meejj,PFMET_Type1_Pt,PFMET_Type1_Phi
+SYST      EERUp              regex=".+EER_Up.*|.+eerup.*"                                sT_eejj,M_e1e2,Ele1_Pt,Ele2_Pt,M_e1j1,M_e1j2,M_e2j1,M_e2j2,Pt_e1e2,Masym,MejMin,MejMax,Meejj,PFMET_Type1_Pt,PFMET_Type1_Phi
+SYST      EESDown            regex=".+EES_Dn.*|.+eesdown.*"                              sT_eejj,M_e1e2,Ele1_Pt,Ele2_Pt,M_e1j1,M_e1j2,M_e2j1,M_e2j2,Pt_e1e2,Masym,MejMin,MejMax,Meejj,PFMET_Type1_Pt,PFMET_Type1_Phi
+SYST      EESUp              regex=".+EES_Up.*|.+eesup.*"                                sT_eejj,M_e1e2,Ele1_Pt,Ele2_Pt,M_e1j1,M_e1j2,M_e2j1,M_e2j2,Pt_e1e2,Masym,MejMin,MejMax,Meejj,PFMET_Type1_Pt,PFMET_Type1_Phi
+SYST      EleRecoSFUp        (Ele1_RecoSF_Up/Ele1_RecoSF)*(Ele2_RecoSF_Up/Ele2_RecoSF)
+SYST      EleRecoSFDown      (Ele1_RecoSF_Dn/Ele1_RecoSF)*(Ele2_RecoSF_Dn/Ele2_RecoSF)
+SYST      EleIDSFUp          ((Ele1_HEEPSF+Ele1_HEEPSF_Err)/Ele1_HEEPSF)*((Ele2_HEEPSF+Ele2_HEEPSF_Err)/Ele2_HEEPSF)
+SYST      EleIDSFDown        ((Ele1_HEEPSF-Ele1_HEEPSF_Err)/Ele1_HEEPSF)*((Ele2_HEEPSF-Ele2_HEEPSF_Err)/Ele2_HEEPSF)
+SYST      EleTrigSFUp        
+SYST      EleTrigSFDown      
+SYST      PileupUp           puWeight_Up/puWeight
+SYST      PileupDown         puWeight_Dn/puWeight
+SYST      LHEPdfWeight       LHEPdfWeight
+SYST      LHEScaleWeight     LHEScaleWeight
 #--------------------------------- Cuts (level 0,1,2,3 ... n) below --------------------------------------------
 # The cut variable names, cut boundaries and histogram binnings are provided here by the user.
 # In the event loop of the analysisClass_template.C, the user have to fill each variable with its value using
@@ -120,7 +136,6 @@ nEle_hltMatched                    -inf           +inf           -           -  
 nJet_hltMatched                    -inf           +inf           -           -           0           3             -0.5           2.5
 Ele1_Pt_skim                       40             +inf           -           -           0           200           0              2000
 Ele2_Pt_skim                       40             +inf           -           -           0           200           0              2000
-PassIDRequirements                 0              1              -           -           0           2             -0.5           1.5
 nJet                               -inf           +inf           -           -           0           16            -0.5           15.5
 Jet1_Pt_skim                       35             +inf           -           -           0           200           0              2000
 Jet1_Eta                           -2.4           2.4            -           -           0           100           -5             5
@@ -153,55 +168,49 @@ Meejj                              -inf           +inf           -           -  
 Pt_e1e2_skim                       50             +inf           -           -           0           200           0              2000
 sT_eejj_skim                       200            +inf           -           -           0           200           0              2000
 M_e1e2_skim                        40             +inf           -           -           0           200           0              2000
-skim_selection                     -inf           +inf           -           -           0           2             -0.5           1.5
-Ele1_Pt                            50             +inf           -           -           0           200           0              2000
-Ele2_Pt                            50             +inf           -           -           0           200           0              2000
-Jet1_Pt                            50             +inf           -           -           0           200           0              2000
-Jet2_Pt                            50             +inf           -           -           0           200           0              2000
-Pt_e1e2                            70             +inf           -           -           0           200           0              2000
-sT_eejj_bkgCR                      300            +inf           -           -           0           200           0              2000
-M_e1e2_bkgCR                       50             +inf           -           -           0           200           0              2000
-preselection                       -inf           +inf           -           -           0           2             -0.5           1.5
-sT_eejj                            400            +inf           -           -           0           200           0              2000
-M_e1e2                             220            +inf           -           -           0           200           0              2000
+skim_selection                     -inf           +inf           -           -           1           2             -0.5           1.5
+Ele1_Pt                            50             +inf           -           -           1           200           0              2000
+Ele2_Pt                            50             +inf           -           -           1           200           0              2000
+Jet1_Pt                            50             +inf           -           -           1           200           0              2000
+Jet2_Pt                            50             +inf           -           -           1           200           0              2000
+Pt_e1e2                            70             +inf           -           -           1           200           0              2000
+sT_eejj_bkgCR                      300            +inf           -           -           1           200           0              2000
+M_e1e2_bkgCR                       50             +inf           -           -           1           200           0              2000
+preselection                       -inf           +inf           -           -           1           2             -0.5           1.5
+sT_eejj                            400            +inf           -           -           1           200           0              2000
+M_e1e2                             220            +inf           -           -           1           200           0              2000
 trainingSelection                  -inf           +inf           -           -           1           2             -0.5           1.5
-#-----------------------------------------------------------------------------------------------------------------------------
-#  __ _             _            _           _   _                                                                        
-# / _(_)_ __   __ _| |  ___  ___| | ___  ___| |_(_) ___  _ __                                                             
-#| |_| | '_ \ / _` | | / __|/ _ \ |/ _ \/ __| __| |/ _ \| '_ \                                                            
-#|  _| | | | | (_| | | \__ \  __/ |  __/ (__| |_| | (_) | | | |                                                           
-#|_| |_|_| |_|\__,_|_| |___/\___|_|\___|\___|\__|_|\___/|_| |_|                                                           
-#-----------------------------------------------------------------------------------------------------------------------------
-# CUTS GET PROGRESSIVELY TIGHTER
-##------------------------------------------------------------------------------------------------
+#------------------------------------------------------------------------------------------------------------------------------------
+# BDT CUTS
+#------------------------------------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------------------
 #------------------------------------------------------------------------------------------------------------------
 # LQ M 1500 optimization
 #------------------------------------------------------------------------------------------------------------------
 MeejjLQ1500                   1500                 +inf                    -                   -   2       500 0 5000 minselection:trainingSelection
-BDTOutput_LQ1500                         0.99                +inf 		-		-	2	100 -1 1    TMVACut:BDT,BDTWeightFileLQM1500,MeejjLQ1500
+BDTOutput_LQ1500                         0.97                +inf 		-		-	2	100 -1 1    TMVACut:BDT,BDTWeightFileLQM1500,MeejjLQ1500
 #------------------------------------------------------------------------------------------------------------------
 # LQ M 1600 optimization
 #------------------------------------------------------------------------------------------------------------------
 MeejjLQ1600                   1600                 +inf                    -                   -   2       500 0 5000 minselection:trainingSelection
-BDTOutput_LQ1600                         0.98                +inf 		-		-	2	100 -1 1    TMVACut:BDT,BDTWeightFileLQM1600,MeejjLQ1600
+BDTOutput_LQ1600                         0.96                +inf 		-		-	2	100 -1 1    TMVACut:BDT,BDTWeightFileLQM1600,MeejjLQ1600
 #------------------------------------------------------------------------------------------------------------------
 # LQ M 1700 optimization
 #------------------------------------------------------------------------------------------------------------------
 MeejjLQ1700                   1700                 +inf                    -                   -   2       500 0 5000 minselection:trainingSelection
-BDTOutput_LQ1700                         0.99                +inf 		-		-	2	100 -1 1    TMVACut:BDT,BDTWeightFileLQM1700,MeejjLQ1700
+BDTOutput_LQ1700                         0.94                +inf 		-		-	2	100 -1 1    TMVACut:BDT,BDTWeightFileLQM1700,MeejjLQ1700
 #------------------------------------------------------------------------------------------------------------------
 # LQ M 1800 optimization
 #------------------------------------------------------------------------------------------------------------------
 MeejjLQ1800                   1800                 +inf                    -                   -   2       500 0 5000 minselection:trainingSelection
-BDTOutput_LQ1800                         0.99                +inf 		-		-	2	100 -1 1    TMVACut:BDT,BDTWeightFileLQM1800,MeejjLQ1800
+BDTOutput_LQ1800                         0.9                +inf 		-		-	2	100 -1 1    TMVACut:BDT,BDTWeightFileLQM1800,MeejjLQ1800
 #------------------------------------------------------------------------------------------------------------------
 # LQ M 1900 optimization
 #------------------------------------------------------------------------------------------------------------------
 MeejjLQ1900                   1900                 +inf                    -                   -   2       500 0 5000 minselection:trainingSelection
-BDTOutput_LQ1900                         0.99                +inf 		-		-	2	100 -1 1    TMVACut:BDT,BDTWeightFileLQM1900,MeejjLQ1900
+BDTOutput_LQ1900                         0.84                +inf 		-		-	2	100 -1 1    TMVACut:BDT,BDTWeightFileLQM1900,MeejjLQ1900
 #------------------------------------------------------------------------------------------------------------------
 # LQ M 2000 optimization
 #------------------------------------------------------------------------------------------------------------------
 MeejjLQ2000                   2000                 +inf                    -                   -   2       500 0 5000 minselection:trainingSelection
-BDTOutput_LQ2000                         0.99                +inf 		-		-	2	100 -1 1    TMVACut:BDT,BDTWeightFileLQM2000,MeejjLQ2000
+BDTOutput_LQ2000                         0.75                +inf 		-		-	2	100 -1 1    TMVACut:BDT,BDTWeightFileLQM2000,MeejjLQ2000
