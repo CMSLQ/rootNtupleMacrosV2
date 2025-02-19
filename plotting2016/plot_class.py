@@ -730,6 +730,7 @@ class Plot:
         self.padRightMargin = 0.04
         self.extraText = ""
         self.xNDivisions = 510
+        self.histoRescaleFactor = 1.0
 
     def Draw(self, fileps, page_number=-1, style="AN"):
         if self.isInteractive:
@@ -866,14 +867,14 @@ class Plot:
             #            ystart=0.63
             ystart = 0.54
         else:
-            xstart = 0.65
+            xstart = 0.62
             ystart = 0.55
             if self.makeRatio == 0 and self.makeNSigma == 0:
                 ystart = 0.65
                 vsize = 0.25
             if style == "paper":
                 if self.makeRatio:
-                    xstart = 0.58
+                    xstart = 0.52
                     ystart = 0.53
                 else:
                     xstart = 0.52
@@ -980,22 +981,25 @@ class Plot:
         # print("INFO: Draw stack for thStack xtit={}".format(self.xtit), flush=True)
         xTitle = self.xtitPaper
         xLabelSize = self.labelSize
-        if self.makeRatio:
-            xTitle = ""
-            xLabelSize = 0
-        elif style != "paper":
-            xTitle = self.xtit
-        thStack.GetXaxis().SetTitle(xTitle)
-        if self.makeRatio:
-            thStack.GetXaxis().SetTitleOffset(0.0)
-            thStack.GetXaxis().SetLabelOffset(0.0)
+        if style == "paper":
+            if self.makeRatio:
+                thStack.GetXaxis().SetTitleOffset(0.0)
+                thStack.GetXaxis().SetLabelOffset(0.0)
+                xTitle = ""
+                xLabelSize = 0
+            else:
+                thStack.GetXaxis().SetTitleOffset(1.0)
+                thStack.GetXaxis().SetLabelOffset(0.002)
         else:
-            thStack.GetXaxis().SetTitleOffset(1.0)
-            thStack.GetXaxis().SetLabelOffset(0.002)
+            xTitle = self.xtit
+            if self.makeRatio:
+                thStack.GetXaxis().SetTitleOffset(1.0)
+                thStack.GetXaxis().SetLabelOffset(0.002)
         thStack.GetXaxis().SetTitleSize(self.titleSize)
         thStack.GetXaxis().SetLabelSize(xLabelSize)
         thStack.GetXaxis().SetTitleFont(self.titleFont)
         thStack.GetXaxis().SetLabelFont(self.titleFont)
+        thStack.GetXaxis().SetTitle(xTitle)
         thStack.GetYaxis().SetTitleOffset(1.1 if style == "paper" else 0.75)
         thStack.GetYaxis().SetTitleSize(self.titleSize)
         thStack.GetYaxis().SetLabelSize(self.labelSize)
@@ -1060,6 +1064,7 @@ class Plot:
         # dataLineIndexes = [9,2,3,1,2,3]
 
         for histo in self.histos:
+            histo.Scale(self.histoRescaleFactor)
             histo.SetMarkerStyle(dataColorIndexes[ih])
             histo.SetMarkerColor(dataColorIndexes[ih])
             histo.SetLineColor(dataColorIndexes[ih])
@@ -1068,7 +1073,8 @@ class Plot:
             #            histo.SetMarkerColor(2+2*ih)
             #            histo.SetLineColor(  2+2*ih)
             histo.SetLineWidth(2)
-            legend.AddEntry(histo, self.keys[ih], "l")
+            legEntryAddition = ", x{}".format(self.histoRescaleFactor) if self.histoRescaleFactor != 1.0 else ""
+            legend.AddEntry(histo, self.keys[ih] + legEntryAddition, "l")
             histo.Draw("HISTsame")
             ih = ih + 1
 
