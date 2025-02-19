@@ -57,16 +57,22 @@ void analysisClass::Loop()
   //};
 
   const int n_lq_mass = 28;
-  int LQ_MASS[n_lq_mass] = { 
+  int LQ_MASS[n_lq_mass] = {
     300,  400,  500,  600,
     700,  800,  900,  1000,
     1100, 1200, 1300, 1400,
     1500, 1600, 1700, 1800,
     1900, 2000, 2100, 2200,
     2300, 2400, 2500, 2600,
-    2700, 2800, 2900, 3000,
+    2700, 2800, 2900, 3000
     //3500, 4000
   };
+
+  //const int n_lq_mass = 6;
+  //int LQ_MASS[n_lq_mass] = { 
+  //  1500, 1600, 1700, 1800,
+  //  1900, 2000 //, 2100, 2200,
+  //};
 
   // LQ650 only 2012
   //const int n_lq_mass = 1;
@@ -711,6 +717,94 @@ void analysisClass::Loop()
   CreateUserHist2D("MeeVsJet2Pt_BkgControlRegion_gteTwoBtaggedJets", 1000, 0, 2000, 1000, 0, 2000);
   CreateUserHist2D("MeeVsJet3Pt_BkgControlRegion_gteTwoBtaggedJets", 1000, 0, 2000, 1000, 0, 2000);
   CreateUserHist2D("MeeVsPFMETType1Pt_BkgControlRegion_gteTwoBtaggedJets", 1000, 0, 2000, 1000, 0, 2000);
+
+  // training selection plots
+  CreateUserHistWithSysts( "nElectron_trainingSelection"                   ,    5     , -0.5    , 4.5      );
+  CreateUserHistWithSysts( "nMuon_trainingSelection"                       ,    5     , -0.5    , 4.5      );
+  CreateUserHistWithSysts( "nJet_trainingSelection"                        ,    10    , -0.5    , 9.5      );
+  CreateUserHistWithSysts( "Pt1stEle_trainingSelection"	             , 	100    , 0       , 1000     ); 
+  CreateUserHistWithSysts( "Eta1stEle_trainingSelection"	             , 	100    , -5      , 5	  ); 
+  CreateUserHistWithSysts( "SCEta1stEle_trainingSelection"	             , 	100    , -5      , 5	  ); 
+  CreateUserHistWithSysts( "Phi1stEle_trainingSelection"	             , 	60     , -3.1416 , +3.1416  ); 
+  CreateUserHistWithSysts( "Pt2ndEle_trainingSelection"	             , 	300    , 0       , 3000     ); 
+  CreateUserHistWithSysts( "Eta2ndEle_trainingSelection"	             , 	100    , -5      , 5	  ); 
+  CreateUserHistWithSysts( "SCEta2ndEle_trainingSelection"	             , 	100    , -5      , 5	  ); 
+  CreateUserHistWithSysts( "Phi2ndEle_trainingSelection"	             , 	60     , -3.1416 , +3.1416  ); 
+  CreateUserHist( "Charge1stEle_trainingSelection"	             , 	2      , -1.0001 , 1.0001	  ); 
+  CreateUserHist( "Charge2ndEle_trainingSelection"	             , 	2      , -1.0001 , 1.0001	  ); 
+  CreateUserHistWithSysts( "MET_trainingSelection"                         ,    200   , 0       , 1000	  ); 
+  CreateUserHistWithSysts( "METPhi_trainingSelection"		             , 	60     , -3.1416 , +3.1416  ); 
+  CreateUserHistWithSysts( "Pt1stJet_trainingSelection"                    ,    200   , 0       , 2000	  ); 
+  CreateUserHistWithSysts( "Pt2ndJet_trainingSelection"                    ,    200   , 0       , 2000	  ); 
+  CreateUserHistWithSysts( "Pt3rdJet_trainingSelection"                    ,    200   , 0       , 2000	  ); 
+  CreateUserHistWithSysts( "Eta1stJet_trainingSelection"                   ,    100   , -5      , 5	  ); 
+  CreateUserHistWithSysts( "Eta2ndJet_trainingSelection"                   ,    100   , -5      , 5	  ); 
+  CreateUserHistWithSysts( "Eta3rdJet_trainingSelection"                   ,    100   , -5      , 5	  ); 
+  CreateUserHistWithSysts( "Phi1stJet_trainingSelection"	             , 	 60    , -3.1416 , +3.1416  ); 
+  CreateUserHistWithSysts( "Phi2ndJet_trainingSelection"	             , 	 60    , -3.1416 , +3.1416  ); 
+  CreateUserHistWithSysts( "Phi3rdJet_trainingSelection"	             , 	 60    , -3.1416 , +3.1416  ); 
+  CreateUserHistWithSysts( "sTlep_trainingSelection"                       ,    200   , 0       , 2000	  ); 
+  CreateUserHistWithSysts( "sTjet_trainingSelection"                       ,    200   , 0       , 2000	  ); 
+  CreateUserHistWithSysts( "sT_trainingSelection"                          ,    300   , 0       , 3000	  ); 
+  CreateUserHist( "sT_zjj_trainingSelection"                      ,    300   , 0       , 3000	  ); 
+  CreateUserHist( "Mjj_trainingSelection"		             ,    200   , 0       , 2000	  ); 
+  CreateUserHistWithSysts( "Mee_trainingSelection"		             ,    1000   , 0       , 2000	  ); 
+  CreateUserHistWithSysts( "Me1j1_trainingSelection"                       ,    200   , 0       , 2000	  ); 
+  CreateUserHistWithSysts( "Me1j2_trainingSelection"                       ,    200   , 0       , 2000	  ); 
+  CreateUserHistWithSysts( "Me2j1_trainingSelection"                       ,    200   , 0       , 2000	  ); 
+  CreateUserHistWithSysts( "Me2j2_trainingSelection"                       ,    200   , 0       , 2000	  ); 
+  CreateUserHistWithSysts( "Me1j_selected_trainingSelection"               ,    200   , 0       , 2000	  ); 
+  CreateUserHistWithSysts( "Me2j_selected_trainingSelection"               ,    200   , 0       , 2000   );
+  CreateUserHistWithSysts( "Mej_selected_avg_trainingSelection"            ,    200   , 0       , 2000   ); 
+  CreateUserHistWithSysts( "Mej_selected_min_trainingSelection"            ,    200   , 0       , 2000   ); 
+  CreateUserHistWithSysts( "Mej_selected_max_trainingSelection"            ,    200   , 0       , 2000   ); 
+  CreateUserHistWithSysts( "Mej_asym_trainingSelection"                    ,    50    , 0       , 1   ); 
+  CreateUserHistWithSysts( "Mej_minmax_trainingSelection"                  ,    200   , 0       , 2000   ); 
+  CreateUserHistWithSysts( "Meejj_trainingSelection"                       ,    400   , 0       , 4000   );
+  CreateUserHist( "Mejj_trainingSelection"                        ,    400   , 0       , 4000   );
+  CreateUserHist( "Meej_trainingSelection"                        ,    400   , 0       , 4000   );
+  CreateUserHist( "Ptj1j2j3_trainingSelection"                    ,    400 , 0       , 4000     );
+  CreateUserHist( "Ptj1j2_trainingSelection"                      ,    400 , 0       , 4000     );
+  CreateUserHist( "Ptj2j3_trainingSelection"                      ,    400 , 0       , 4000     );
+  CreateUserHist( "Ptj1j3_trainingSelection"                      ,    400 , 0       , 4000     );
+  //CreateUserHist( "Ptee_Minus_Ptj1j2_trainingSelection"           ,    200 , -500    , 500      );
+  //CreateUserHist( "Ptee_Minus_Ptj1j2j3_trainingSelection"         ,    200 , -500    , 500      );
+  CreateUserHistWithSysts( "Ptee_trainingSelection"                        ,    200 , 0       , 2000     );
+  CreateUserHist( "M_j1j3_trainingSelection"                      ,    200 , 0       , 2000	 );    
+  CreateUserHist( "M_j2j3_trainingSelection"                      ,    200 , 0       , 2000	 ); 
+  CreateUserHist( "M_e1j3_trainingSelection"                      ,    200 , 0       , 2000	 );    
+  CreateUserHist( "M_e2j3_trainingSelection"                      ,    200 , 0       , 2000	 ); 
+  CreateUserHist( "M_eejjj_trainingSelection"                     ,    500 , 0       , 5000	 ); 
+  //CreateUserHistWithSysts( "nVertex_trainingSelection"                     ,    101   , -0.5   , 100.5	 ) ; 
+  //CreateUserHistWithSysts( "DR_Ele1Jet1_trainingSelection"	   , 	getHistoNBins("DR_Ele1Jet1"), getHistoMin("DR_Ele1Jet1"), getHistoMax("DR_Ele1Jet1")     ) ; 
+  //CreateUserHistWithSysts( "DR_Ele1Jet2_trainingSelection"	   , 	getHistoNBins("DR_Ele1Jet2"), getHistoMin("DR_Ele1Jet2"), getHistoMax("DR_Ele1Jet2")     ) ; 
+  //CreateUserHistWithSysts( "DR_Ele2Jet1_trainingSelection"	   , 	getHistoNBins("DR_Ele2Jet1"), getHistoMin("DR_Ele2Jet1"), getHistoMax("DR_Ele2Jet1")     ) ; 
+  //CreateUserHistWithSysts( "DR_Ele2Jet2_trainingSelection"	   , 	getHistoNBins("DR_Ele2Jet2"), getHistoMin("DR_Ele2Jet2"), getHistoMax("DR_Ele2Jet2")     ) ; 
+  //CreateUserHistWithSysts( "DR_Jet1Jet2_trainingSelection"	   , 	getHistoNBins("DR_Jet1Jet2"), getHistoMin("DR_Jet1Jet2"), getHistoMax("DR_Jet1Jet2")     ) ; 
+  CreateUserHistWithSysts( "DR_Ele1Ele2_trainingSelection"	   , 	getHistoNBins("DR_Jet1Jet2"), getHistoMin("DR_Jet1Jet2"), getHistoMax("DR_Jet1Jet2")     ) ; 
+  CreateUserHist( "minDR_EleJet_trainingSelection"	   , 	getHistoNBins("DR_Jet1Jet2"), getHistoMin("DR_Jet1Jet2"), getHistoMax("DR_Jet1Jet2")     ) ; 
+  //CreateUserHist( "minDR_ZJet_trainingSelection"        ,    getHistoNBins("DR_Jet1Jet2"), getHistoMin("DR_Jet1Jet2"), getHistoMax("DR_Jet1Jet2")     ) ; 
+  //CreateUserHist( "DR_ZJet1_trainingSelection"        ,    getHistoNBins("DR_Jet1Jet2"), getHistoMin("DR_Jet1Jet2"), getHistoMax("DR_Jet1Jet2")     ) ; 
+  //CreateUserHist( "DR_ZJet2_trainingSelection"        ,    getHistoNBins("DR_Jet1Jet2"), getHistoMin("DR_Jet1Jet2"), getHistoMax("DR_Jet1Jet2")     ) ; 
+  //CreateUserHist2D( "MeeVsST_trainingSelection"                 ,     400, 0, 4000, 400, 0, 4000) ;
+  //CreateUserHist2D( "MeeVsPtee_trainingSelection"                 ,     400, 0, 4000, 400, 0, 4000) ;
+  //CreateUserHist2D( "Me1jVsMe2j_selected_trainingSelection",     200, 0, 2000, 200, 0, 2000) ;
+  //CreateUserHist2D( "Me1jVsMe2j_rejected_trainingSelection",     200, 0, 2000, 200, 0, 2000) ;
+  //CreateUserHist( "MTeemunu_trainingSelection"          ,    200 , 0       , 1000	 ); 
+  //CreateUserHistWithSysts( "Mee_EBEB_trainingSelection"		   ,    1000 , 0       , 2000	 ); 
+  //CreateUserHistWithSysts( "Mee_EBEE_trainingSelection"		   ,    1000 , 0       , 2000	 ); 
+  //CreateUserHistWithSysts( "Mee_EEEE_trainingSelection"		   ,    1000 , 0       , 2000	 ); 
+  //CreateUserHistWithSysts( "Mee_EB_trainingSelection" 		   ,    60 , 60       , 120	 ); 
+  //CreateUserHistWithSysts( "Mee_End2End2_trainingSelection" 		   ,    60 , 60       , 120	 ); 
+  //CreateUserHist( "PileupWeight_trainingSelection"   , 100, -10, 10 );
+  //CreateUserHist( "GeneratorWeight_trainingSelection", 100, -2.0, 2.0);
+  CreateUserHist( "Pt1stMuon_trainingSelection"	             , 	100    , 0       , 1000     ); 
+  CreateUserHist( "Eta1stMuon_trainingSelection"	             , 	100    , -5      , 5	  ); 
+  CreateUserHist( "Phi1stMuon_trainingSelection"	             , 	60     , -3.1416 , +3.1416  ); 
+  CreateUserHist( "Pt2ndMuon_trainingSelection"	             , 	100    , 0       , 1000     ); 
+  CreateUserHist( "Eta2ndMuon_trainingSelection"	             , 	100    , -5      , 5	  ); 
+  CreateUserHist( "Phi2ndMuon_trainingSelection"	             , 	60     , -3.1416 , +3.1416  ); 
+
   //// test opt
   //CreateUserHist( "Mee_sT2000_PAS"		             ,    200   , 0       , 2000	  ); 
   //CreateUserHist( "OptBinLQ600", 200, 0, 2000);
@@ -2043,6 +2137,13 @@ void analysisClass::Loop()
     std::string preselectionCut = "preselection";
 
     //--------------------------------------------------------------------------
+    // Did we pass training selection?
+    //--------------------------------------------------------------------------
+
+    bool passed_trainingSelection = ( passedAllPreviousCuts("trainingSelection") && passedCut ("trainingSelection") );
+    std::string trainingSelectionCut = "trainingSelection";
+
+    //--------------------------------------------------------------------------
     // Are we in the region of interest?
     //--------------------------------------------------------------------------
 
@@ -2381,46 +2482,82 @@ void analysisClass::Loop()
       FillUserHist("Phi2ndMuon_PAS"	   , Muon2_Phi                      , min_prescale * gen_weight * fakeRateEffective ) ;
 
       FillUserHist2D("MeeVsST_PAS" , M_e1e2, sT_eejj, min_prescale * gen_weight * fakeRateEffective ) ;	   
-      // scale factor dependence histos
-      //if ( nJet_ptCut == 2 )
-      //  FillUserHist("Mee_NJetEq2_PAS", M_e1e2                         , min_prescale * gen_weight * fakeRateEffective );
-      //else if( nJet_ptCut == 3 )
-      //  FillUserHist("Mee_NJetEq3_PAS", M_e1e2                         , min_prescale * gen_weight * fakeRateEffective );
-      //else if( nJet_ptCut == 4 )
-      //  FillUserHist("Mee_NJetEq4_PAS", M_e1e2                         , min_prescale * gen_weight * fakeRateEffective );
-      //else if( nJet_ptCut == 5 )
-      //  FillUserHist("Mee_NJetEq5_PAS", M_e1e2                         , min_prescale * gen_weight * fakeRateEffective );
-      //else if( nJet_ptCut == 6 )
-      //  FillUserHist("Mee_NJetEq6_PAS", M_e1e2                         , min_prescale * gen_weight * fakeRateEffective );
-      //else if( nJet_ptCut == 7 )
-      //  FillUserHist("Mee_NJetEq7_PAS", M_e1e2                         , min_prescale * gen_weight * fakeRateEffective );
-      ////
-      //if ( nJet_ptCut >= 3 )
-      //  FillUserHist("Mee_NJetGeq3_PAS", M_e1e2                         , min_prescale * gen_weight * fakeRateEffective );
-      //if ( nJet_ptCut >= 4 )
-      //  FillUserHist("Mee_NJetGeq4_PAS", M_e1e2                         , min_prescale * gen_weight * fakeRateEffective );
-      ////
-      //if (sT_eejj >= 300 && sT_eejj < 500)
-      //  FillUserHist("Mee_sT300To500_PAS", M_e1e2                         , min_prescale * gen_weight * fakeRateEffective );
-      //else if (sT_eejj >= 500 && sT_eejj < 750)
-      //  FillUserHist("Mee_sT500To750_PAS", M_e1e2                         , min_prescale * gen_weight * fakeRateEffective );
-      //else if (sT_eejj >= 750 && sT_eejj < 1250)
-      //  FillUserHist("Mee_sT750To1250_PAS", M_e1e2                         , min_prescale * gen_weight * fakeRateEffective );
-      //else if (sT_eejj >= 1250)
-      //  FillUserHist("Mee_sT1250ToInf_PAS", M_e1e2                         , min_prescale * gen_weight * fakeRateEffective );
-      ////
-      //if (M_ej_min >= 100 && M_ej_min < 200)
-      //  FillUserHist("Mee_MejMin100To200_PAS", M_e1e2                         , min_prescale * gen_weight * fakeRateEffective );
-      //else if (M_ej_min >= 200 && M_ej_min < 300)
-      //  FillUserHist("Mee_MejMin200To300_PAS", M_e1e2                         , min_prescale * gen_weight * fakeRateEffective );
-      //else if (M_ej_min >= 300 && M_ej_min < 400)
-      //  FillUserHist("Mee_MejMin300To400_PAS", M_e1e2                         , min_prescale * gen_weight * fakeRateEffective );
-      //else if (M_ej_min >= 400 && M_ej_min < 500)
-      //  FillUserHist("Mee_MejMin400To500_PAS", M_e1e2                         , min_prescale * gen_weight * fakeRateEffective );
-      //else if (M_ej_min >= 500 && M_ej_min < 650)
-      //  FillUserHist("Mee_MejMin500To650_PAS", M_e1e2                         , min_prescale * gen_weight * fakeRateEffective );
-      //else if (M_ej_min >= 650)
-      //  FillUserHist("Mee_MejMin650ToInf_PAS", M_e1e2                         , min_prescale * gen_weight * fakeRateEffective );
+
+      if(passed_trainingSelection) {
+        FillUserHist("nElectron_trainingSelection"         , nEle_ptCut                     , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        FillUserHist("nMuon_trainingSelection"             , nMuon_ptCut                    , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        FillUserHist("nJet_trainingSelection"              , nJet_ptCut                     , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        FillUserHist("Pt1stEle_trainingSelection"	        , Ele1_Pt                        , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        FillUserHist("Eta1stEle_trainingSelection"	        , Ele1_Eta                       , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        FillUserHist("SCEta1stEle_trainingSelection"	      , Ele1_SCEta                     , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        FillUserHist("Phi1stEle_trainingSelection"	        , Ele1_Phi                       , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        FillUserHist("Pt2ndEle_trainingSelection"	        , Ele2_Pt                        , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        FillUserHist("Eta2ndEle_trainingSelection"	        , Ele2_Eta                       , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        FillUserHist("SCEta2ndEle_trainingSelection"	      , Ele2_SCEta                     , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        FillUserHist("Phi2ndEle_trainingSelection"	    , Ele2_Phi                       , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        FillUserHist("Charge1stEle_trainingSelection"	    , Ele1_Charge                    , min_prescale * gen_weight * fakeRateEffective );
+        FillUserHist("Charge2ndEle_trainingSelection"	    , Ele2_Charge                    , min_prescale * gen_weight * fakeRateEffective );
+        FillUserHist("MET_trainingSelection"               , PFMET_Type1_Pt              , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        FillUserHist("METPhi_trainingSelection"	    , PFMET_Type1_Phi             , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        FillUserHist("Pt1stJet_trainingSelection"          , Jet1_Pt                        , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        FillUserHist("Pt2ndJet_trainingSelection"          , Jet2_Pt                        , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        FillUserHist("Eta1stJet_trainingSelection"         , Jet1_Eta                       , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        FillUserHist("Eta2ndJet_trainingSelection"         , Jet2_Eta                       , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        FillUserHist("Phi1stJet_trainingSelection"	    , Jet1_Phi                       , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        FillUserHist("Phi2ndJet_trainingSelection"	    , Jet2_Phi                       , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        if(nJet_store > 2) {
+          FillUserHist("Pt3rdJet_trainingSelection"          , Jet3_Pt                        , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+          FillUserHist("Eta3rdJet_trainingSelection"         , Jet3_Eta                       , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+          FillUserHist("Phi3rdJet_trainingSelection"	    , Jet3_Phi                       , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+          FillUserHist("Ptj1j2j3_trainingSelection"           , Pt_j1j2j3                        , min_prescale * gen_weight * fakeRateEffective);
+        }
+        FillUserHist("sTlep_trainingSelection"             , Ele1_Pt + Ele2_Pt              , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        FillUserHist("sTjet_trainingSelection"             , Jet1_Pt + Jet2_Pt              , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        FillUserHist("sT_trainingSelection"                , sT_eejj                        , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        FillUserHist("sT_zjj_trainingSelection"            , sT_zjj                         , min_prescale * gen_weight * fakeRateEffective );
+        FillUserHist("Mjj_trainingSelection"		    , M_j1j2                         , min_prescale * gen_weight * fakeRateEffective );
+        FillUserHist("Mee_trainingSelection"		    , M_e1e2                         , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        FillUserHist("Me1j1_trainingSelection"             , M_e1j1                         , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        FillUserHist("Me1j2_trainingSelection"             , M_e1j2                         , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        FillUserHist("Me2j1_trainingSelection"             , M_e2j1                         , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        FillUserHist("Me2j2_trainingSelection"             , M_e2j2                         , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        if ( fabs(M_e1j1-M_e2j2) < fabs(M_e1j2-M_e2j1) ) {
+          FillUserHist("Me1j_selected_trainingSelection"   , M_e1j1          , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut);	   
+          FillUserHist("Me2j_selected_trainingSelection"   , M_e2j2          , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut);	   
+        }
+        else {
+          FillUserHist("Me1j_selected_trainingSelection"   , M_e1j2          , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut);	   
+          FillUserHist("Me2j_selected_trainingSelection"   , M_e2j1          , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut);	   
+        }
+        FillUserHist("Mej_selected_avg_trainingSelection"   , M_ej_avg       , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut);	   
+        FillUserHist("Mej_selected_min_trainingSelection"   , M_ej_min       , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut);	   
+        FillUserHist("Mej_selected_max_trainingSelection"   , M_ej_max       , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut);	   
+        FillUserHist("Mej_asym_trainingSelection"        , M_ej_asym                        , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );	   
+        FillUserHist("Mej_minmax_trainingSelection"        , M_ej_min                       , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );	   
+        FillUserHist("Mej_minmax_trainingSelection"        , M_ej_max                       , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );	   
+        FillUserHist("Meejj_trainingSelection"        , M_eejj                       , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );	   
+        FillUserHist("Mejj_trainingSelection"        , M_ejj                       , min_prescale * gen_weight * fakeRateEffective);	   
+        FillUserHist("Meej_trainingSelection"        , M_eej                       , min_prescale * gen_weight * fakeRateEffective);	   
+        FillUserHist("Ptj1j2_trainingSelection"           , Pt_j1j2                        , min_prescale * gen_weight * fakeRateEffective);
+        FillUserHist("Ptj2j3_trainingSelection"           , Pt_j2j3                        , min_prescale * gen_weight * fakeRateEffective );
+        FillUserHist("Ptj1j3_trainingSelection"           , Pt_j1j3                        , min_prescale * gen_weight * fakeRateEffective );
+        FillUserHist("Ptee_trainingSelection"             , Pt_e1e2                        , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        FillUserHist("M_j1j3_trainingSelection"             , M_j1j3                         , min_prescale * gen_weight * fakeRateEffective);
+        FillUserHist("M_j2j3_trainingSelection"             , M_j2j3                         , min_prescale * gen_weight * fakeRateEffective);
+        FillUserHist("M_e1j3_trainingSelection"             , M_e1j3                         , min_prescale * gen_weight * fakeRateEffective);
+        FillUserHist("M_e2j3_trainingSelection"             , M_e2j3                         , min_prescale * gen_weight * fakeRateEffective);
+        FillUserHist("M_eejjj_trainingSelection"             , M_eejjj                         , min_prescale * gen_weight * fakeRateEffective);
+
+        FillUserHist("minDR_EleJet_trainingSelection"      , min_DR_EleJet                  , min_prescale * gen_weight * fakeRateEffective );
+        FillUserHist("DR_Ele1Ele2_trainingSelection"	    , DR_Ele1Ele2                    , min_prescale * gen_weight * fakeRateEffective, trainingSelectionCut );
+        //FillUserHist("EleChargeSum_trainingSelection"      , Ele1_Charge + Ele2_Charge      , min_prescale * gen_weight * fakeRateEffective );
+        FillUserHist("Pt1stMuon_trainingSelection"	      , Muon1_Pt                        , min_prescale * gen_weight * fakeRateEffective );
+        FillUserHist("Eta1stMuon_trainingSelection"	    , Muon1_Eta                       , min_prescale * gen_weight * fakeRateEffective );
+        FillUserHist("Phi1stMuon_trainingSelection"	    , Muon1_Phi                       , min_prescale * gen_weight * fakeRateEffective );
+        FillUserHist("Pt2ndMuon_trainingSelection"	      , Muon2_Pt                        , min_prescale * gen_weight * fakeRateEffective );
+        FillUserHist("Eta2ndMuon_trainingSelection"	    , Muon2_Eta                       , min_prescale * gen_weight * fakeRateEffective );
+        FillUserHist("Phi2ndMuon_trainingSelection"	    , Muon2_Phi                       , min_prescale * gen_weight * fakeRateEffective );
+      }
       if(do_btag_plots) {
         //-------------------------------------------------------------------------- 
         // no b tags
