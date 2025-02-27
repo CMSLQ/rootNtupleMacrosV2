@@ -2909,7 +2909,7 @@ void analysisClass::Loop()
             FillUserHist(cut_name, bdtOutput, gen_weight * pileup_weight, "M_e1e2");
             if(passedCut("MeejjLQ" + to_string(lq_mass))) {
               sprintf(cut_name, "BDTOutput_TrainRegion_LQ%d"   , lq_mass );
-              FillUserHist(cut_name, bdtOutput, gen_weight * pileup_weight, "BDTOutput_LQ" + to_string(lq_mass));
+              FillUserHist(cut_name, bdtOutput, gen_weight * pileup_weight, "MeejjLQ" + to_string(lq_mass));
             }
           }
         }

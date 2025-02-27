@@ -834,14 +834,14 @@ void analysisClass::Loop()
     sprintf(cut_name, "BDTOutput_TTBarCRRegion_LQ%d"   , lq_mass );
     CreateUserHistWithSysts(cut_name,2000,-1,1.001);
     sprintf(cut_name, "BDTOutput_TrainRegion_LQ%d"   , lq_mass );
-    //sprintf(cut_name, "BDTOutput_PAS_LQ%d"   , lq_mass );
+    sprintf(cut_name, "BDTOutput_PAS_LQ%d"   , lq_mass );
     CreateUserHistWithSysts(cut_name,2000,-1,1.001);
-    //sprintf(cut_name, "BDTOutput_noWeight_PAS_LQ%d"   , lq_mass );
-    //CreateUserHistWithSysts(cut_name,2000,-1,1.001);
-    //sprintf(cut_name, "BDTOutput_TrainRegionNoMeejj_LQ%d"   , lq_mass );
-    //CreateUserHistWithSysts(cut_name,2000,-1,1.001);
-    //sprintf(cut_name, "BDTOutput_TrainRegion_LQ%d"   , lq_mass );
-    sprintf(cut_name, "BDTOutput_noWeight_TrainRegion_LQ%d"   , lq_mass );
+    sprintf(cut_name, "BDTOutput_noWeight_PAS_LQ%d"   , lq_mass );
+    CreateUserHistWithSysts(cut_name,2000,-1,1.001);
+    sprintf(cut_name, "BDTOutput_TrainRegionNoMeejj_LQ%d"   , lq_mass );
+    CreateUserHistWithSysts(cut_name,2000,-1,1.001);
+    sprintf(cut_name, "BDTOutput_TrainRegion_LQ%d"   , lq_mass );
+    //sprintf(cut_name, "BDTOutput_noWeight_TrainRegion_LQ%d"   , lq_mass );
     CreateUserHistWithSysts(cut_name,2000,-1,1.001);
     sprintf(cut_name, "MeeVsBDTOutput_BkgControlRegion_LQ%d", lq_mass );
     CreateUserHist2D(cut_name, 400, -1, 1.001, 1000, 0, 2000);
@@ -2939,20 +2939,18 @@ void analysisClass::Loop()
           int lq_mass = LQ_MASS[i_lq_mass];
           sprintf(cut_name, "BDTOutput_LQ%d", lq_mass );
           float bdtOutput = getVariableValue(cut_name);
-          sprintf(cut_name, "BDTOutput_TrainRegion_LQ%d", lq_mass );
-          //sprintf(cut_name, "BDTOutput_PAS_LQ%d", lq_mass );
+          sprintf(cut_name, "BDTOutput_PAS_LQ%d", lq_mass );
           FillUserHist(cut_name, bdtOutput, min_prescale * gen_weight * fakeRateEffective );
-          //sprintf(cut_name, "BDTOutput_noWeight_PAS_LQ%d", lq_mass );
-          sprintf(cut_name, "BDTOutput_noWeight_TrainRegion_LQ%d", lq_mass );
+          sprintf(cut_name, "BDTOutput_noWeight_PAS_LQ%d", lq_mass );
           FillUserHist(cut_name, bdtOutput );
-          //if(passedCut("trainingSelection")) {
-          //  sprintf(cut_name, "BDTOutput_TrainRegionNoMeejj_LQ%d", lq_mass );
-          //  FillUserHist(cut_name, bdtOutput, min_prescale * gen_weight * fakeRateEffective);
-          //  if(passedCut("MeejjLQ" + to_string(lq_mass))) {
-          //    sprintf(cut_name, "BDTOutput_TrainRegion_LQ%d"   , lq_mass );
-          //    FillUserHist(cut_name, bdtOutput, min_prescale * gen_weight * fakeRateEffective);
-          //  }
-          //}
+          if(passedCut("trainingSelection")) {
+            sprintf(cut_name, "BDTOutput_TrainRegionNoMeejj_LQ%d", lq_mass );
+            FillUserHist(cut_name, bdtOutput, min_prescale * gen_weight * fakeRateEffective);
+            if(passedCut("MeejjLQ" + to_string(lq_mass))) {
+              sprintf(cut_name, "BDTOutput_TrainRegion_LQ%d"   , lq_mass );
+              FillUserHist(cut_name, bdtOutput, min_prescale * gen_weight * fakeRateEffective);
+            }
+          }
         }
       }
 

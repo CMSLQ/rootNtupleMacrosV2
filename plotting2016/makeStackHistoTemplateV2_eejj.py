@@ -34,7 +34,7 @@ dyjNormSyst = 0.1
 ttbarNormSyst = 0.1
 doPreselPlots = True
 doBTagPlots = False
-doFinalSelectionPlots = False
+doFinalSelectionPlots = True
 blindFinalSelectionData = True
 do2016 = False
 do2016pre = False
@@ -1003,6 +1003,27 @@ if doPreselPlots:
     plots[-1].xtit = "Mass_{eejj} (GeV) [Preselection]"
     plots[-1].xtitPaper = "M_{eejj} (GeV)"
 
+    plots.append(makeDefaultPlot("Meejj_trainingSelection", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
+    plots[-1].rebin = 5
+    plots[-1].ylog = "yes"
+    plots[-1].xtit = "Mass_{eejj} (GeV) [training]"
+    plots[-1].xtitPaper = "M_{eejj} (GeV)"
+
+    plots.append(makeDefaultPlot("Meejj_trainingSelection", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
+    plots[-1].rebin = 10
+    plots[-1].ylog = "yes"
+    plots[-1].name = "Meejj_trainingSelection_rebin10"
+    plots[-1].xtit = "Mass_{eejj} (GeV) [training]"
+    plots[-1].xtitPaper = "M_{eejj} (GeV)"
+
+    plots.append(makeDefaultPlot("Meejj_trainingSelection", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
+    plots[-1].rebin = "var"
+    plots[-1].xbins = [300, 330, 370, 420, 480, 550, 630, 720, 820, 930, 1050, 1180, 1320, 1470, 1630, 1800, 1980, 2170, 2370, 2580, 2800, 3000]
+    plots[-1].ylog = "yes"
+    plots[-1].name = "Meejj_trainingSelection_rebinVar"
+    plots[-1].xtit = "Mass_{eejj} (GeV) [training]"
+    plots[-1].xtitPaper = "M_{eejj} (GeV)"
+
     plots.append(makeDefaultPlot("Mee_BkgControlRegion", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
     # plots[-1].rebin = 1
     plots[-1].rebin = "var"
@@ -1743,7 +1764,7 @@ if doPreselPlots:
     bdtYMax = 1e8
     lqmasstouse = 500
     plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ500", dataBlindAbove=bdtBlindAbove, systs=doSystematics, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
-    plots[-1].xtit = "BDT output [Preselection, M_{LQ} = 500 GeV]"
+    plots[-1].xtit = "BDT output [training, M_{LQ} = 500 GeV]"
     plots[-1].rebin = 10
     plots[-1].xmax = 1
     plots[-1].xmin = -1
@@ -1751,7 +1772,7 @@ if doPreselPlots:
     plots[-1].xtitPaper = "BDT score"
 
     plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ500", dataBlindAbove=bdtBlindAbove, systs=doSystematics, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
-    plots[-1].xtit = "BDT output [Preselection, M_{LQ} = 500 GeV]"
+    plots[-1].xtit = "BDT output [training, M_{LQ} = 500 GeV]"
     plots[-1].rebin = bdtRebin
     plots[-1].ymax = bdtYMax
     plots[-1].ymin = 1e-1
@@ -1762,9 +1783,21 @@ if doPreselPlots:
     plots[-1].extraText = "m_{LQ} = 500 GeV"
     plots[-1].xtitPaper = "BDT score"
 
+    plots.append(makeDefaultPlot("BDTOutput_TrainRegionNoMeejj_LQ500", dataBlindAbove=bdtBlindAbove, systs=doSystematics, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
+    plots[-1].xtit = "BDT output [training, no M_{eejj}, M_{LQ} = 500 GeV]"
+    plots[-1].rebin = bdtRebin
+    plots[-1].ymax = bdtYMax
+    plots[-1].ymin = 1e-1
+    plots[-1].xmax = 1
+    plots[-1].xmin = -1
+    plots[-1].ylog = "yes"
+    plots[-1].name = "BDTOutput_TrainRegionNoMeejj_LQ500_fixRebin"
+    plots[-1].extraText = "m_{LQ} = 500 GeV"
+    plots[-1].xtitPaper = "BDT score"
+
     lqmasstouse = 1000
     plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ1000", dataBlindAbove=bdtBlindAbove, systs=doSystematics, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
-    plots[-1].xtit = "BDT output [Preselection, M_{LQ} = 1000 GeV]"
+    plots[-1].xtit = "BDT output [training, M_{LQ} = 1000 GeV]"
     plots[-1].rebin = 10
     plots[-1].xmax = 1
     plots[-1].xmin = -1
@@ -1772,7 +1805,7 @@ if doPreselPlots:
     plots[-1].xtitPaper = "BDT score"
 
     plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ1000", dataBlindAbove=bdtBlindAbove, systs=doSystematics, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
-    plots[-1].xtit = "BDT output [Preselection, M_{LQ} = 1000 GeV]"
+    plots[-1].xtit = "BDT output [training, M_{LQ} = 1000 GeV]"
     plots[-1].rebin = bdtRebin
     plots[-1].ymax = bdtYMax
     plots[-1].ymin = 1e-1
@@ -1785,7 +1818,7 @@ if doPreselPlots:
 
     lqmasstouse = 1500
     plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ1500", dataBlindAbove=bdtBlindAbove, systs=doSystematics, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
-    plots[-1].xtit = "BDT output [Preselection, M_{LQ} = 1500 GeV]"
+    plots[-1].xtit = "BDT output [training, M_{LQ} = 1500 GeV]"
     plots[-1].rebin = 10
     plots[-1].xmax = 1
     plots[-1].xmin = -1
@@ -1794,7 +1827,7 @@ if doPreselPlots:
     plots[-1].histoRescaleFactor = lq1500rescale
 
     plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ1500", dataBlindAbove=bdtBlindAbove, systs=doSystematics, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
-    plots[-1].xtit = "BDT output [Preselection, M_{LQ} = 1500 GeV]"
+    plots[-1].xtit = "BDT output [training, M_{LQ} = 1500 GeV]"
     plots[-1].rebin = bdtRebin
     plots[-1].ymax = bdtYMax
     plots[-1].ymin = 1e-1
@@ -2765,6 +2798,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].xtit = (
@@ -2789,6 +2823,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].xtit = (
@@ -2849,6 +2884,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].xtit = "1st Electron #eta [LQ M = " + str(mass_point) + " selection]"
@@ -2871,6 +2907,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].xtit = "2nd Electron #eta [LQ M = " + str(mass_point) + " selection]"
@@ -2893,6 +2930,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].xtit = "1st Electron #phi [LQ M = " + str(mass_point) + " selection]"
@@ -2915,6 +2953,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].xtit = "2nd Electron #phi [LQ M = " + str(mass_point) + " selection]"
@@ -2937,6 +2976,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].xtit = (
@@ -2961,6 +3001,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].xtit = (
@@ -2985,6 +3026,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].xtit = "1st Jet #eta [LQ M = " + str(mass_point) + " selection]"
@@ -3007,6 +3049,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].xtit = "2nd Jet #eta [LQ M = " + str(mass_point) + " selection]"
@@ -3029,6 +3072,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].xtit = "1st Jet #phi [LQ M = " + str(mass_point) + " selection]"
@@ -3051,6 +3095,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].xtit = "2nd Jet #phi [LQ M = " + str(mass_point) + " selection]"
@@ -3079,6 +3124,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].rebin = mej_rebin * 5
@@ -3103,6 +3149,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].rebin = mej_rebin * 5
@@ -3127,6 +3174,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].rebin = mej_rebin * 5
@@ -3151,6 +3199,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].rebin = mej_rebin * 5
@@ -3175,6 +3224,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].rebin = mej_rebin
@@ -3207,6 +3257,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].rebin = mej_rebin
@@ -3235,6 +3286,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].rebin = mej_rebin
@@ -3261,6 +3313,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].rebin = mej_rebin
@@ -3284,6 +3337,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].rebin = mej_rebin
@@ -3313,6 +3367,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].xtit = "S_{T} (GeV), (LQ M = " + str(mass_point) + " selection)"
@@ -3336,6 +3391,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].xtit = (
@@ -3362,6 +3418,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].xtit = (
@@ -3516,6 +3573,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].rebin = 2
@@ -3540,6 +3598,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].rebin = 4
@@ -3599,6 +3658,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].rebin = mee_rebin
@@ -3621,6 +3681,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].rebin = dr_rebin
@@ -4270,6 +4331,7 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
+                systs=doSystematics
             )
         )
         plots[-1].xtit = "PFMET (GeV), (LQ M = " + str(mass_point) + " selection)"
