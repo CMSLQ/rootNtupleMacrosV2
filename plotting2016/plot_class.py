@@ -587,8 +587,8 @@ def GetSystematicGraphAndHist(bkgTotalHist, systNames, verbose=False):
         systDownErrs[systName] = downErrs
         if verbose:
             #headers = ["binNumber", "binLowEdge", "nominal", "%systUp", "%systDown"]
-            #xBins = [xBin for xBin in range(0, bkgTotalHist.GetNbinsX()+2)]
-            xBins = [xBin for xBin in range(0, bkgTotalHist.GetNbinsX()+2) if bkgTotalHist.GetXaxis().GetBinLowEdge(xBin) >= 800 and bkgTotalHist.GetXaxis().GetBinLowEdge(xBin) <= 900]
+            xBins = [xBin for xBin in range(0, bkgTotalHist.GetNbinsX()+2) if bkgTotalHist.GetBinContent(xBin, 1) != 0]
+            #xBins = [xBin for xBin in range(0, bkgTotalHist.GetNbinsX()+2) if bkgTotalHist.GetXaxis().GetBinLowEdge(xBin) >= 800 and bkgTotalHist.GetXaxis().GetBinLowEdge(xBin) <= 900]
             # xBins = [xBin for xBin in range(bkgTotalHist.GetNbinsX()-19, bkgTotalHist.GetNbinsX()+1) if xBin >= 0] # last 20 bins
             binLowEdges = [bkgTotalHist.GetXaxis().GetBinLowEdge(xBin) for xBin in xBins]
             nominals = [bkgTotalHist.GetBinContent(xBin, 1) for xBin in xBins]
@@ -731,6 +731,7 @@ class Plot:
         self.extraText = ""
         self.xNDivisions = 510
         self.histoRescaleFactor = 1.0
+        self.verboseSysts = False
 
     def Draw(self, fileps, page_number=-1, style="AN"):
         if self.isInteractive:
@@ -988,11 +989,13 @@ class Plot:
                 xTitle = ""
                 xLabelSize = 0
             else:
+                thStack.GetYaxis().SetTitleOffset(1.1)
                 thStack.GetXaxis().SetTitleOffset(1.0)
                 thStack.GetXaxis().SetLabelOffset(0.002)
         else:
             xTitle = self.xtit
             if self.makeRatio:
+                thStack.GetYaxis().SetTitleOffset(0.75)
                 thStack.GetXaxis().SetTitleOffset(1.0)
                 thStack.GetXaxis().SetLabelOffset(0.002)
         thStack.GetXaxis().SetTitleSize(self.titleSize)
@@ -1000,7 +1003,7 @@ class Plot:
         thStack.GetXaxis().SetTitleFont(self.titleFont)
         thStack.GetXaxis().SetLabelFont(self.titleFont)
         thStack.GetXaxis().SetTitle(xTitle)
-        thStack.GetYaxis().SetTitleOffset(1.1 if style == "paper" else 0.75)
+        # thStack.GetYaxis().SetTitleOffset(1.1 if style == "paper" else 0.75)
         thStack.GetYaxis().SetTitleSize(self.titleSize)
         thStack.GetYaxis().SetLabelSize(self.labelSize)
         thStack.GetYaxis().SetLabelOffset(0.01 if style =="paper" else 0.0)
@@ -1030,7 +1033,7 @@ class Plot:
 
         # -- background uncertainty band
         if self.addBkgUncBand:
-            self.bkgUncHist, graph = GetSystematicGraphAndHist(self.bkgTotalHist, self.systNames)
+            self.bkgUncHist, graph = GetSystematicGraphAndHist(self.bkgTotalHist, self.systNames, self.verboseSysts)
             self.bkgUncHist = copy.deepcopy(self.bkgUncHist)
             self.bkgUncHist = rebinHisto(self.bkgUncHist, self.xmin, self.xmax, self.rebin, self.xbins, self.addOvfl)[0]
             #for xBin in range(0, self.bkgUncHist.GetNbinsX()+2):
@@ -1053,7 +1056,7 @@ class Plot:
             # verbose syst output
             for hist in self.histos2DStack:
                 print("Do verbose syst output for hist {}".format(hist.GetName()))
-                GetSystematicGraphAndHist(hist, self.systNames, True)
+                GetSystematicGraphAndHist(hist, self.systNames, self.verboseSysts)
 
         # -- loop over histograms (overlaid)
         ih = 0  # index of histo within a plot

@@ -24,6 +24,17 @@ if len(sys.argv) > 4:
 qcdFile = sys.argv[1]
 dataMCFilePath = sys.argv[2].rstrip("/") + "/"
 year = sys.argv[3]
+if len(sys.argv > 4):
+    signalName = sys.argv[4]
+    if "LQToDEle" in signalName:
+        signalSampleName = "LQToDEle_M-{}_pair"
+    elif "LQToBEle" in signalName:
+        signalSampleName = "LQToBEle_M-{}_pair"
+    else:
+        raise RuntimeError("Couldn't understand provided signal name '{}'. Must contain LQToDEle or LQToBEle.".format(signalName))
+else:
+    print("INFO: Defaulting to LQToDEle_pair signal")
+    signalSampleName = "LQToDEle_M-{}_pair"
 
 inputFileQCD = qcdFile
 
@@ -240,10 +251,7 @@ samplesForStackHistosMC = (
 )
 samplesForStackHistos = [samplesForStackHistos_QCD] + samplesForStackHistosMC
 
-if doRunII:
-    dataMCFilesDict = {sample: GetFile(dataMCFilePath + "analysisClass_{}_combinedRunII_plots.root".format(sample)) for sample in samplesForStackHistosMC}
-else:
-    dataMCFilesDict = {sample: GetFile(dataMCFilePath + "analysisClass_lq_eejj_{}_plots.root".format(sample)) for sample in samplesForStackHistosMC}
+dataMCFilesDict = {sample: GetFile(dataMCFilePath + "analysisClass_lq_eejj_{}_plots.root".format(sample)) for sample in samplesForStackHistosMC}
 #samplesForStackHistos += samplesForStackHistos_other + samplesForStackHistos_ttbar + samplesForStackHistos_ZJets
 # print 'samplesForStackHistos',samplesForStackHistos
 # keysStack             = [ "Other backgrounds", "QCD multijet", "t#bar{t} (Madgraph)"  ,  "Z/#gamma* + jets (MG HT)"  ]
@@ -270,17 +278,13 @@ stackFillStyleIds = [1001, 1001, 1001, 1001]
 ##stackColorIndexes.reverse()
 ##stackFillStyleIds.reverse()
 
-signalSampleName = "LQToDEle_M-{}_pair"
 # signalSampleLabel = "LQToDEle, M={} GeV"
 signalSampleLabel = "m_{{LQ}} = {} GeV, #beta = 1"
 samplesForHistos = [signalSampleName.format(lqmass) for lqmass in LQmasses]
 extraLQMasses = [500]
 extraSamplesForHistos = [signalSampleName.format(lqmass) for lqmass in extraLQMasses]
 for sample in samplesForHistos + extraSamplesForHistos:
-    if doRunII:
-        dataMCFilesDict[sample] = GetFile(dataMCFilePath + "analysisClass_{}_combinedRunII_plots.root".format(sample))
-    else:
-        dataMCFilesDict[sample] = GetFile(dataMCFilePath + "analysisClass_lq_eejj_{}_plots.root".format(sample))
+    dataMCFilesDict[sample] = GetFile(dataMCFilePath + "analysisClass_lq_eejj_{}_plots.root".format(sample))
 keys = [signalSampleLabel.format(lqmass) for lqmass in LQmasses+extraLQMasses]
 # no signal
 # samplesForHistos = []
@@ -291,10 +295,7 @@ samplesForHistos_blank = []
 keys_blank = []
 
 sampleForDataHisto = "DATA"
-if doRunII:
-    dataMCFilesDict[sampleForDataHisto] = GetFile(dataMCFilePath + "analysisClass_DATA_combinedRunII_plots.root")
-else:
-    dataMCFilesDict[sampleForDataHisto] = GetFile(dataMCFilePath + "analysisClass_lq_eejj_DATA_plots.root")
+dataMCFilesDict[sampleForDataHisto] = GetFile(dataMCFilePath + "analysisClass_lq_eejj_DATA_plots.root")
 #sampleForDataHisto = "SingleElectron_2016_HIPM"
 #sampleForDataHisto = "SingleElectron_2016"
 # dataBlindAbovePt1 = 800 # GeV; used for ele Pt1, Mee, Mej
@@ -1723,6 +1724,7 @@ if doPreselPlots:
     plots[-1].xmin = -1
     plots[-1].ylog = "yes"
     plots[-1].xtitPaper = "BDT score"
+    plots[-1].histoRescaleFactor = lq1500rescale
 
     lqmasstouse = 500
     plots.append(makeDefaultPlot("BDTOutput_TTBarCRRegion_LQ500", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
@@ -1816,6 +1818,18 @@ if doPreselPlots:
     plots[-1].extraText = "m_{LQ} = 1000 GeV"
     plots[-1].xtitPaper = "BDT score"
 
+    plots.append(makeDefaultPlot("BDTOutput_TrainRegionNoMeejj_LQ1000", dataBlindAbove=bdtBlindAbove, systs=doSystematics, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
+    plots[-1].xtit = "BDT output [training, no M_{eejj}, M_{LQ} = 1000 GeV]"
+    plots[-1].rebin = bdtRebin
+    plots[-1].ymax = bdtYMax
+    plots[-1].ymin = 1e-1
+    plots[-1].xmax = 1
+    plots[-1].xmin = -1
+    plots[-1].ylog = "yes"
+    plots[-1].name = "BDTOutput_TrainRegionNoMeejj_LQ1000_fixRebin"
+    plots[-1].extraText = "m_{LQ} = 1000 GeV"
+    plots[-1].xtitPaper = "BDT score"
+
     lqmasstouse = 1500
     plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ1500", dataBlindAbove=bdtBlindAbove, systs=doSystematics, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
     plots[-1].xtit = "BDT output [training, M_{LQ} = 1500 GeV]"
@@ -1835,6 +1849,19 @@ if doPreselPlots:
     plots[-1].xmin = -1
     plots[-1].ylog = "yes"
     plots[-1].name = "BDTOutput_TrainRegion_LQ1500_fixRebin"
+    plots[-1].extraText = "m_{LQ} = 1500 GeV"
+    plots[-1].xtitPaper = "BDT score"
+    plots[-1].histoRescaleFactor = lq1500rescale
+
+    plots.append(makeDefaultPlot("BDTOutput_TrainRegionNoMeejj_LQ1500", dataBlindAbove=bdtBlindAbove, systs=doSystematics, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
+    plots[-1].xtit = "BDT output [training, no M_{eejj}, M_{LQ} = 1500 GeV]"
+    plots[-1].rebin = bdtRebin
+    plots[-1].ymax = bdtYMax
+    plots[-1].ymin = 1e-1
+    plots[-1].xmax = 1
+    plots[-1].xmin = -1
+    plots[-1].ylog = "yes"
+    plots[-1].name = "BDTOutput_TrainRegionNoMeejj_LQ1500_fixRebin"
     plots[-1].extraText = "m_{LQ} = 1500 GeV"
     plots[-1].xtitPaper = "BDT score"
     plots[-1].histoRescaleFactor = lq1500rescale
@@ -3111,7 +3138,7 @@ if doFinalSelectionPlots:
         mej_xmin = 0
         mej_xmax = 3000
         mee_rebin = 1
-        st_rebin = 1
+        st_rebin = 2
         dr_rebin = 2
         plots.append(
             makeDefaultPlot(
@@ -3260,7 +3287,7 @@ if doFinalSelectionPlots:
                 systs=doSystematics
             )
         )
-        plots[-1].rebin = mej_rebin
+        plots[-1].rebin = 4
         plots[-1].xtit = (
             "M_{ej}^{min} (GeV), (LQ M = " + str(mass_point) + " selection)"
         )
@@ -3272,6 +3299,8 @@ if doFinalSelectionPlots:
         plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
         plots[-1].makeNSigma = False if blindFinalSelectionData else True
         plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
+        plots[-1].ymin = 1e-2
+        plots[-1].ymax = 1e3
         if blindFinalSelectionData:
             plots[-1].labelSize = 0.04
 
@@ -3340,7 +3369,6 @@ if doFinalSelectionPlots:
                 systs=doSystematics
             )
         )
-        plots[-1].rebin = mej_rebin
         plots[-1].xtit = (
             "M_{eejj} (GeV), (LQ M = " + str(mass_point) + " selection)"
         )
@@ -3352,7 +3380,9 @@ if doFinalSelectionPlots:
         plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
         plots[-1].makeNSigma = False if blindFinalSelectionData else True
         plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
-        plots[-1].rebin = 10
+        plots[-1].ymin = 1e-2
+        plots[-1].ymax = 1e2
+        plots[-1].rebin = 20
         if blindFinalSelectionData:
             plots[-1].labelSize = 0.04
 
@@ -3377,6 +3407,9 @@ if doFinalSelectionPlots:
         plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
         plots[-1].makeNSigma = False if blindFinalSelectionData else True
         plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
+        plots[-1].ymin = 1e-2
+        plots[-1].ymax = 1e2
+        plots[-1].rebin = st_rebin
         if blindFinalSelectionData:
             plots[-1].labelSize = 0.04
 
