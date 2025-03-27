@@ -16,15 +16,15 @@ if len(sys.argv) < 4:
     print("ERROR: did not find MC/data combined plot file or QCD plot file or year")
     print("Usage: python makeStackHistoTemplateV2_eejj.py combinedQCDPlotFile.root /path/to/combinedDataMCPlotFiles year")
     exit(-1)
-if len(sys.argv) > 4:
+if len(sys.argv) > 5:
     print("ERROR: found extra arguments")
-    print("Usage: python makeStackHistoTemplateV2_eejj.py combinedQCDPlotFile.root /path/to/combinedDataMCPlotFiles year")
+    print("Usage: python makeStackHistoTemplateV2_eejj.py combinedQCDPlotFile.root /path/to/combinedDataMCPlotFiles year [signalName]")
     exit(-1)
 
 qcdFile = sys.argv[1]
 dataMCFilePath = sys.argv[2].rstrip("/") + "/"
 year = sys.argv[3]
-if len(sys.argv > 4):
+if len(sys.argv) > 4:
     signalName = sys.argv[4]
     if "LQToDEle" in signalName:
         signalSampleName = "LQToDEle_M-{}_pair"
