@@ -4,83 +4,155 @@ import sys
 import math
 import copy
 import numpy as np
+from optparse import OptionParser
 from plot_class import GetFile, Plot, Plot2D, generateHistoList, generateHisto, generateHistoBlank, generateHistoListFakeSystsFromModel, makeTOC, QuasiRebinHisto
-from ROOT import gROOT, kCyan, kRed, TCanvas, TGraphAsymmErrors, TH1D
+from ROOT import gROOT, kCyan, kRed, TCanvas, TGraphAsymmErrors, TH1D, TFile
 import cmsstyle as CMS
+
+
+def SeparateArgs(arg):
+    split = arg.split(",")
+    return split
+
 
 gROOT.SetBatch(True)
 gROOT.ProcessLine("gErrorIgnoreLevel = kWarning;")
 # gErrorIgnoreLevel = kWarning  # doesn't work
 
-if len(sys.argv) < 4:
-    print("ERROR: did not find MC/data combined plot file or QCD plot file or year")
-    print("Usage: python makeStackHistoTemplateV2_eejj.py combinedQCDPlotFile.root /path/to/combinedDataMCPlotFiles year")
-    exit(-1)
-if len(sys.argv) > 5:
-    print("ERROR: found extra arguments")
-    print("Usage: python makeStackHistoTemplateV2_eejj.py combinedQCDPlotFile.root /path/to/combinedDataMCPlotFiles year [signalName]")
-    exit(-1)
+usage = "usage: %prog [options] \nExample: \npython makeStackHistoTemplateV2_eejj.py -q qcdFilePath -m mcDataFilePath -y years [-s signalName]"
+parser = OptionParser(usage=usage)
 
-qcdFile = sys.argv[1]
-dataMCFilePath = sys.argv[2].rstrip("/") + "/"
-year = sys.argv[3]
-if len(sys.argv) > 4:
-    signalName = sys.argv[4]
-    if "LQToDEle" in signalName:
-        signalSampleName = "LQToDEle_M-{}_pair"
-    elif "LQToBEle" in signalName:
-        signalSampleName = "LQToBEle_M-{}_pair"
-    else:
-        raise RuntimeError("Couldn't understand provided signal name '{}'. Must contain LQToDEle or LQToBEle.".format(signalName))
-else:
-    print("INFO: Defaulting to LQToDEle_pair signal")
+parser.add_option(
+    "-q",
+    "--qcdFilePath",
+    dest="qcdFilePath",
+    help="full path to QCD plot files",
+    metavar="QCDFILEPATH",
+)
+
+parser.add_option(
+    "-m",
+    "--mcDataFilePath",
+    dest="mcDataFilePath",
+    help="full path to MC/data plot files",
+    metavar="MCDATAFILEPATH",
+)
+
+parser.add_option(
+    "-y",
+    "--years",
+    dest="years",
+    help="analysis years",
+    metavar="YEARS",
+)
+    
+parser.add_option(
+    "-s",
+    "--signalName",
+    dest="signalName",
+    default="LQToDEle",
+    help="signal name (defaults to LQToDEle)",
+    metavar="SIGNALNAME",
+)
+
+parser.add_option(
+    "--fitDiagFilepath",
+    dest="fitDiagFilepath",
+    default=None,
+    help="FitDiagnostics root files path (from combine output)",
+    metavar="FITDIAGFILEPATH",
+)
+
+parser.add_option(
+    "--postFit",
+    dest="postFit",
+    default=False,
+    action="store_true",
+    help="do postfit final selection plots",
+    metavar="POSTFIT",
+)
+
+parser.add_option(
+    "--preFit",
+    dest="preFit",
+    default=False,
+    action="store_true",
+    help="do prefit final selection plots",
+    metavar="PREFIT",
+)
+    
+(options, args) = parser.parse_args()
+
+requiredOpts = [options.qcdFilePath, options.mcDataFilePath, options.years]
+if any(opt is None for opt in requiredOpts):
+    print("ERROR: one or more required options not given.")
+    raise RuntimeError(usage)
+
+dataMCFilePath = options.mcDataFilePath.rstrip("/") + "/"
+signalName = options.signalName
+if "LQToDEle" in signalName:
     signalSampleName = "LQToDEle_M-{}_pair"
+elif "LQToBEle" in signalName:
+    signalSampleName = "LQToBEle_M-{}_pair"
+else:
+    raise RuntimeError("Couldn't understand provided signal name '{}'. Must contain LQToDEle or LQToBEle.".format(signalName))
+print("INFO: using {} as signal name".format(signalName))
+ 
+inputFileQCDPath = options.qcdFilePath
 
-inputFileQCD = qcdFile
 
 doSystematics = True
 doQCD = True
 quasiRebinQCD = False  # TODO: not sure the current algorithm works correctly or is optimal
-dyjNormSyst = 0.1
+dyjNormSyst = 0.2
 ttbarNormSyst = 0.1
-doPreselPlots = True
+qcdNormSyst = 0.4
+doPreselPlots = False
 doBTagPlots = False
 doFinalSelectionPlots = True
 blindFinalSelectionData = True
+doPrefit = options.preFit
+doPostfit = options.postFit
+if doPrefit or doPostfit:
+    doPreselPlots = False
+    print("INFO: Not doing preselection plots as prefit or postfit option is enabled.")
 do2016 = False
 do2016pre = False
 do2016post = False
 do2017 = False
 do2018 = False
 doRunII = False
-if '2016preVFP' in year:
-    do2016 = True
-    do2016pre = True
-elif '2016postVFP' in year:
-    do2016 = True
-    do2016post = True
-elif '2016' in year:
-    do2016 = True
-elif '2017' in year:
-    do2017 = True
-elif '2018' in year:
-    do2018 = True
-elif 'RunII' == year or 'all' == year.lower():
-    doRunII = True
-else:
-    print("ERROR: could not find one of 2017/2017/2018/RunII/all in given year. cannot do year-specific customizations. quitting.")
-    exit(-1)
-# if "2016" in year:
-#     year = 2016
-# else:
-#     year = int(year)
+for year in SeparateArgs(options.years):
+    if '2016preVFP' in year:
+        do2016 = True
+        do2016pre = True
+        qcdYearsToUse = ['2016preVFP']
+    elif '2016postVFP' in year:
+        do2016 = True
+        do2016post = True
+        qcdYearsToUse = ['2016postVFP']
+    elif '2016' in year:
+        do2016 = True
+        qcdYearsToUse = ['2016preVFP', '2016postVFP']
+    elif '2017' in year:
+        do2017 = True
+        qcdYearsToUse = ['2017']
+    elif '2018' in year:
+        do2018 = True
+        qcdYearsToUse = ['2018']
+    elif 'RunII' == year or 'all' == year.lower():
+        doRunII = True
+        qcdYearsToUse = ['2016preVFP', '2016postVFP', '2017', '2018']
+    else:
+        print("ERROR: could not find one of 2017/2017/2018/RunII/all in given year. cannot do year-specific customizations. quitting.")
+        exit(-1)
 
 # LQmasses = [700, 1500]  # new samples don't have 650 GeV point
 #LQmasses = [1500, 2000]  # new samples don't have 650 GeV point
-LQmasses = [1000, 1500]
+LQmasses = [1000, 1200, 1500]
 # LQmassesFinalSelection = [400, 700, 1000]
 # LQmassesFinalSelection = list(range(1000, 2100, 100))
-LQmassesFinalSelection = [1500]
+LQmassesFinalSelection = [1200, 1500]
 
 zUncBand = "no"
 makeRatio = 1
@@ -90,6 +162,8 @@ pt_rebin = 2
 
 if doSystematics:
     systNames = ["Prefire", "EES", "EER", "JES", "JER", "EleRecoSF", "EleIDSF", "EleTrigSF", "Pileup", "LHEPdf", "LHEScale"]
+    if doPrefit or doPostfit:
+        systNames = ["TotalSystematic"]
     print("INFO: using systNames={}".format(systNames))
 else:
     systNames = []
@@ -104,9 +178,9 @@ histoBaseName2D_userDef = "histo2D__SAMPLE__VARIABLE"
 
 samplesForStackHistos_QCD = []
 if doQCD:
-    File_QCD_preselection = GetFile(
-        inputFileQCD
-    )
+    # File_QCD_preselection = GetFile(
+    #     inputFileQCD
+    # )
     # samplesForStackHistos_QCD = ["QCD_EMEnriched"]
     samplesForStackHistos_QCD = ["QCDFakes_DATA"]
 
@@ -154,8 +228,8 @@ if do2016:
     # samplesForStackHistos_ZJets = ["ZJet_powhegminnlo"]
     # samplesForStackHistos_ZJets = ["ZJet_madgraphLO_HT"]
     #samplesForStackHistos_other = ["OTHERBKG_WJetAMCJetBinned_dibosonNLO_tribosonGJetsTTX"]  # old UL with single QCD fakes from MC
-    # samplesForStackHistos_other = ["OTHERBKG_dibosonNLO_singleTop"]  # UL with single/double QCD fakes from data
-    samplesForStackHistos_other = ["SingleTop", "DIBOSON_nlo"]  # UL with single/double QCD fakes from data
+    # samplesForStackHistos_other = ["SingleTop", "DIBOSON_nlo"]  # UL with single/double QCD fakes from data
+    samplesForStackHistos_other = ["OTHERBKG_dibosonNLO_singleTop"]  # UL with single/double QCD fakes from data
     #samplesForStackHistos_ttbar = ["TTbar_powheg_all"]  # old UL with single QCD fakes from MC
     samplesForStackHistos_ttbar = ["TTTo2L2Nu"]  # UL with single/double QCD fakes from data
     #
@@ -189,7 +263,8 @@ elif do2017:
     # samplesForStackHistos_ttbar = ["TTbar_powheg_all"]  # old UL with single QCD fakes from MC
     # samplesForStackHistos_ttbar = ["TTTo2L2Nu"]  # UL with single/double QCD fakes from data
     # samplesForStackHistos_ZJets = ["ZJet_powhegminnlo"]
-    samplesForStackHistos_other = ["SingleTop", "DIBOSON_nlo"]  # UL with single/double QCD fakes from data
+    # samplesForStackHistos_other = ["SingleTop", "DIBOSON_nlo"]  # UL with single/double QCD fakes from data
+    samplesForStackHistos_other = ["OTHERBKG_dibosonNLO_singleTop"]  # UL with single/double QCD fakes from data
     samplesForStackHistos_ttbar = ["TTTo2L2Nu"]  # UL with single/double QCD fakes from data
     keysStack = ["QCD multijet (data)"] if doQCD else []
     keysStack.extend([
@@ -214,7 +289,8 @@ elif do2018:
     # samplesForStackHistos_ttbar = ["TTbar_powheg_all"]  # old UL with single QCD fakes from MC
     # samplesForStackHistos_ttbar = ["TTTo2L2Nu"]  # UL with single/double QCD fakes from data
     # samplesForStackHistos_ZJets = ["ZJet_powhegminnlo"]
-    samplesForStackHistos_other = ["SingleTop", "DIBOSON_nlo"]  # UL with single/double QCD fakes from data
+    # samplesForStackHistos_other = ["SingleTop", "DIBOSON_nlo"]  # UL with single/double QCD fakes from data
+    samplesForStackHistos_other = ["OTHERBKG_dibosonNLO_singleTop"]  # UL with single/double QCD fakes from data
     samplesForStackHistos_ttbar = ["TTTo2L2Nu"]  # UL with single/double QCD fakes from data
     keysStack = ["QCD multijet (data)"] if doQCD else []
     keysStack.extend([
@@ -229,7 +305,8 @@ elif do2018:
 elif doRunII:
     ilumi = "138.0"
     samplesForStackHistos_ZJets = ["ZJet_amcatnlo_ptBinned_IncStitch"]
-    samplesForStackHistos_other = ["SingleTop", "DIBOSON_nlo"]  # UL with single/double QCD fakes from data
+    # samplesForStackHistos_other = ["SingleTop", "DIBOSON_nlo"]  # UL with single/double QCD fakes from data
+    samplesForStackHistos_other = ["OTHERBKG_dibosonNLO_singleTop"]  # UL with single/double QCD fakes from data
     samplesForStackHistos_ttbar = ["TTTo2L2Nu"]  # UL with single/double QCD fakes from data
     keysStack = ["QCD multijet (data)"] if doQCD else []
     keysStack.extend([
@@ -342,13 +419,28 @@ def makeDefaultPlot(
         histoBaseName, samplesForStackHistos_ZJets, variableName, [dataMCFilesDict[sample] for sample in samplesForStackHistos_ZJets], rescaleSystsAtPreselection=rescaleDYJTTBarSystsAtPreselection, normSyst=dyjNormSyst
         ))
     if systs:
-        qcdHists = generateHistoListFakeSystsFromModel(
-            histoBaseName.replace("histo2D", "histo1D").replace("WithSystematics", ""),  # never have systs for data-driven QCD
-            samplesForStackHistos_QCD,
-            variableName,
-            File_QCD_preselection,
-            plot.histosStack[-1]
-        ) if doQCD else []
+        qcdHists = []
+        for year in qcdYearsToUse:
+            qcdFile = TFile.Open(inputFileQCDPath.format(year))
+            qcdHistsThisYear = generateHistoListFakeSystsFromModel(
+                histoBaseName.replace("histo2D", "histo1D").replace("WithSystematics", ""),  # never have systs for data-driven QCD
+                samplesForStackHistos_QCD,
+                variableName,
+                qcdFile,
+                year,
+                LQmassesFinalSelection,
+                qcdNormSyst,
+                plot.histosStack[-1],
+                scale=1,
+                fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                doPrefit=options.preFit,
+            ) if doQCD else []
+            if len(qcdHists) < 1:
+                qcdHists = qcdHistsThisYear
+            else:
+                for idx, hist in enumerate(qcdHists):
+                    hist.Add(qcdHistsThisYear[idx])
+            qcdFile.Close()
     else:
         qcdHists = generateHistoList(
             histoBaseName,
@@ -2825,7 +2917,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True
             )
         )
         plots[-1].xtit = (
@@ -2850,8 +2943,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].xtit = (
             "2nd Electron p_{T} (GeV) [LQ M = " + str(mass_point) + " selection]"
@@ -2911,8 +3004,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].xtit = "1st Electron #eta [LQ M = " + str(mass_point) + " selection]"
         plots[-1].rebin = 2
@@ -2934,8 +3027,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].xtit = "2nd Electron #eta [LQ M = " + str(mass_point) + " selection]"
         plots[-1].rebin = 2
@@ -2957,8 +3050,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].xtit = "1st Electron #phi [LQ M = " + str(mass_point) + " selection]"
         plots[-1].rebin = 4
@@ -2980,8 +3073,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].xtit = "2nd Electron #phi [LQ M = " + str(mass_point) + " selection]"
         plots[-1].rebin = 4
@@ -3003,8 +3096,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].xtit = (
             "1st Jet p_{T} (GeV) [LQ M = " + str(mass_point) + " selection]"
@@ -3028,8 +3121,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].xtit = (
             "2nd Jet p_{T} (GeV) [LQ M = " + str(mass_point) + " selection]"
@@ -3053,8 +3146,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].xtit = "1st Jet #eta [LQ M = " + str(mass_point) + " selection]"
         plots[-1].rebin = 2
@@ -3076,8 +3169,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].xtit = "2nd Jet #eta [LQ M = " + str(mass_point) + " selection]"
         plots[-1].rebin = 2
@@ -3099,8 +3192,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].xtit = "1st Jet #phi [LQ M = " + str(mass_point) + " selection]"
         plots[-1].rebin = 4
@@ -3122,8 +3215,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].xtit = "2nd Jet #phi [LQ M = " + str(mass_point) + " selection]"
         plots[-1].rebin = 4
@@ -3151,8 +3244,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].rebin = mej_rebin * 5
         plots[-1].xtit = "M_{e1j1} (GeV), (LQ M = " + str(mass_point) + " selection)"
@@ -3176,8 +3269,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].rebin = mej_rebin * 5
         plots[-1].xtit = "M_{e1j2} (GeV), (LQ M = " + str(mass_point) + " selection)"
@@ -3201,8 +3294,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].rebin = mej_rebin * 5
         plots[-1].xtit = "M_{e2j1} (GeV), (LQ M = " + str(mass_point) + " selection)"
@@ -3226,8 +3319,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].rebin = mej_rebin * 5
         plots[-1].xtit = "M_{e2j2} (GeV), (LQ M = " + str(mass_point) + " selection)"
@@ -3251,8 +3344,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].rebin = mej_rebin
         plots[-1].xtit = (
@@ -3284,8 +3377,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].rebin = 4
         plots[-1].xtit = (
@@ -3315,8 +3408,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].rebin = mej_rebin
         plots[-1].xtit = (
@@ -3342,8 +3435,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].rebin = mej_rebin
         plots[-1].xtit = "M_{ej} (GeV), (LQ M = " + str(mass_point) + " selection)"
@@ -3366,8 +3459,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].xtit = (
             "M_{eejj} (GeV), (LQ M = " + str(mass_point) + " selection)"
@@ -3397,8 +3490,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].xtit = "S_{T} (GeV), (LQ M = " + str(mass_point) + " selection)"
         plots[-1].ylog = "yes"
@@ -3424,8 +3517,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].xtit = (
             "S_{T} (1st Electron, 2nd Electron) (GeV), (LQ M = "
@@ -3451,8 +3544,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].xtit = (
             "S_{T} (1st Jet, 2nd Jet) (GeV), (LQ M = " + str(mass_point) + " selection)"
@@ -3606,8 +3699,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].rebin = 2
         plots[-1].xmin = 0
@@ -3631,8 +3724,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].rebin = 4
         plots[-1].xtit = "Dijet Mass (GeV) (LQ M = " + str(mass_point) + " selection)"
@@ -3691,8 +3784,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].rebin = mee_rebin
         plots[-1].xtit = "M(ee) (GeV), (LQ M = " + str(mass_point) + " selection)"
@@ -3714,8 +3807,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].rebin = dr_rebin
         plots[-1].xtit = (
@@ -4364,8 +4457,8 @@ if doFinalSelectionPlots:
                 sampleForDataHisto,
                 zUncBand,
                 makeRatio,
-                systs=doSystematics
-            )
+                systs=doSystematics,
+                rescaleDYJTTBarSystsAtPreselection=True            )
         )
         plots[-1].xtit = "PFMET (GeV), (LQ M = " + str(mass_point) + " selection)"
         plots[-1].rebin = 4
@@ -4418,10 +4511,10 @@ print("DONE")
 print("INFO: MakeTOC()")
 makeTOC("allPlots_eejj_paper_toc.tex", fileps, plotsPaper)
 
-print("INFO: year =", year)
+print("INFO: years =", qcdYearsToUse)
 print("INFO: using file path:", dataMCFilePath)
 if doQCD:
-    print("INFO: using QCD file:", inputFileQCD)
+    print("INFO: using QCD file path:", inputFileQCDPath)
 
 for tfile in dataMCFilesDict.values():
     tfile.Close()
