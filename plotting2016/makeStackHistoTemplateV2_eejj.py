@@ -4,6 +4,7 @@ import sys
 import math
 import copy
 import numpy as np
+import ctypes
 from optparse import OptionParser
 from plot_class import GetFile, Plot, Plot2D, generateHistoList, generateHisto, generateHistoBlank, generateHistoListFakeSystsFromModel, makeTOC, QuasiRebinHisto
 from ROOT import gROOT, kCyan, kRed, TCanvas, TGraphAsymmErrors, TH1D, TFile
@@ -19,7 +20,7 @@ gROOT.SetBatch(True)
 gROOT.ProcessLine("gErrorIgnoreLevel = kWarning;")
 # gErrorIgnoreLevel = kWarning  # doesn't work
 
-usage = "usage: %prog [options] \nExample: \npython makeStackHistoTemplateV2_eejj.py -q qcdFilePath -m mcDataFilePath -y years [-s signalName]"
+usage = "usage: %prog [options] \nExample: \npython makeStackHistoTemplateV2_eejj.py -q qcdFilePath -m mcDataFilePath -y years [-s signalName] [--fitDiagFilepath path] [--preFit] [--postFit] [--fitType postFitType]"
 parser = OptionParser(usage=usage)
 
 parser.add_option(
@@ -80,6 +81,14 @@ parser.add_option(
     help="do prefit final selection plots",
     metavar="PREFIT",
 )
+
+parser.add_option(
+    "--fitType",
+    dest="fitType",
+    default=None,
+    help="fit type for postfit final selection plots",
+    metavar="FITTYPE",
+)
     
 (options, args) = parser.parse_args()
 
@@ -110,12 +119,16 @@ qcdNormSyst = 0.4
 doPreselPlots = False
 doBTagPlots = False
 doFinalSelectionPlots = True
-blindFinalSelectionData = True
+blindFinalSelectionData = False
 doPrefit = options.preFit
 doPostfit = options.postFit
 if doPrefit or doPostfit:
     doPreselPlots = False
     print("INFO: Not doing preselection plots as prefit or postfit option is enabled.")
+if doPostfit:
+    if options.fitType is None:
+        print(usage)
+        raise RuntimeError("Must specity fitType when requesting postfit scaling.")
 do2016 = False
 do2016pre = False
 do2016post = False
@@ -150,9 +163,8 @@ for year in SeparateArgs(options.years):
 # LQmasses = [700, 1500]  # new samples don't have 650 GeV point
 #LQmasses = [1500, 2000]  # new samples don't have 650 GeV point
 LQmasses = [1000, 1200, 1500]
-# LQmassesFinalSelection = [400, 700, 1000]
-# LQmassesFinalSelection = list(range(1000, 2100, 100))
-LQmassesFinalSelection = [1200, 1500]
+# LQmassesFinalSelection = [1200, 1500]
+LQmassesFinalSelection = list(range(300, 3100, 100))
 
 zUncBand = "no"
 makeRatio = 1
@@ -357,7 +369,9 @@ stackFillStyleIds = [1001, 1001, 1001, 1001]
 
 # signalSampleLabel = "LQToDEle, M={} GeV"
 signalSampleLabel = "m_{{LQ}} = {} GeV, #beta = 1"
-samplesForHistos = [signalSampleName.format(lqmass) for lqmass in LQmasses]
+samplesForHistos = [signalSampleName.format(lqmass) for lqmass in LQmasses] + [signalSampleName.format(lqmass) for lqmass in LQmassesFinalSelection]
+samplesForHistos = list(set(samplesForHistos))
+# samplesForHistos = list(samplesForHistos)
 extraLQMasses = [500]
 extraSamplesForHistos = [signalSampleName.format(lqmass) for lqmass in extraLQMasses]
 for sample in samplesForHistos + extraSamplesForHistos:
@@ -399,7 +413,10 @@ def makeDefaultPlot(
     dataBlindAbove=-1,
     systs=False,
     systList=systNames,
-    rescaleDYJTTBarSystsAtPreselection=False
+    rescaleDYJTTBarSystsAtPreselection=False,
+    fitDiagFilePath=None,
+    doPrefit=False,
+    fitType=None
 ):
     plot = Plot()
     systList = []
@@ -410,13 +427,31 @@ def makeDefaultPlot(
     plot.systNames = systList
     plot.histosStack = []
     plot.histosStack.extend(generateHistoList(
-            histoBaseName, samplesForStackHistos_other, variableName, [dataMCFilesDict[sample] for sample in samplesForStackHistos_other], 1.0, True, "OTHERBKG"
+            histoBaseName, samplesForStackHistos_other, variableName, [dataMCFilesDict[sample] for sample in samplesForStackHistos_other], 1.0, True, histoBaseName.replace("SAMPLE", "OTHERBKG").replace("VARIABLE", variableName), 
+            years=qcdYearsToUse,
+            masses=LQmassesFinalSelection,
+            fitDiagFilePath=fitDiagFilePath,
+            doPrefit=doPrefit,
+            fitType=fitType
         ))
     plot.histosStack.extend(generateHistoList(
-            histoBaseName, samplesForStackHistos_ttbar, variableName, [dataMCFilesDict[sample] for sample in samplesForStackHistos_ttbar], rescaleSystsAtPreselection=rescaleDYJTTBarSystsAtPreselection, normSyst=ttbarNormSyst
+            histoBaseName, samplesForStackHistos_ttbar, variableName, [dataMCFilesDict[sample] for sample in samplesForStackHistos_ttbar], rescaleSystsAtPreselection=rescaleDYJTTBarSystsAtPreselection,
+            normSyst=ttbarNormSyst,
+            years=qcdYearsToUse,
+            masses=LQmassesFinalSelection,
+            fitDiagFilePath=fitDiagFilePath,
+            doPrefit=doPrefit,
+            fitType=fitType
+            
         ))
     plot.histosStack.extend(generateHistoList(
-        histoBaseName, samplesForStackHistos_ZJets, variableName, [dataMCFilesDict[sample] for sample in samplesForStackHistos_ZJets], rescaleSystsAtPreselection=rescaleDYJTTBarSystsAtPreselection, normSyst=dyjNormSyst
+        histoBaseName, samplesForStackHistos_ZJets, variableName, [dataMCFilesDict[sample] for sample in samplesForStackHistos_ZJets], rescaleSystsAtPreselection=rescaleDYJTTBarSystsAtPreselection,
+        normSyst=dyjNormSyst,
+        years=qcdYearsToUse,
+            masses=LQmassesFinalSelection,
+        fitDiagFilePath=fitDiagFilePath,
+        doPrefit=doPrefit,
+        fitType=fitType
         ))
     if systs:
         qcdHists = []
@@ -434,6 +469,7 @@ def makeDefaultPlot(
                 scale=1,
                 fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
                 doPrefit=options.preFit,
+                fitType=options.fitType
             ) if doQCD else []
             if len(qcdHists) < 1:
                 qcdHists = qcdHistsThisYear
@@ -493,8 +529,24 @@ def makeDefaultPlot(
             else:
                 #print("INFO: attempt to merge plot {} to bkgTotalHist={}".format(histo.GetName(), plot.bkgTotalHist.GetName()))
                 plot.bkgTotalHist.Add(histo)
+            totSystBin = histo.GetYaxis().FindFixBin("TotalSystematic")
+            if totSystBin >= 0:
+                integralErr = ctypes.c_double()
+                integral = histo.IntegralAndError(0, histo.GetNbinsX()+2, 1, 1, integralErr)
+                systIntegralErr = ctypes.c_double()
+                systIntegral = histo.IntegralAndError(0, histo.GetNbinsX()+2, totSystBin, totSystBin, systIntegralErr)
+                print("INFO: For plot={}, Add histo name={} with entries={}, integral = {} +/- {}; TotalSystematic integral = {} +/- {}; total uncertainty = {}".format(
+                    variableName, histo.GetName(), histo.GetEntries(), integral, integralErr, systIntegral, systIntegralErr.value, math.sqrt(integralErr.value**2 + systIntegralErr.value**2)), flush=True)
             newHistosStack.append(copy.deepcopy(histo.ProjectionX(histo.GetName()+"projx", 1, 1)))  # convert to 1-D nominal hist
             plot.histos2DStack.append(copy.deepcopy(histo))
+        totSystBin = plot.bkgTotalHist.GetYaxis().FindFixBin("TotalSystematic")
+        if totSystBin >= 0:
+            integralErr = ctypes.c_double()
+            integral = plot.bkgTotalHist.IntegralAndError(0, plot.bkgTotalHist.GetNbinsX()+2, 1, 1, integralErr)
+            systIntegralErr = ctypes.c_double()
+            systIntegral = plot.bkgTotalHist.IntegralAndError(0, plot.bkgTotalHist.GetNbinsX()+2, totSystBin, totSystBin, systIntegralErr)
+            print("INFO: For plot={}, bkgTotalHist integral = {} +/- {}; TotalSystematic integral = {} +/- {}; total uncertainty = {}".format(
+                variableName, integral, integralErr, systIntegral, systIntegralErr.value, math.sqrt(integralErr.value**2 + systIntegralErr.value**2)), flush=True)
         plot.histosStack = newHistosStack
         plot.addBkgUncBand = True
     newHistos = []
@@ -2899,12 +2951,43 @@ if doBTagPlots:
 #  FINAL SELECTION
 ####################################################################################################
 if doFinalSelectionPlots:
+    doFullSet = False
     print("INFO: creating final selection plots...", end=' ')
     for mass_point in LQmassesFinalSelection:
         samplesForHistos = [signalSampleName.format(mass_point)]
         keys = [signalSampleLabel.format(mass_point)]
         if blindFinalSelectionData:
             sampleForDataHisto = ""
+
+        if doFullSet:
+            plots.append(
+                makeDefaultPlot(
+                    "nJet_LQ" + str(mass_point),
+                    histoBaseName_userDef,
+                    samplesForHistos,
+                    keys,
+                    samplesForStackHistos,
+                    keysStack,
+                    sampleForDataHisto,
+                    zUncBand,
+                    makeRatio,
+                    systs=doSystematics,
+                    rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                    fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    doPrefit=options.preFit,
+                    fitType=options.fitType
+                )
+            )
+            plots[-1].xtit = (
+                "Jets [LQ M = " + str(mass_point) + " selection]"
+            )
+            plots[-1].xtitPaper = "Jets"
+            # plots[-1].rebin = 2
+            plots[-1].ylog = "yes"
+            plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+            plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+            plots[-1].makeNSigma = False if blindFinalSelectionData else True
+            plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
         plots.append(
             makeDefaultPlot(
@@ -2918,7 +3001,10 @@ if doFinalSelectionPlots:
                 zUncBand,
                 makeRatio,
                 systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True
+                rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                doPrefit=options.preFit,
+                fitType=options.fitType
             )
         )
         plots[-1].xtit = (
@@ -2944,7 +3030,11 @@ if doFinalSelectionPlots:
                 zUncBand,
                 makeRatio,
                 systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
+                rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                doPrefit=options.preFit,
+                fitType=options.fitType
+            )
         )
         plots[-1].xtit = (
             "2nd Electron p_{T} (GeV) [LQ M = " + str(mass_point) + " selection]"
@@ -3005,7 +3095,11 @@ if doFinalSelectionPlots:
                 zUncBand,
                 makeRatio,
                 systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
+                rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                doPrefit=options.preFit,
+                fitType=options.fitType
+            )
         )
         plots[-1].xtit = "1st Electron #eta [LQ M = " + str(mass_point) + " selection]"
         plots[-1].rebin = 2
@@ -3028,7 +3122,11 @@ if doFinalSelectionPlots:
                 zUncBand,
                 makeRatio,
                 systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
+                rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                doPrefit=options.preFit,
+                fitType=options.fitType
+            )
         )
         plots[-1].xtit = "2nd Electron #eta [LQ M = " + str(mass_point) + " selection]"
         plots[-1].rebin = 2
@@ -3051,7 +3149,11 @@ if doFinalSelectionPlots:
                 zUncBand,
                 makeRatio,
                 systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
+                rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                doPrefit=options.preFit,
+                fitType=options.fitType
+            )
         )
         plots[-1].xtit = "1st Electron #phi [LQ M = " + str(mass_point) + " selection]"
         plots[-1].rebin = 4
@@ -3074,7 +3176,11 @@ if doFinalSelectionPlots:
                 zUncBand,
                 makeRatio,
                 systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
+                rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                doPrefit=options.preFit,
+                fitType=options.fitType
+            )
         )
         plots[-1].xtit = "2nd Electron #phi [LQ M = " + str(mass_point) + " selection]"
         plots[-1].rebin = 4
@@ -3097,7 +3203,11 @@ if doFinalSelectionPlots:
                 zUncBand,
                 makeRatio,
                 systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
+                rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                doPrefit=options.preFit,
+                fitType=options.fitType
+            )
         )
         plots[-1].xtit = (
             "1st Jet p_{T} (GeV) [LQ M = " + str(mass_point) + " selection]"
@@ -3122,7 +3232,11 @@ if doFinalSelectionPlots:
                 zUncBand,
                 makeRatio,
                 systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
+                rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                doPrefit=options.preFit,
+                fitType=options.fitType
+            )
         )
         plots[-1].xtit = (
             "2nd Jet p_{T} (GeV) [LQ M = " + str(mass_point) + " selection]"
@@ -3147,7 +3261,11 @@ if doFinalSelectionPlots:
                 zUncBand,
                 makeRatio,
                 systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
+                rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                doPrefit=options.preFit,
+                fitType=options.fitType
+            )
         )
         plots[-1].xtit = "1st Jet #eta [LQ M = " + str(mass_point) + " selection]"
         plots[-1].rebin = 2
@@ -3170,7 +3288,11 @@ if doFinalSelectionPlots:
                 zUncBand,
                 makeRatio,
                 systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
+                rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                doPrefit=options.preFit,
+                fitType=options.fitType
+            )
         )
         plots[-1].xtit = "2nd Jet #eta [LQ M = " + str(mass_point) + " selection]"
         plots[-1].rebin = 2
@@ -3193,7 +3315,11 @@ if doFinalSelectionPlots:
                 zUncBand,
                 makeRatio,
                 systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
+                rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                doPrefit=options.preFit,
+                fitType=options.fitType
+            )
         )
         plots[-1].xtit = "1st Jet #phi [LQ M = " + str(mass_point) + " selection]"
         plots[-1].rebin = 4
@@ -3216,7 +3342,11 @@ if doFinalSelectionPlots:
                 zUncBand,
                 makeRatio,
                 systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
+                rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                doPrefit=options.preFit,
+                fitType=options.fitType
+            )
         )
         plots[-1].xtit = "2nd Jet #phi [LQ M = " + str(mass_point) + " selection]"
         plots[-1].rebin = 4
@@ -3233,138 +3363,159 @@ if doFinalSelectionPlots:
         mee_rebin = 1
         st_rebin = 2
         dr_rebin = 2
-        plots.append(
-            makeDefaultPlot(
-                "Me1j1_LQ" + str(mass_point),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-                systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
-        )
-        plots[-1].rebin = mej_rebin * 5
-        plots[-1].xtit = "M_{e1j1} (GeV), (LQ M = " + str(mass_point) + " selection)"
-        plots[-1].xmin = mej_xmin
-        plots[-1].xmax = mej_xmax
-        plots[-1].ylog = "yes"
-        plots[-1].xtitPaper = "M_{e1j1} (GeV)"
-        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
-        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
-        plots[-1].makeNSigma = False if blindFinalSelectionData else True
-        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
+        if doFullSet:
+            plots.append(
+                makeDefaultPlot(
+                    "Me1j1_LQ" + str(mass_point),
+                    histoBaseName_userDef,
+                    samplesForHistos,
+                    keys,
+                    samplesForStackHistos,
+                    keysStack,
+                    sampleForDataHisto,
+                    zUncBand,
+                    makeRatio,
+                    systs=doSystematics,
+                    rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                    fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    doPrefit=options.preFit,
+                    fitType=options.fitType
+                )
+            )
+            plots[-1].rebin = mej_rebin * 5
+            plots[-1].xtit = "M_{e1j1} (GeV), (LQ M = " + str(mass_point) + " selection)"
+            plots[-1].xmin = mej_xmin
+            plots[-1].xmax = mej_xmax
+            plots[-1].ylog = "yes"
+            plots[-1].xtitPaper = "M_{e1j1} (GeV)"
+            plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+            plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+            plots[-1].makeNSigma = False if blindFinalSelectionData else True
+            plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
-        plots.append(
-            makeDefaultPlot(
-                "Me1j2_LQ" + str(mass_point),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-                systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
-        )
-        plots[-1].rebin = mej_rebin * 5
-        plots[-1].xtit = "M_{e1j2} (GeV), (LQ M = " + str(mass_point) + " selection)"
-        plots[-1].xmin = mej_xmin
-        plots[-1].xmax = mej_xmax
-        plots[-1].ylog = "yes"
-        plots[-1].xtitPaper = "M_{e1j2} (GeV)"
-        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
-        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
-        plots[-1].makeNSigma = False if blindFinalSelectionData else True
-        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
+            plots.append(
+                makeDefaultPlot(
+                    "Me1j2_LQ" + str(mass_point),
+                    histoBaseName_userDef,
+                    samplesForHistos,
+                    keys,
+                    samplesForStackHistos,
+                    keysStack,
+                    sampleForDataHisto,
+                    zUncBand,
+                    makeRatio,
+                    systs=doSystematics,
+                    rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                    fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    doPrefit=options.preFit,
+                    fitType=options.fitType
+                )
+            )
+            plots[-1].rebin = mej_rebin * 5
+            plots[-1].xtit = "M_{e1j2} (GeV), (LQ M = " + str(mass_point) + " selection)"
+            plots[-1].xmin = mej_xmin
+            plots[-1].xmax = mej_xmax
+            plots[-1].ylog = "yes"
+            plots[-1].xtitPaper = "M_{e1j2} (GeV)"
+            plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+            plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+            plots[-1].makeNSigma = False if blindFinalSelectionData else True
+            plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
-        plots.append(
-            makeDefaultPlot(
-                "Me2j1_LQ" + str(mass_point),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-                systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
-        )
-        plots[-1].rebin = mej_rebin * 5
-        plots[-1].xtit = "M_{e2j1} (GeV), (LQ M = " + str(mass_point) + " selection)"
-        plots[-1].xmin = mej_xmin
-        plots[-1].xmax = mej_xmax
-        plots[-1].ylog = "yes"
-        plots[-1].xtitPaper = "M_{e2j1} (GeV)"
-        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
-        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
-        plots[-1].makeNSigma = False if blindFinalSelectionData else True
-        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
+            plots.append(
+                makeDefaultPlot(
+                    "Me2j1_LQ" + str(mass_point),
+                    histoBaseName_userDef,
+                    samplesForHistos,
+                    keys,
+                    samplesForStackHistos,
+                    keysStack,
+                    sampleForDataHisto,
+                    zUncBand,
+                    makeRatio,
+                    systs=doSystematics,
+                    rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                    fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    doPrefit=options.preFit,
+                    fitType=options.fitType
+                )
+            )
+            plots[-1].rebin = mej_rebin * 5
+            plots[-1].xtit = "M_{e2j1} (GeV), (LQ M = " + str(mass_point) + " selection)"
+            plots[-1].xmin = mej_xmin
+            plots[-1].xmax = mej_xmax
+            plots[-1].ylog = "yes"
+            plots[-1].xtitPaper = "M_{e2j1} (GeV)"
+            plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+            plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+            plots[-1].makeNSigma = False if blindFinalSelectionData else True
+            plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
-        plots.append(
-            makeDefaultPlot(
-                "Me2j2_LQ" + str(mass_point),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-                systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
-        )
-        plots[-1].rebin = mej_rebin * 5
-        plots[-1].xtit = "M_{e2j2} (GeV), (LQ M = " + str(mass_point) + " selection)"
-        plots[-1].xmin = mej_xmin
-        plots[-1].xmax = mej_xmax
-        plots[-1].ylog = "yes"
-        plots[-1].xtitPaper = "M_{e2j2} (GeV)"
-        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
-        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
-        plots[-1].makeNSigma = False if blindFinalSelectionData else True
-        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
+            plots.append(
+                makeDefaultPlot(
+                    "Me2j2_LQ" + str(mass_point),
+                    histoBaseName_userDef,
+                    samplesForHistos,
+                    keys,
+                    samplesForStackHistos,
+                    keysStack,
+                    sampleForDataHisto,
+                    zUncBand,
+                    makeRatio,
+                    systs=doSystematics,
+                    rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                    fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    doPrefit=options.preFit,
+                    fitType=options.fitType
+                )
+            )
+            plots[-1].rebin = mej_rebin * 5
+            plots[-1].xtit = "M_{e2j2} (GeV), (LQ M = " + str(mass_point) + " selection)"
+            plots[-1].xmin = mej_xmin
+            plots[-1].xmax = mej_xmax
+            plots[-1].ylog = "yes"
+            plots[-1].xtitPaper = "M_{e2j2} (GeV)"
+            plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+            plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+            plots[-1].makeNSigma = False if blindFinalSelectionData else True
+            plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
-        plots.append(
-            makeDefaultPlot(
-                "Mej_selected_avg_LQ" + str(mass_point),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-                systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
-        )
-        plots[-1].rebin = mej_rebin
-        plots[-1].xtit = (
-            "M_{ej}^{avg} (GeV), (LQ M = " + str(mass_point) + " selection)"
-        )
-        plots[-1].xmin = mej_xmin
-        plots[-1].xmax = mej_xmax
-        plots[-1].ylog = "yes"
-        plots[-1].xtitPaper = "M_{ej}^{avg} (GeV)"
-        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
-        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
-        plots[-1].makeNSigma = False if blindFinalSelectionData else True
-        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
+            plots.append(
+                makeDefaultPlot(
+                    "Mej_selected_avg_LQ" + str(mass_point),
+                    histoBaseName_userDef,
+                    samplesForHistos,
+                    keys,
+                    samplesForStackHistos,
+                    keysStack,
+                    sampleForDataHisto,
+                    zUncBand,
+                    makeRatio,
+                    systs=doSystematics,
+                    rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                    fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    doPrefit=options.preFit,
+                    fitType=options.fitType
+                )
+            )
+            plots[-1].rebin = mej_rebin
+            plots[-1].xtit = (
+                "M_{ej}^{avg} (GeV), (LQ M = " + str(mass_point) + " selection)"
+            )
+            plots[-1].xmin = mej_xmin
+            plots[-1].xmax = mej_xmax
+            plots[-1].ylog = "yes"
+            plots[-1].xtitPaper = "M_{ej}^{avg} (GeV)"
+            plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+            plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+            plots[-1].makeNSigma = False if blindFinalSelectionData else True
+            plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
-        # plots.append ( makeDefaultPlot ( "Mej_selected_avg_LQ" + str ( mass_point) , histoBaseName_userDef, samplesForHistos, keys, samplesForStackHistos, keysStack, sampleForDataHisto, zUncBand, makeRatio) )
-        # plots[-1].rebin = mej_rebin
-        # plots[-1].xtit = "M_{ej}^{avg} (GeV), (LQ M = " + str ( mass_point ) + " selection)"
-        # plots[-1].xmin = mej_xmin
-        # plots[-1].xmax = mej_xmax
+            # plots.append ( makeDefaultPlot ( "Mej_selected_avg_LQ" + str ( mass_point) , histoBaseName_userDef, samplesForHistos, keys, samplesForStackHistos, keysStack, sampleForDataHisto, zUncBand, makeRatio) )
+            # plots[-1].rebin = mej_rebin
+            # plots[-1].xtit = "M_{ej}^{avg} (GeV), (LQ M = " + str ( mass_point ) + " selection)"
+            # plots[-1].xmin = mej_xmin
+            # plots[-1].xmax = mej_xmax
 
         plots.append(
             makeDefaultPlot(
@@ -3378,7 +3529,11 @@ if doFinalSelectionPlots:
                 zUncBand,
                 makeRatio,
                 systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
+                rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                doPrefit=options.preFit,
+                fitType=options.fitType
+            )
         )
         plots[-1].rebin = 4
         plots[-1].xtit = (
@@ -3397,56 +3552,65 @@ if doFinalSelectionPlots:
         if blindFinalSelectionData:
             plots[-1].labelSize = 0.04
 
-        plots.append(
-            makeDefaultPlot(
-                "Mej_selected_max_LQ" + str(mass_point),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-                systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
-        )
-        plots[-1].rebin = mej_rebin
-        plots[-1].xtit = (
-            "M_{ej}^{max} (GeV), (LQ M = " + str(mass_point) + " selection)"
-        )
-        plots[-1].xmin = mej_xmin
-        plots[-1].xmax = mej_xmax
-        plots[-1].ylog = "yes"
-        plots[-1].xtitPaper = "M_{ej}^{max} (GeV)"
-        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
-        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
-        plots[-1].makeNSigma = False if blindFinalSelectionData else True
-        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
+        if doFullSet:
+            plots.append(
+                makeDefaultPlot(
+                    "Mej_selected_max_LQ" + str(mass_point),
+                    histoBaseName_userDef,
+                    samplesForHistos,
+                    keys,
+                    samplesForStackHistos,
+                    keysStack,
+                    sampleForDataHisto,
+                    zUncBand,
+                    makeRatio,
+                    systs=doSystematics,
+                    rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                    fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    doPrefit=options.preFit,
+                    fitType=options.fitType
+                )
+            )
+            plots[-1].rebin = mej_rebin
+            plots[-1].xtit = (
+                "M_{ej}^{max} (GeV), (LQ M = " + str(mass_point) + " selection)"
+            )
+            plots[-1].xmin = mej_xmin
+            plots[-1].xmax = mej_xmax
+            plots[-1].ylog = "yes"
+            plots[-1].xtitPaper = "M_{ej}^{max} (GeV)"
+            plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+            plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+            plots[-1].makeNSigma = False if blindFinalSelectionData else True
+            plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
-        plots.append(
-            makeDefaultPlot(
-                "Mej_minmax_LQ" + str(mass_point),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-                systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
-        )
-        plots[-1].rebin = mej_rebin
-        plots[-1].xtit = "M_{ej} (GeV), (LQ M = " + str(mass_point) + " selection)"
-        plots[-1].ytit = "2 #times Entries"
-        plots[-1].ylog = "yes"
-        plots[-1].xtitPaper = "M_{ej} (GeV)"
-        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
-        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
-        plots[-1].makeNSigma = False if blindFinalSelectionData else True
-        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
+            plots.append(
+                makeDefaultPlot(
+                    "Mej_minmax_LQ" + str(mass_point),
+                    histoBaseName_userDef,
+                    samplesForHistos,
+                    keys,
+                    samplesForStackHistos,
+                    keysStack,
+                    sampleForDataHisto,
+                    zUncBand,
+                    makeRatio,
+                    systs=doSystematics,
+                    rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                    fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    doPrefit=options.preFit,
+                    fitType=options.fitType
+                )
+            )
+            plots[-1].rebin = mej_rebin
+            plots[-1].xtit = "M_{ej} (GeV), (LQ M = " + str(mass_point) + " selection)"
+            plots[-1].ytit = "2 #times Entries"
+            plots[-1].ylog = "yes"
+            plots[-1].xtitPaper = "M_{ej} (GeV)"
+            plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+            plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+            plots[-1].makeNSigma = False if blindFinalSelectionData else True
+            plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
         plots.append(
             makeDefaultPlot(
@@ -3460,7 +3624,11 @@ if doFinalSelectionPlots:
                 zUncBand,
                 makeRatio,
                 systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
+                rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                doPrefit=options.preFit,
+                fitType=options.fitType
+            )
         )
         plots[-1].xtit = (
             "M_{eejj} (GeV), (LQ M = " + str(mass_point) + " selection)"
@@ -3474,7 +3642,7 @@ if doFinalSelectionPlots:
         plots[-1].makeNSigma = False if blindFinalSelectionData else True
         plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
         plots[-1].ymin = 1e-2
-        plots[-1].ymax = 1e2
+        plots[-1].ymax = 1e5
         plots[-1].rebin = 20
         if blindFinalSelectionData:
             plots[-1].labelSize = 0.04
@@ -3491,7 +3659,11 @@ if doFinalSelectionPlots:
                 zUncBand,
                 makeRatio,
                 systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
+                rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                doPrefit=options.preFit,
+                fitType=options.fitType
+            )
         )
         plots[-1].xtit = "S_{T} (GeV), (LQ M = " + str(mass_point) + " selection)"
         plots[-1].ylog = "yes"
@@ -3501,62 +3673,71 @@ if doFinalSelectionPlots:
         plots[-1].makeNSigma = False if blindFinalSelectionData else True
         plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
         plots[-1].ymin = 1e-2
-        plots[-1].ymax = 1e2
+        plots[-1].ymax = 1e5
         plots[-1].rebin = st_rebin
         if blindFinalSelectionData:
             plots[-1].labelSize = 0.04
 
-        plots.append(
-            makeDefaultPlot(
-                "sTlep_LQ" + str(mass_point),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-                systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
-        )
-        plots[-1].xtit = (
-            "S_{T} (1st Electron, 2nd Electron) (GeV), (LQ M = "
-            + str(mass_point)
-            + " selection)"
-        )
-        plots[-1].rebin = 10
-        plots[-1].ylog = "yes"
-        plots[-1].xtitPaper = "S_{T} (1st Electron, 2nd Electron) (GeV)"
-        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
-        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
-        plots[-1].makeNSigma = False if blindFinalSelectionData else True
-        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
+        if doFullSet:
+            plots.append(
+                makeDefaultPlot(
+                    "sTlep_LQ" + str(mass_point),
+                    histoBaseName_userDef,
+                    samplesForHistos,
+                    keys,
+                    samplesForStackHistos,
+                    keysStack,
+                    sampleForDataHisto,
+                    zUncBand,
+                    makeRatio,
+                    systs=doSystematics,
+                    rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                    fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    doPrefit=options.preFit,
+                    fitType=options.fitType
+                )
+            )
+            plots[-1].xtit = (
+                "S_{T} (1st Electron, 2nd Electron) (GeV), (LQ M = "
+                + str(mass_point)
+                + " selection)"
+            )
+            plots[-1].rebin = 10
+            plots[-1].ylog = "yes"
+            plots[-1].xtitPaper = "S_{T} (1st Electron, 2nd Electron) (GeV)"
+            plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+            plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+            plots[-1].makeNSigma = False if blindFinalSelectionData else True
+            plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
-        plots.append(
-            makeDefaultPlot(
-                "sTjet_LQ" + str(mass_point),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-                systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
-        )
-        plots[-1].xtit = (
-            "S_{T} (1st Jet, 2nd Jet) (GeV), (LQ M = " + str(mass_point) + " selection)"
-        )
-        plots[-1].rebin = 10
-        plots[-1].ylog = "yes"
-        plots[-1].xtitPaper = "S_{T} (1st Jet, 2nd Jet) (GeV)"
-        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
-        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
-        plots[-1].makeNSigma = False if blindFinalSelectionData else True
-        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
+            plots.append(
+                makeDefaultPlot(
+                    "sTjet_LQ" + str(mass_point),
+                    histoBaseName_userDef,
+                    samplesForHistos,
+                    keys,
+                    samplesForStackHistos,
+                    keysStack,
+                    sampleForDataHisto,
+                    zUncBand,
+                    makeRatio,
+                    systs=doSystematics,
+                    rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                    fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    doPrefit=options.preFit,
+                    fitType=options.fitType
+                )
+            )
+            plots[-1].xtit = (
+                "S_{T} (1st Jet, 2nd Jet) (GeV), (LQ M = " + str(mass_point) + " selection)"
+            )
+            plots[-1].rebin = 10
+            plots[-1].ylog = "yes"
+            plots[-1].xtitPaper = "S_{T} (1st Jet, 2nd Jet) (GeV)"
+            plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+            plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+            plots[-1].makeNSigma = False if blindFinalSelectionData else True
+            plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
         # plots.append(
         #     makeDefaultPlot(
@@ -3688,53 +3869,62 @@ if doFinalSelectionPlots:
         #     "Fraction S_{T} from jets (GeV), (LQ M = " + str(mass_point) + " selection)"
         # )
 
-        plots.append(
-            makeDefaultPlot(
-                "Ptee_LQ" + str(mass_point),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-                systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
-        )
-        plots[-1].rebin = 2
-        plots[-1].xmin = 0
-        plots[-1].xmax = 1000
-        plots[-1].xtit = "P_{T}(ee) (GeV), (LQ M = " + str(mass_point) + " selection)"
-        plots[-1].ylog = "yes"
-        plots[-1].xtitPaper = "P_{T}(ee) (GeV)"
-        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
-        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
-        plots[-1].makeNSigma = False if blindFinalSelectionData else True
-        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
+        if doFullSet:
+            plots.append(
+                makeDefaultPlot(
+                    "Ptee_LQ" + str(mass_point),
+                    histoBaseName_userDef,
+                    samplesForHistos,
+                    keys,
+                    samplesForStackHistos,
+                    keysStack,
+                    sampleForDataHisto,
+                    zUncBand,
+                    makeRatio,
+                    systs=doSystematics,
+                    rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                    fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    doPrefit=options.preFit,
+                    fitType=options.fitType
+                )
+            )
+            plots[-1].rebin = 2
+            plots[-1].xmin = 0
+            plots[-1].xmax = 1000
+            plots[-1].xtit = "P_{T}(ee) (GeV), (LQ M = " + str(mass_point) + " selection)"
+            plots[-1].ylog = "yes"
+            plots[-1].xtitPaper = "P_{T}(ee) (GeV)"
+            plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+            plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+            plots[-1].makeNSigma = False if blindFinalSelectionData else True
+            plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
-        plots.append(
-            makeDefaultPlot(
-                "Mjj_LQ" + str(mass_point),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-                systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
-        )
-        plots[-1].rebin = 4
-        plots[-1].xtit = "Dijet Mass (GeV) (LQ M = " + str(mass_point) + " selection)"
-        plots[-1].ylog = "yes"
-        plots[-1].xtitPaper = "M_{jj} (GeV)"
-        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
-        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
-        plots[-1].makeNSigma = False if blindFinalSelectionData else True
-        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
+            plots.append(
+                makeDefaultPlot(
+                    "Mjj_LQ" + str(mass_point),
+                    histoBaseName_userDef,
+                    samplesForHistos,
+                    keys,
+                    samplesForStackHistos,
+                    keysStack,
+                    sampleForDataHisto,
+                    zUncBand,
+                    makeRatio,
+                    systs=doSystematics,
+                    rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                    fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    doPrefit=options.preFit,
+                    fitType=options.fitType
+                )
+            )
+            plots[-1].rebin = 4
+            plots[-1].xtit = "Dijet Mass (GeV) (LQ M = " + str(mass_point) + " selection)"
+            plots[-1].ylog = "yes"
+            plots[-1].xtitPaper = "M_{jj} (GeV)"
+            plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+            plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+            plots[-1].makeNSigma = False if blindFinalSelectionData else True
+            plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
         # plots.append(
         #     makeDefaultPlot(
@@ -3785,7 +3975,11 @@ if doFinalSelectionPlots:
                 zUncBand,
                 makeRatio,
                 systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
+                rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                doPrefit=options.preFit,
+                fitType=options.fitType
+            )
         )
         plots[-1].rebin = mee_rebin
         plots[-1].xtit = "M(ee) (GeV), (LQ M = " + str(mass_point) + " selection)"
@@ -3796,30 +3990,35 @@ if doFinalSelectionPlots:
         plots[-1].makeNSigma = False if blindFinalSelectionData else True
         plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
-        plots.append(
-            makeDefaultPlot(
-                "DR_Ele1Jet1_LQ" + str(mass_point),
-                histoBaseName_userDef,
-                samplesForHistos,
-                keys,
-                samplesForStackHistos,
-                keysStack,
-                sampleForDataHisto,
-                zUncBand,
-                makeRatio,
-                systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
-        )
-        plots[-1].rebin = dr_rebin
-        plots[-1].xtit = (
-            "#DeltaR(e1,j1) (GeV), (LQ M = " + str(mass_point) + " selection)"
-        )
-        plots[-1].ylog = "yes"
-        plots[-1].xtitPaper = "#DeltaR(e1,j1) (GeV)"
-        plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
-        plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
-        plots[-1].makeNSigma = False if blindFinalSelectionData else True
-        plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
+        if doFullSet:
+            plots.append(
+                makeDefaultPlot(
+                    "DR_Ele1Jet1_LQ" + str(mass_point),
+                    histoBaseName_userDef,
+                    samplesForHistos,
+                    keys,
+                    samplesForStackHistos,
+                    keysStack,
+                    sampleForDataHisto,
+                    zUncBand,
+                    makeRatio,
+                    systs=doSystematics,
+                    rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                    fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    doPrefit=options.preFit,
+                    fitType=options.fitType
+                )
+            )
+            plots[-1].rebin = dr_rebin
+            plots[-1].xtit = (
+                "#DeltaR(e1,j1) (GeV), (LQ M = " + str(mass_point) + " selection)"
+            )
+            plots[-1].ylog = "yes"
+            plots[-1].xtitPaper = "#DeltaR(e1,j1) (GeV)"
+            plots[-1].extraText = "m_{{LQ}} = {} GeV".format(mass_point)
+            plots[-1].makeRatio = False if blindFinalSelectionData else makeRatio
+            plots[-1].makeNSigma = False if blindFinalSelectionData else True
+            plots[-1].dataBlindAbove = 0 if blindFinalSelectionData else -1
 
         # plots.append(
         #     makeDefaultPlot2D(
@@ -4458,7 +4657,11 @@ if doFinalSelectionPlots:
                 zUncBand,
                 makeRatio,
                 systs=doSystematics,
-                rescaleDYJTTBarSystsAtPreselection=True            )
+                rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
+                fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                doPrefit=options.preFit,
+                fitType=options.fitType
+            )
         )
         plots[-1].xtit = "PFMET (GeV), (LQ M = " + str(mass_point) + " selection)"
         plots[-1].rebin = 4
