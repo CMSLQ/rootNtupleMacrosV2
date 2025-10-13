@@ -850,6 +850,7 @@ void analysisClass::Loop()
     sprintf(cut_name, "BDTOutput_LQ%d"   , lq_mass );
     if(hasCut(cut_name))
       doFinalSelections = true;
+      CreateUserHistWithSysts(cut_name,2000,-1,1.001);
   }
   if(doFinalSelections && !evaluateBDT) {
     STDOUT("ERROR: No BDTWeightFileName specified, yet asked to do final selections. Quitting here.");
@@ -866,6 +867,7 @@ void analysisClass::Loop()
     sprintf(plot_name, "Mej_selected_min_LQ%d"       , lq_mass ); CreateUserHistWithSysts ( plot_name, 60  , 0 , 3000 );
     sprintf(plot_name, "Mej_selected_max_LQ%d"       , lq_mass ); CreateUserHistWithSysts ( plot_name, 60  , 0 , 3000 );
     sprintf(plot_name, "Mej_minmax_LQ%d"             , lq_mass ); CreateUserHistWithSysts ( plot_name, 60  , 0 , 3000 );
+    sprintf(plot_name, "Mej_asym_LQ%d"               , lq_mass ); CreateUserHistWithSysts ( plot_name, 50  , 0 , 1 );
     sprintf(plot_name, "sT_eejj_LQ%d"                , lq_mass ); CreateUserHistWithSysts ( plot_name, 30  , 0 , 3000 );
     sprintf(plot_name, "Mee_LQ%d"                    , lq_mass ); CreateUserHistWithSysts ( plot_name, 40  , 0 , 2000 );
     sprintf(plot_name, "Mej_selected_min_vs_max_LQ%d", lq_mass ); CreateUserHist2D ( plot_name, 150  , 0 , 3000, 150  , 0 , 3000 );
@@ -874,6 +876,7 @@ void analysisClass::Loop()
         getHistoMin  ("DR_Ele1Jet1"), 
         getHistoMax  ("DR_Ele1Jet1"));
 
+    sprintf(plot_name, "nElectron_LQ%d"           , lq_mass ); CreateUserHistWithSysts( plot_name ,     5  , -0.5    , 4.5      );
     sprintf(plot_name, "CorrIsolation_1stEle_LQ%d"        , lq_mass ); CreateUserHistWithSysts( plot_name , 200,-25.0 ,  25.0  );
     sprintf(plot_name, "DeltaEtaTrkSC_1stEle_LQ%d"        , lq_mass ); CreateUserHistWithSysts( plot_name , 200, -0.01,   0.01 );
     sprintf(plot_name, "EcalIsolation_1stEle_LQ%d"        , lq_mass ); CreateUserHistWithSysts( plot_name , 200,  0.0 ,  20.0  );
@@ -917,10 +920,13 @@ void analysisClass::Loop()
     sprintf(plot_name, "MET_LQ%d"                 , lq_mass ); CreateUserHistWithSysts( plot_name ,    200 ,  0.0    , 1000     ); 
     sprintf(plot_name, "Pt1stJet_LQ%d"            , lq_mass ); CreateUserHistWithSysts( plot_name ,    100 ,  0.0    , 1000     ); 
     sprintf(plot_name, "Pt2ndJet_LQ%d"            , lq_mass ); CreateUserHistWithSysts( plot_name ,    100 ,  0.0    , 1000     ); 
+    sprintf(plot_name, "Pt3rdJet_LQ%d"            , lq_mass ); CreateUserHistWithSysts( plot_name ,    100 ,  0.0    , 1000     ); 
     sprintf(plot_name, "Eta1stJet_LQ%d"           , lq_mass ); CreateUserHistWithSysts( plot_name ,    100 , -5.0    , 5.0      ); 
     sprintf(plot_name, "Eta2ndJet_LQ%d"           , lq_mass ); CreateUserHistWithSysts( plot_name ,    100 , -5.0    , 5.0      ); 
+    sprintf(plot_name, "Eta3rdJet_LQ%d"           , lq_mass ); CreateUserHistWithSysts( plot_name ,    100 , -5.0    , 5.0      ); 
     sprintf(plot_name, "Phi1stJet_LQ%d"           , lq_mass ); CreateUserHistWithSysts( plot_name ,     60 , -3.1416 , 3.1416   ); 
     sprintf(plot_name, "Phi2ndJet_LQ%d"           , lq_mass ); CreateUserHistWithSysts( plot_name ,     60 , -3.1416 , 3.1416   ); 
+    sprintf(plot_name, "Phi3rdJet_LQ%d"           , lq_mass ); CreateUserHistWithSysts( plot_name ,     60 , -3.1416 , 3.1416   ); 
     sprintf(plot_name, "sTlep_LQ%d"               , lq_mass ); CreateUserHistWithSysts( plot_name ,    200 ,  0.0    , 2000     ); 
     sprintf(plot_name, "sTjet_LQ%d"               , lq_mass ); CreateUserHistWithSysts( plot_name ,    200 ,  0.0    , 2000     ); 
     sprintf(plot_name, "sT_zjj_LQ%d"              , lq_mass ); CreateUserHistWithSysts( plot_name ,    200 ,  0.0    , 2000     ); 
@@ -2275,13 +2281,14 @@ void analysisClass::Loop()
             sprintf(cut_name, "BDTOutput_LQ%d", lq_mass );
             float bdtOutput = getVariableValue(cut_name);
             sprintf(cut_name, "BDTOutput_TTBarCRRegion_LQ%d", lq_mass );
-            FillUserHist(cut_name, bdtOutput,  fakeRateEffective * min_prescale * gen_weight, "preselection");
+            FillUserHist(cut_name, bdtOutput, fakeRateEffective * min_prescale * gen_weight, "preselection");
           }
         }
         for (int i_lq_mass = 0; i_lq_mass < n_lq_mass; ++i_lq_mass ){ 
           int lq_mass = LQ_MASS[i_lq_mass];
           sprintf(cut_name, "BDTOutput_LQ%d", lq_mass );
           float bdtOutput = getVariableValue(cut_name);
+          FillUserHist(cut_name, bdtOutput, fakeRateEffective * min_prescale * gen_weight, cut_name);
           sprintf(cut_name, "MeeVsBDTOutput_BkgControlRegion_LQ%d", lq_mass );
           FillUserHist2D(cut_name, bdtOutput, M_e1e2, pileup_weight * gen_weight);
           if(nBJet_ptCut >= 2) {
@@ -3067,6 +3074,7 @@ void analysisClass::Loop()
           sprintf(plot_name, "Mej_selected_max_LQ%d"       , lq_mass ); FillUserHist ( plot_name, M_ej_max          , min_prescale * gen_weight * fakeRateEffective, cut_name);
           sprintf(plot_name, "Mej_minmax_LQ%d"             , lq_mass ); FillUserHist ( plot_name, M_ej_min          , min_prescale * gen_weight * fakeRateEffective, cut_name);
           sprintf(plot_name, "Mej_minmax_LQ%d"             , lq_mass ); FillUserHist ( plot_name, M_ej_max          , min_prescale * gen_weight * fakeRateEffective, cut_name);
+          sprintf(plot_name, "Mej_asym_LQ%d"               , lq_mass ); FillUserHist ( plot_name, M_ej_asym         , min_prescale * gen_weight * fakeRateEffective, cut_name);
           sprintf(plot_name, "sT_eejj_LQ%d"                , lq_mass ); FillUserHist ( plot_name, sT_eejj           , min_prescale * gen_weight * fakeRateEffective, cut_name);
           sprintf(plot_name, "Mee_LQ%d"                    , lq_mass ); FillUserHist ( plot_name, M_e1e2            , min_prescale * gen_weight * fakeRateEffective, cut_name);
           sprintf(plot_name, "DR_Ele1Jet1_LQ%d"            , lq_mass ); FillUserHist ( plot_name, DR_Ele1Jet1       , min_prescale * gen_weight * fakeRateEffective, cut_name);
@@ -3125,6 +3133,7 @@ void analysisClass::Loop()
           sprintf(plot_name, "sT_zjj_LQ%d"            , lq_mass ); FillUserHist( plot_name , sT_zjj                                         , min_prescale * gen_weight * fakeRateEffective, cut_name );
           sprintf(plot_name, "nVertex_LQ%d"           , lq_mass ); FillUserHist( plot_name , nVertex                                        , min_prescale * gen_weight * fakeRateEffective, cut_name );
           sprintf(plot_name, "nJet_LQ%d"              , lq_mass ); FillUserHist( plot_name , nJet_ptCut                             , min_prescale * gen_weight * fakeRateEffective, cut_name );
+          sprintf(plot_name, "nElectron_LQ%d"         , lq_mass ); FillUserHist( plot_name , nEle_ptCut                             , min_prescale * gen_weight * fakeRateEffective, cut_name );
           sprintf(plot_name, "EleChargeSum_LQ%d"      , lq_mass ); FillUserHist( plot_name , Ele1_Charge + Ele2_Charge            , min_prescale * gen_weight * fakeRateEffective, cut_name );
           sprintf(plot_name, "Meejj_LQ%d"             , lq_mass ); FillUserHist( plot_name , M_eejj                                         , min_prescale * gen_weight * fakeRateEffective, cut_name );
           sprintf(plot_name, "Meej_LQ%d"              , lq_mass ); FillUserHist( plot_name , M_eej                                          , min_prescale * gen_weight * fakeRateEffective, cut_name );
@@ -3148,6 +3157,11 @@ void analysisClass::Loop()
           sprintf(plot_name, "sTfrac_Ele_LQ%d"        , lq_mass ); FillUserHist( plot_name , ( Ele1_Pt + Ele2_Pt ) / sT_eejj      , min_prescale * gen_weight * fakeRateEffective, cut_name );
           sprintf(plot_name, "Ptj1j2_LQ%d"            , lq_mass ); FillUserHist( plot_name , Pt_j1j2                                        , min_prescale * gen_weight * fakeRateEffective, cut_name );
           sprintf(plot_name, "Ptee_Minus_Ptj1j2_LQ%d" , lq_mass ); FillUserHist( plot_name , Pt_e1e2 - Pt_j1j2                              , min_prescale * gen_weight * fakeRateEffective, cut_name );
+          if ( nJet_ptCut >= 3 ) {
+            sprintf(plot_name, "Eta3rdJet_LQ%d"         , lq_mass ); FillUserHist( plot_name , Jet3_Eta                               , min_prescale * gen_weight * fakeRateEffective, cut_name );
+            sprintf(plot_name, "Phi3rdJet_LQ%d"         , lq_mass ); FillUserHist( plot_name , Jet3_Phi                               , min_prescale * gen_weight * fakeRateEffective, cut_name );
+            sprintf(plot_name, "Pt3rdJet_LQ%d"          , lq_mass ); FillUserHist( plot_name , Jet3_Pt                                , min_prescale * gen_weight * fakeRateEffective, cut_name );
+          }
           // muon kinematics
           sprintf(plot_name, "Pt1stMuon_LQ%d"          , lq_mass ); FillUserHist( plot_name , Muon1_Pt                                   , min_prescale * gen_weight * fakeRateEffective, cut_name );
           sprintf(plot_name, "Pt2ndMuon_LQ%d"          , lq_mass ); FillUserHist( plot_name , Muon2_Pt                                   , min_prescale * gen_weight * fakeRateEffective, cut_name );
