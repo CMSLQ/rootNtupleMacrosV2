@@ -268,8 +268,14 @@ def generateHistoList(histoBaseName, samples, variableName, fileNames, scale=1, 
             totalSyst = ctypes.c_double()
             yBin = histo.GetYaxis().FindFixBin("TotalSystematic")
             totalSystIntegral = histo.IntegralAndError(0, histo.GetNbinsX()+2, yBin, yBin, totalSyst)
+            print("INFO: for hist '{}'; integral = {} +/- {}; total syst integral = {} +/- {}; total fitDiag norm={} +/- {}".format(histo.GetName(), integral, integralErr, totalSystIntegral, totalSyst, norm, totUncertainty))
+            if norm < 0:
+                norm = 0
+            rescaleFactorForNorm = norm / integral if integral != 0 else norm / (histo.GetNbinsX()+2)
+            for binx in range(0, histo.GetNbinsX()+2):
+                binc = histo.GetBinContent(binx, 1)
+                histo.SetBinContent(binx, 1, binc*rescaleFactorForNorm if integral != 0 else rescaleFactorForNorm)
             rescaleFactorForSyst = math.sqrt(totUncertainty**2 - integralErr.value**2)
-            print("INFO: for hist '{}'; total syst integral = {} +/- {}; total fitDiag norm={} +/- {}".format(histo.GetName(), totalSystIntegral, totalSyst, norm, totUncertainty))
             noTotalSyst = False
             if totalSyst.value == 0:
                 print("WARN: TotalSystematic integral error for hist '{}' is zero; integral = {} +/- {}; total fitDiag norm={} +/- {}".format(histo.GetName(), totalSystIntegral, totalSyst, norm, totUncertainty))
@@ -752,30 +758,30 @@ def GetSystematicGraphAndHist(bkgTotalHist, systNames, verbose=False):
         systUpErrs[systName] = upErrs
         systDownErrs[systName] = downErrs
         if verbose:
-            headers = ["binNumber", "binLowEdge", "nominal", "%systUp", "%systDown"]
+            headers = ["binNumber", "binLowEdge", "nominal", "systUp", "systDown", "%systUp", "%systDown"]
             xBins = [xBin for xBin in range(0, bkgTotalHist.GetNbinsX()+2) if bkgTotalHist.GetBinContent(xBin, 1) != 0]
             #xBins = [xBin for xBin in range(0, bkgTotalHist.GetNbinsX()+2) if bkgTotalHist.GetXaxis().GetBinLowEdge(xBin) >= 800 and bkgTotalHist.GetXaxis().GetBinLowEdge(xBin) <= 900]
             # xBins = [xBin for xBin in range(bkgTotalHist.GetNbinsX()-19, bkgTotalHist.GetNbinsX()+1) if xBin >= 0] # last 20 bins
             binLowEdges = [bkgTotalHist.GetXaxis().GetBinLowEdge(xBin) for xBin in xBins]
             nominals = [bkgTotalHist.GetBinContent(xBin, 1) for xBin in xBins]
             upErrorDict = {lowEdge:err for lowEdge in binLowEdges for err in upErrs}
-            print("for bkgTotalHist={}, syst={}, got upErrs={}, downErrs={}".format(bkgTotalHist.GetName(), systName, upErrorDict, downErrs.tolist()))
+            print("for hist={}, syst={}, got upErrs={}, downErrs={}".format(bkgTotalHist.GetName(), systName, upErrorDict, downErrs.tolist()))
             upErrsSliced = [upErrs[xBin] for xBin in xBins]
             downErrsSliced = [downErrs[xBin] for xBin in xBins]
             upErrPercents = [100*upErr/nom if nom != 0 else 0 for nom, upErr in zip(nominals, upErrsSliced)]
             downErrPercents = [100*downErr/nom if nom != 0 else 0 for nom, downErr in zip(nominals, downErrsSliced)]
             upErrsPercentBySyst[systName] = upErrPercents
             downErrsPercentBySyst[systName] = downErrPercents
-            rows = [list(x) for x in zip(xBins, binLowEdges, nominals, upErrPercents, downErrPercents)]
+            rows = [list(x) for x in zip(xBins, binLowEdges, nominals, upErrsSliced, downErrsSliced, upErrPercents, downErrPercents)]
             if len(rows) > 0:
                 print("Table for syst: {}".format(systName))
-                print(tabulate(rows, headers=headers, tablefmt="github", floatfmt=".2f"))
+                print(tabulate(rows, headers=headers, tablefmt="github", floatfmt=".4f"))
             else:
                 print("Table for syst: {} has no rows".format(systName))
     upErrsComb = np.sqrt(upErrsComb)
     downErrsComb = np.sqrt(downErrsComb)
     if verbose:
-        headers = ["binNumber", "binLowEdge", "nominal", "%systTotalUp", "%systTotalDown"]
+        headers = ["binNumber", "binLowEdge", "nominal", "systUp", "systDown", "%systTotalUp", "%systTotalDown"]
         headers.extend(list(sum([("%{}Up".format(syst), "%{}Down".format(syst)) for syst in upErrsPercentBySyst.keys()], ())))
         #xBins = [xBin for xBin in range(0, bkgTotalHist.GetNbinsX()+2)]
         # xBins = [xBin for xBin in range(0, bkgTotalHist.GetNbinsX()+2) if bkgTotalHist.GetXaxis().GetBinLowEdge(xBin) >= 580 and bkgTotalHist.GetXaxis().GetBinLowEdge(xBin) <= 620]
@@ -795,9 +801,9 @@ def GetSystematicGraphAndHist(bkgTotalHist, systNames, verbose=False):
             upDownErrsBySystList.append(downErrsPercentBySyst[syst])
         #upDownErrsBySystList = [list(element) for element in upDownErrsBySystList]
         #rows = [list(x) for x in zip(xBins, binLowEdges, nominals, upErrPercents, downErrPercents)]
-        rows = [list(x) for x in zip(xBins, binLowEdges, nominals, upErrPercents, downErrPercents, *upDownErrsBySystList)]
+        rows = [list(x) for x in zip(xBins, binLowEdges, nominals, upErrsSliced, downErrsSliced, upErrPercents, downErrPercents, *upDownErrsBySystList)]
         if len(rows) > 0:
-            print(tabulate(rows, headers=headers, tablefmt="github", floatfmt=".2f"))
+            print(tabulate(rows, headers=headers, tablefmt="github", floatfmt=".4f"))
     nominals = []
     xBins = []
     xBinsLow = []
