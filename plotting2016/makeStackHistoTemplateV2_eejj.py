@@ -6,7 +6,7 @@ import copy
 import numpy as np
 import ctypes
 from optparse import OptionParser
-from plot_class import GetFile, Plot, Plot2D, generateHistoList, generateHisto, generateHistoBlank, generateHistoListFakeSystsFromModel, makeTOC, QuasiRebinHisto
+from plot_class import GetFile, Plot, Plot2D, generateHistoList, generateHisto, generateHistoBlank, generateHistoListFakeSystsFromModel, makeTOC, QuasiRebinHisto, RenormalizeQCDHistoNormsAndUncs
 from ROOT import gROOT, kCyan, kRed, TCanvas, TGraphAsymmErrors, TH1D, TFile
 import cmsstyle as CMS
 
@@ -20,7 +20,7 @@ gROOT.SetBatch(True)
 gROOT.ProcessLine("gErrorIgnoreLevel = kWarning;")
 # gErrorIgnoreLevel = kWarning  # doesn't work
 
-usage = "usage: %prog [options] \nExample: \npython makeStackHistoTemplateV2_eejj.py -q qcdFilePath -m mcDataFilePath -y years [-s signalName] [--fitDiagFilepath path] [--preFit] [--postFit] [--fitType postFitType]"
+usage = "usage: %prog [options] \nExample: \npython makeStackHistoTemplateV2_eejj.py -q qcdFilePath -m mcDataFilePath -y years [-s signalName] [--fitDiagFilepath path] [--postFitJSON json] [--preFit] [--postFit] [--fitType postFitType]"
 parser = OptionParser(usage=usage)
 
 parser.add_option(
@@ -62,6 +62,14 @@ parser.add_option(
     default=None,
     help="FitDiagnostics root files path (from combine output)",
     metavar="FITDIAGFILEPATH",
+)
+
+parser.add_option(
+    "--postFitJSON",
+    dest="postFitJSON",
+    default=None,
+    help="postfit JSON file (from fitdiagnostics output)",
+    metavar="POSTFITJSON",
 )
 
 parser.add_option(
@@ -417,10 +425,15 @@ def makeDefaultPlot(
     systList=systNames,
     rescaleDYJTTBarSystsAtPreselection=False,
     fitDiagFilePath=None,
+    postFitJSON=None,
     doPrefit=False,
-    fitType=None
+    fitType=None,
+    massPoint=None,
 ):
     plot = Plot()
+    plot.postFitJSON = postFitJSON
+    plot.massPoint = massPoint
+    plot.fitType = fitType
     systList = []
     if systs:
         histoBaseName = histoBaseName.replace("histo1D", "histo2D")
@@ -433,6 +446,7 @@ def makeDefaultPlot(
             years=qcdYearsToUse,
             masses=LQmassesFinalSelection,
             fitDiagFilePath=fitDiagFilePath,
+            postFitJSON=postFitJSON,
             doPrefit=doPrefit,
             fitType=fitType
         ))
@@ -442,6 +456,7 @@ def makeDefaultPlot(
             years=qcdYearsToUse,
             masses=LQmassesFinalSelection,
             fitDiagFilePath=fitDiagFilePath,
+            postFitJSON=postFitJSON,
             doPrefit=doPrefit,
             fitType=fitType
             
@@ -452,6 +467,7 @@ def makeDefaultPlot(
         years=qcdYearsToUse,
             masses=LQmassesFinalSelection,
         fitDiagFilePath=fitDiagFilePath,
+            postFitJSON=postFitJSON,
         doPrefit=doPrefit,
         fitType=fitType
         ))
@@ -469,7 +485,8 @@ def makeDefaultPlot(
                 qcdNormSyst,
                 plot.histosStack[-1],
                 scale=1,
-                fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                fitDiagFilePath=fitDiagFilePath,
+                postFitJSON=None,
                 doPrefit=options.preFit,
                 fitType=options.fitType
             ) if doQCD else []
@@ -479,6 +496,15 @@ def makeDefaultPlot(
                 for idx, hist in enumerate(qcdHists):
                     hist.Add(qcdHistsThisYear[idx])
             qcdFile.Close()
+        if postFitJSON is not None:
+            if len(samplesForStackHistos_QCD) > 1:
+                raise RuntimeError("Don't currently know how to handle this case where we have more than 1 QCD sample, and we have {}.".format(len(samplesForStackHistos_QCD)))
+            qcdHistsNew = []
+            # in this case, we simply add up the QCD hists for each year, and then rescale once
+            for hist in qcdHists:
+                hist = RenormalizeQCDHistoNormsAndUncs(samplesForStackHistos_QCD[0], "noyear", hist, LQmassesFinalSelection, None, None, postFitJSON, doPrefit, fitType)
+                qcdHistsNew.append(hist)
+            qcdHists = qcdHistsNew
     else:
         qcdHists = generateHistoList(
             histoBaseName,
@@ -2975,8 +3001,10 @@ if doFinalSelectionPlots:
                     systs=doSystematics,
                     rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                     fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                     doPrefit=options.preFit,
-                    fitType=options.fitType
+                    fitType=options.fitType,
+                    massPoint=int(mass_point)
                 )
             )
             plots[-1].xtit = (
@@ -3004,8 +3032,10 @@ if doFinalSelectionPlots:
                     systs=doSystematics,
                     rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                     fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                     doPrefit=options.preFit,
-                    fitType=options.fitType
+                    fitType=options.fitType,
+                    massPoint=int(mass_point)
                 )
             )
             plots[-1].xtit = (
@@ -3033,8 +3063,10 @@ if doFinalSelectionPlots:
                 systs=doSystematics,
                 rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                 fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                 doPrefit=options.preFit,
-                fitType=options.fitType
+                fitType=options.fitType,
+                massPoint=int(mass_point)
             )
         )
         plots[-1].xtit = (
@@ -3062,8 +3094,10 @@ if doFinalSelectionPlots:
                 systs=doSystematics,
                 rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                 fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                 doPrefit=options.preFit,
-                fitType=options.fitType
+                fitType=options.fitType,
+                massPoint=int(mass_point)
             )
         )
         plots[-1].xtit = (
@@ -3127,8 +3161,10 @@ if doFinalSelectionPlots:
                 systs=doSystematics,
                 rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                 fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                 doPrefit=options.preFit,
-                fitType=options.fitType
+                fitType=options.fitType,
+                massPoint=int(mass_point)
             )
         )
         plots[-1].xtit = "1st Electron #eta [LQ M = " + str(mass_point) + " selection]"
@@ -3154,8 +3190,10 @@ if doFinalSelectionPlots:
                 systs=doSystematics,
                 rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                 fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                 doPrefit=options.preFit,
-                fitType=options.fitType
+                fitType=options.fitType,
+                massPoint=int(mass_point)
             )
         )
         plots[-1].xtit = "2nd Electron #eta [LQ M = " + str(mass_point) + " selection]"
@@ -3181,8 +3219,10 @@ if doFinalSelectionPlots:
                 systs=doSystematics,
                 rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                 fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                 doPrefit=options.preFit,
-                fitType=options.fitType
+                fitType=options.fitType,
+                massPoint=int(mass_point)
             )
         )
         plots[-1].xtit = "1st Electron #phi [LQ M = " + str(mass_point) + " selection]"
@@ -3208,8 +3248,10 @@ if doFinalSelectionPlots:
                 systs=doSystematics,
                 rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                 fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                 doPrefit=options.preFit,
-                fitType=options.fitType
+                fitType=options.fitType,
+                massPoint=int(mass_point)
             )
         )
         plots[-1].xtit = "2nd Electron #phi [LQ M = " + str(mass_point) + " selection]"
@@ -3235,8 +3277,10 @@ if doFinalSelectionPlots:
                 systs=doSystematics,
                 rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                 fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                 doPrefit=options.preFit,
-                fitType=options.fitType
+                fitType=options.fitType,
+                massPoint=int(mass_point)
             )
         )
         plots[-1].xtit = (
@@ -3264,8 +3308,10 @@ if doFinalSelectionPlots:
                 systs=doSystematics,
                 rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                 fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                 doPrefit=options.preFit,
-                fitType=options.fitType
+                fitType=options.fitType,
+                massPoint=int(mass_point)
             )
         )
         plots[-1].xtit = (
@@ -3294,8 +3340,10 @@ if doFinalSelectionPlots:
                     systs=doSystematics,
                     rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                     fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                     doPrefit=options.preFit,
-                    fitType=options.fitType
+                    fitType=options.fitType,
+                    massPoint=int(mass_point)
                 )
             )
             plots[-1].xtit = (
@@ -3323,8 +3371,10 @@ if doFinalSelectionPlots:
                 systs=doSystematics,
                 rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                 fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                 doPrefit=options.preFit,
-                fitType=options.fitType
+                fitType=options.fitType,
+                massPoint=int(mass_point)
             )
         )
         plots[-1].xtit = "1st Jet #eta [LQ M = " + str(mass_point) + " selection]"
@@ -3350,8 +3400,10 @@ if doFinalSelectionPlots:
                 systs=doSystematics,
                 rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                 fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                 doPrefit=options.preFit,
-                fitType=options.fitType
+                fitType=options.fitType,
+                massPoint=int(mass_point)
             )
         )
         plots[-1].xtit = "2nd Jet #eta [LQ M = " + str(mass_point) + " selection]"
@@ -3378,8 +3430,10 @@ if doFinalSelectionPlots:
                     systs=doSystematics,
                     rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                     fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                     doPrefit=options.preFit,
-                    fitType=options.fitType
+                    fitType=options.fitType,
+                    massPoint=int(mass_point)
                 )
             )
             plots[-1].xtit = "3rd Jet #eta [LQ M = " + str(mass_point) + " selection]"
@@ -3405,8 +3459,10 @@ if doFinalSelectionPlots:
                 systs=doSystematics,
                 rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                 fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                 doPrefit=options.preFit,
-                fitType=options.fitType
+                fitType=options.fitType,
+                massPoint=int(mass_point)
             )
         )
         plots[-1].xtit = "1st Jet #phi [LQ M = " + str(mass_point) + " selection]"
@@ -3432,8 +3488,10 @@ if doFinalSelectionPlots:
                 systs=doSystematics,
                 rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                 fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                 doPrefit=options.preFit,
-                fitType=options.fitType
+                fitType=options.fitType,
+                massPoint=int(mass_point)
             )
         )
         plots[-1].xtit = "2nd Jet #phi [LQ M = " + str(mass_point) + " selection]"
@@ -3459,8 +3517,10 @@ if doFinalSelectionPlots:
                     systs=doSystematics,
                     rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                     fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                     doPrefit=options.preFit,
-                    fitType=options.fitType
+                    fitType=options.fitType,
+                    massPoint=int(mass_point)
                 )
             )
             plots[-1].xtit = "3rd Jet #phi [LQ M = " + str(mass_point) + " selection]"
@@ -3493,8 +3553,10 @@ if doFinalSelectionPlots:
                     systs=doSystematics,
                     rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                     fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                     doPrefit=options.preFit,
-                    fitType=options.fitType
+                    fitType=options.fitType,
+                    massPoint=int(mass_point)
                 )
             )
             plots[-1].rebin = mej_rebin * 5
@@ -3522,8 +3584,10 @@ if doFinalSelectionPlots:
                     systs=doSystematics,
                     rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                     fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                     doPrefit=options.preFit,
-                    fitType=options.fitType
+                    fitType=options.fitType,
+                    massPoint=int(mass_point)
                 )
             )
             plots[-1].rebin = mej_rebin * 5
@@ -3551,8 +3615,10 @@ if doFinalSelectionPlots:
                     systs=doSystematics,
                     rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                     fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                     doPrefit=options.preFit,
-                    fitType=options.fitType
+                    fitType=options.fitType,
+                    massPoint=int(mass_point)
                 )
             )
             plots[-1].rebin = mej_rebin * 5
@@ -3580,8 +3646,10 @@ if doFinalSelectionPlots:
                     systs=doSystematics,
                     rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                     fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                     doPrefit=options.preFit,
-                    fitType=options.fitType
+                    fitType=options.fitType,
+                    massPoint=int(mass_point)
                 )
             )
             plots[-1].rebin = mej_rebin * 5
@@ -3609,8 +3677,10 @@ if doFinalSelectionPlots:
                     systs=doSystematics,
                     rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                     fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                     doPrefit=options.preFit,
-                    fitType=options.fitType
+                    fitType=options.fitType,
+                    massPoint=int(mass_point)
                 )
             )
             plots[-1].rebin = mej_rebin
@@ -3646,8 +3716,10 @@ if doFinalSelectionPlots:
                 systs=doSystematics,
                 rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                 fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                 doPrefit=options.preFit,
-                fitType=options.fitType
+                fitType=options.fitType,
+                massPoint=int(mass_point)
             )
         )
         plots[-1].rebin = 4
@@ -3682,8 +3754,10 @@ if doFinalSelectionPlots:
                     systs=doSystematics,
                     rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                     fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                     doPrefit=options.preFit,
-                    fitType=options.fitType
+                    fitType=options.fitType,
+                    massPoint=int(mass_point)
                 )
             )
             plots[-1].rebin = mej_rebin
@@ -3713,8 +3787,10 @@ if doFinalSelectionPlots:
                     systs=doSystematics,
                     rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                     fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                     doPrefit=options.preFit,
-                    fitType=options.fitType
+                    fitType=options.fitType,
+                    massPoint=int(mass_point)
                 )
             )
             plots[-1].rebin = mej_rebin
@@ -3741,8 +3817,10 @@ if doFinalSelectionPlots:
                     systs=doSystematics,
                     rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                     fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                     doPrefit=options.preFit,
-                    fitType=options.fitType
+                    fitType=options.fitType,
+                    massPoint=int(mass_point)
                 )
             )
             plots[-1].rebin = mej_rebin
@@ -3770,8 +3848,10 @@ if doFinalSelectionPlots:
                 systs=doSystematics,
                 rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                 fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                 doPrefit=options.preFit,
-                fitType=options.fitType
+                fitType=options.fitType,
+                massPoint=int(mass_point)
             )
         )
         plots[-1].xtit = (
@@ -3805,8 +3885,10 @@ if doFinalSelectionPlots:
                 systs=doSystematics,
                 rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                 fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                 doPrefit=options.preFit,
-                fitType=options.fitType
+                fitType=options.fitType,
+                massPoint=int(mass_point)
             )
         )
         plots[-1].xtit = "S_{T} (GeV), (LQ M = " + str(mass_point) + " selection)"
@@ -3837,8 +3919,10 @@ if doFinalSelectionPlots:
                     systs=doSystematics,
                     rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                     fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                     doPrefit=options.preFit,
-                    fitType=options.fitType
+                    fitType=options.fitType,
+                    massPoint=int(mass_point)
                 )
             )
             plots[-1].xtit = (
@@ -3868,8 +3952,10 @@ if doFinalSelectionPlots:
                     systs=doSystematics,
                     rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                     fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                     doPrefit=options.preFit,
-                    fitType=options.fitType
+                    fitType=options.fitType,
+                    massPoint=int(mass_point)
                 )
             )
             plots[-1].xtit = (
@@ -4028,8 +4114,10 @@ if doFinalSelectionPlots:
                     systs=doSystematics,
                     rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                     fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                     doPrefit=options.preFit,
-                    fitType=options.fitType
+                    fitType=options.fitType,
+                    massPoint=int(mass_point)
                 )
             )
             plots[-1].rebin = 2
@@ -4057,8 +4145,10 @@ if doFinalSelectionPlots:
                     systs=doSystematics,
                     rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                     fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                     doPrefit=options.preFit,
-                    fitType=options.fitType
+                    fitType=options.fitType,
+                    massPoint=int(mass_point)
                 )
             )
             plots[-1].rebin = 4
@@ -4121,8 +4211,10 @@ if doFinalSelectionPlots:
                 systs=doSystematics,
                 rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                 fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                 doPrefit=options.preFit,
-                fitType=options.fitType
+                fitType=options.fitType,
+                massPoint=int(mass_point)
             )
         )
         plots[-1].rebin = mee_rebin
@@ -4149,8 +4241,10 @@ if doFinalSelectionPlots:
                     systs=doSystematics,
                     rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                     fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                    postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                     doPrefit=options.preFit,
-                    fitType=options.fitType
+                    fitType=options.fitType,
+                    massPoint=int(mass_point)
                 )
             )
             plots[-1].rebin = dr_rebin
@@ -4220,7 +4314,7 @@ if doFinalSelectionPlots:
 
         # plots.append(
         #     makeDefaultPlot(
-        #         "CorrIsolation_1stEle_LQ" + str(int(mass_point)),
+        #         "CorrIsolation_1stEle_LQ" + str(massPoint=int(mass_point)),
         #         histoBaseName_userDef,
         #         samplesForHistos,
         #         keys,
@@ -4242,7 +4336,7 @@ if doFinalSelectionPlots:
 
         # plots.append(
         #     makeDefaultPlot(
-        #         "CorrIsolation_2ndEle_LQ" + str(int(mass_point)),
+        #         "CorrIsolation_2ndEle_LQ" + str(massPoint=int(mass_point)),
         #         histoBaseName_userDef,
         #         samplesForHistos,
         #         keys,
@@ -4264,7 +4358,7 @@ if doFinalSelectionPlots:
 
         # plots.append(
         #     makeDefaultPlot(
-        #         "DeltaEtaTrkSC_1stEle_LQ" + str(int(mass_point)),
+        #         "DeltaEtaTrkSC_1stEle_LQ" + str(massPoint=int(mass_point)),
         #         histoBaseName_userDef,
         #         samplesForHistos,
         #         keys,
@@ -4286,7 +4380,7 @@ if doFinalSelectionPlots:
 
         # plots.append(
         #     makeDefaultPlot(
-        #         "DeltaEtaTrkSC_2ndEle_LQ" + str(int(mass_point)),
+        #         "DeltaEtaTrkSC_2ndEle_LQ" + str(massPoint=int(mass_point)),
         #         histoBaseName_userDef,
         #         samplesForHistos,
         #         keys,
@@ -4344,7 +4438,7 @@ if doFinalSelectionPlots:
 
         # plots.append(
         #     makeDefaultPlot(
-        #         "EcalIsolation_1stEle_LQ" + str(int(mass_point)),
+        #         "EcalIsolation_1stEle_LQ" + str(massPoint=int(mass_point)),
         #         histoBaseName_userDef,
         #         samplesForHistos,
         #         keys,
@@ -4366,7 +4460,7 @@ if doFinalSelectionPlots:
 
         # plots.append(
         #     makeDefaultPlot(
-        #         "EcalIsolation_2ndEle_LQ" + str(int(mass_point)),
+        #         "EcalIsolation_2ndEle_LQ" + str(massPoint=int(mass_point)),
         #         histoBaseName_userDef,
         #         samplesForHistos,
         #         keys,
@@ -4388,7 +4482,7 @@ if doFinalSelectionPlots:
 
         # plots.append(
         #     makeDefaultPlot(
-        #         "HcalIsolation_1stEle_LQ" + str(int(mass_point)),
+        #         "HcalIsolation_1stEle_LQ" + str(massPoint=int(mass_point)),
         #         histoBaseName_userDef,
         #         samplesForHistos,
         #         keys,
@@ -4410,7 +4504,7 @@ if doFinalSelectionPlots:
 
         # plots.append(
         #     makeDefaultPlot(
-        #         "HcalIsolation_2ndEle_LQ" + str(int(mass_point)),
+        #         "HcalIsolation_2ndEle_LQ" + str(massPoint=int(mass_point)),
         #         histoBaseName_userDef,
         #         samplesForHistos,
         #         keys,
@@ -4432,7 +4526,7 @@ if doFinalSelectionPlots:
 
         # plots.append(
         #     makeDefaultPlot(
-        #         "TrkIsolation_1stEle_LQ" + str(int(mass_point)),
+        #         "TrkIsolation_1stEle_LQ" + str(massPoint=int(mass_point)),
         #         histoBaseName_userDef,
         #         samplesForHistos,
         #         keys,
@@ -4452,7 +4546,7 @@ if doFinalSelectionPlots:
 
         # plots.append(
         #     makeDefaultPlot(
-        #         "TrkIsolation_2ndEle_LQ" + str(int(mass_point)),
+        #         "TrkIsolation_2ndEle_LQ" + str(massPoint=int(mass_point)),
         #         histoBaseName_userDef,
         #         samplesForHistos,
         #         keys,
@@ -4500,7 +4594,7 @@ if doFinalSelectionPlots:
 
         # plots.append(
         #     makeDefaultPlot(
-        #         "HasMatchedPhot_1stEle_LQ" + str(int(mass_point)),
+        #         "HasMatchedPhot_1stEle_LQ" + str(massPoint=int(mass_point)),
         #         histoBaseName_userDef,
         #         samplesForHistos,
         #         keys,
@@ -4519,7 +4613,7 @@ if doFinalSelectionPlots:
 
         # plots.append(
         #     makeDefaultPlot(
-        #         "HasMatchedPhot_2ndEle_LQ" + str(int(mass_point)),
+        #         "HasMatchedPhot_2ndEle_LQ" + str(massPoint=int(mass_point)),
         #         histoBaseName_userDef,
         #         samplesForHistos,
         #         keys,
@@ -4538,7 +4632,7 @@ if doFinalSelectionPlots:
 
         # plots.append(
         #     makeDefaultPlot(
-        #         "HoE_1stEle_LQ" + str(int(mass_point)),
+        #         "HoE_1stEle_LQ" + str(massPoint=int(mass_point)),
         #         histoBaseName_userDef,
         #         samplesForHistos,
         #         keys,
@@ -4554,7 +4648,7 @@ if doFinalSelectionPlots:
 
         # plots.append(
         #     makeDefaultPlot(
-        #         "HoE_2ndEle_LQ" + str(int(mass_point)),
+        #         "HoE_2ndEle_LQ" + str(massPoint=int(mass_point)),
         #         histoBaseName_userDef,
         #         samplesForHistos,
         #         keys,
@@ -4570,7 +4664,7 @@ if doFinalSelectionPlots:
 
         # plots.append(
         #     makeDefaultPlot(
-        #         "LeadVtxDistXY_1stEle_LQ" + str(int(mass_point)),
+        #         "LeadVtxDistXY_1stEle_LQ" + str(massPoint=int(mass_point)),
         #         histoBaseName_userDef,
         #         samplesForHistos,
         #         keys,
@@ -4590,7 +4684,7 @@ if doFinalSelectionPlots:
 
         # plots.append(
         #     makeDefaultPlot(
-        #         "LeadVtxDistXY_2ndEle_LQ" + str(int(mass_point)),
+        #         "LeadVtxDistXY_2ndEle_LQ" + str(massPoint=int(mass_point)),
         #         histoBaseName_userDef,
         #         samplesForHistos,
         #         keys,
@@ -4610,7 +4704,7 @@ if doFinalSelectionPlots:
 
         # plots.append(
         #     makeDefaultPlot(
-        #         "LeadVtxDistZ_1stEle_LQ" + str(int(mass_point)),
+        #         "LeadVtxDistZ_1stEle_LQ" + str(massPoint=int(mass_point)),
         #         histoBaseName_userDef,
         #         samplesForHistos,
         #         keys,
@@ -4630,7 +4724,7 @@ if doFinalSelectionPlots:
 
         # plots.append(
         #     makeDefaultPlot(
-        #         "LeadVtxDistZ_2ndEle_LQ" + str(int(mass_point)),
+        #         "LeadVtxDistZ_2ndEle_LQ" + str(massPoint=int(mass_point)),
         #         histoBaseName_userDef,
         #         samplesForHistos,
         #         keys,
@@ -4650,7 +4744,7 @@ if doFinalSelectionPlots:
 
         # plots.append(
         #     makeDefaultPlot(
-        #         "MissingHits_1stEle_LQ" + str(int(mass_point)),
+        #         "MissingHits_1stEle_LQ" + str(massPoint=int(mass_point)),
         #         histoBaseName_userDef,
         #         samplesForHistos,
         #         keys,
@@ -4667,7 +4761,7 @@ if doFinalSelectionPlots:
 
         # plots.append(
         #     makeDefaultPlot(
-        #         "MissingHits_2ndEle_LQ" + str(int(mass_point)),
+        #         "MissingHits_2ndEle_LQ" + str(massPoint=int(mass_point)),
         #         histoBaseName_userDef,
         #         samplesForHistos,
         #         keys,
@@ -4770,7 +4864,7 @@ if doFinalSelectionPlots:
 
         # plots.append(
         #     makeDefaultPlot(
-        #         "EleChargeSum_LQ" + str(int(mass_point)),
+        #         "EleChargeSum_LQ" + str(massPoint=int(mass_point)),
         #         histoBaseName_userDef,
         #         samplesForHistos,
         #         keys,
@@ -4803,8 +4897,10 @@ if doFinalSelectionPlots:
                 systs=doSystematics,
                 rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                 fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                 doPrefit=options.preFit,
-                fitType=options.fitType
+                fitType=options.fitType,
+                massPoint=int(mass_point)
             )
         )
         plots[-1].xtit = "PFMET (GeV), (LQ M = " + str(mass_point) + " selection)"
@@ -4832,8 +4928,10 @@ if doFinalSelectionPlots:
                 systs=doSystematics,
                 rescaleDYJTTBarSystsAtPreselection=True if not options.preFit and not options.postFit else False,
                 fitDiagFilePath=options.fitDiagFilepath if options.preFit or options.postFit else None,
+                postFitJSON=options.postFitJSON if options.preFit or options.postFit else None,
                 doPrefit=options.preFit,
-                fitType=options.fitType
+                fitType=options.fitType,
+                massPoint=int(mass_point)
             )
         )
         plots[-1].xtit = "BDT score, (LQ M = " + str(mass_point) + " selection)"

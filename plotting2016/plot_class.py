@@ -16,6 +16,7 @@ from array import array
 import copy
 import ctypes
 import numpy as np
+import json
 from tabulate import tabulate
 import cmsstyle as CMS
 
@@ -182,7 +183,7 @@ def GetHisto(histoName, file, scale=1):
 
 
 def generateHistoList(histoBaseName, samples, variableName, fileNames, scale=1, sumSamples=False, sumSampleName="", rescaleSystsAtPreselection=False, normSyst=0,
-                      years=None, masses=None, fitDiagFilePath=None, doPrefit=False, fitType=None):
+                      years=None, masses=None, fitDiagFilePath=None, postFitJSON=None, doPrefit=False, fitType=None):
     if not isinstance(fileNames, list):
         fileNames = [fileNames]
     histolist = []
@@ -256,13 +257,18 @@ def generateHistoList(histoBaseName, samples, variableName, fileNames, scale=1, 
             # what we want is for the stat and syst uncertainties to sum in quad to the value it's supposed to be
             histo = histolist[-1]
             myMass = None
+            statUnc = None
+            systUnc = None
+            for mass in masses:
+                if "LQ{}".format(mass) in histo.GetName():
+                    myMass = mass
+            if myMass is None:
+                raise RuntimeError("Couldn't find mass in histo name '{}' when we expected one.".format(histo.GetName()))
             if fitDiagFilePath is not None:
-                for mass in masses:
-                    if "LQ{}".format(mass) in histo.GetName():
-                        myMass = mass
-                if myMass is None:
-                    raise RuntimeError("Couldn't find mass in histo name '{}' when we expected one.".format(histo.GetName()))
                 norm, totUncertainty = GetNormAndTotalUncertainty(sample, fitDiagFilePath, years, myMass, doPrefit, "prefit" if doPrefit else fitType)
+            elif postFitJSON is not None:
+                norm, statUnc, systUnc = GetNormAndUncertaintyFromJSON(sample, postFitJSON, myMass, "prefit" if doPrefit else fitType)
+                totUncertainty = math.sqrt(pow(statUnc, 2) + pow(systUnc, 2))
             integralErr = ctypes.c_double()
             integral = histo.IntegralAndError(0, histo.GetNbinsX()+2, 1, 1, integralErr)
             totalSyst = ctypes.c_double()
@@ -272,10 +278,15 @@ def generateHistoList(histoBaseName, samples, variableName, fileNames, scale=1, 
             if norm < 0:
                 norm = 0
             rescaleFactorForNorm = norm / integral if integral != 0 else norm / (histo.GetNbinsX()+2)
+            rescaleFactorForStatErr = statUnc / integralErr.value if integralErr.value != 0 else statUnc / math.sqrt(histo.GetNbinsX()+2)
             for binx in range(0, histo.GetNbinsX()+2):
                 binc = histo.GetBinContent(binx, 1)
+                bine = histo.GetBinError(binx, 1)
                 histo.SetBinContent(binx, 1, binc*rescaleFactorForNorm if integral != 0 else rescaleFactorForNorm)
-            rescaleFactorForSyst = math.sqrt(totUncertainty**2 - integralErr.value**2)
+                histo.SetBinError(binx, 1, bine*rescaleFactorForStatErr if integralErr.value != 0 else rescaleFactorForStatErr)
+            rescaleFactorForSyst = systUnc
+            if rescaleFactorForSyst is None:
+                rescaleFactorForSyst = math.sqrt(totUncertainty**2 - integralErr.value**2)
             noTotalSyst = False
             if totalSyst.value == 0:
                 print("WARN: TotalSystematic integral error for hist '{}' is zero; integral = {} +/- {}; total fitDiag norm={} +/- {}".format(histo.GetName(), totalSystIntegral, totalSyst, norm, totUncertainty))
@@ -300,7 +311,7 @@ def generateHistoList(histoBaseName, samples, variableName, fileNames, scale=1, 
     return histolist
 
 
-def generateHistoListFakeSystsFromModel(histoBaseName, samples, variableName, fileName, year, masses, qcdNormUnc, modelHist, scale=1, fitDiagFilePath=None, doPrefit=False, fitType=None):
+def generateHistoListFakeSystsFromModel(histoBaseName, samples, variableName, fileName, year, masses, qcdNormUnc, modelHist, scale=1, fitDiagFilePath=None, postFitJSON=None, doPrefit=False, fitType=None):
     # print("INFO: generateHistoListFakeSystsFromModel for histoBaseName={}, samples={}, variableName={}, modelHistName={}".format(histoBaseName, samples, variableName, modelHist.GetName()))
     sys.stdout.flush()
     histolist = []
@@ -328,7 +339,9 @@ def generateHistoListFakeSystsFromModel(histoBaseName, samples, variableName, fi
             for xBin in range(0, origHist.GetNbinsX()+2):
                 newHist.SetBinContent(xBin, 1, origHist.GetBinContent(xBin))
                 newHist.SetBinError(xBin, 1, origHist.GetBinError(xBin))
-            newHist = RenormalizeQCDHistoNormsAndUncs(sample, year, newHist, masses, qcdNormUnc, fitDiagFilePath, doPrefit, fitType)
+            if fitDiagFilePath is not None:
+                # only rescale per year for the fitDiag file case, which is only available per-year
+                newHist = RenormalizeQCDHistoNormsAndUncs(sample, year, newHist, masses, qcdNormUnc, fitDiagFilePath, postFitJSON, doPrefit, fitType)
         else:
             raise RuntimeError("Asked to make histo with fake systs but orig histo is of class {} and model is of class {}; don't know how to handle this".format(origHist.ClassName(), modelHist.ClassName()))
         histolist.append(newHist)
@@ -343,6 +356,20 @@ def GetNormAndTotalUncertainty(sample, fitDiagFilePath, years, myMass, doPrefit,
         totalNorm += norm if norm is not None else 0
         totalUnc += totUncertainty**2 if totUncertainty is not None else 0
     return totalNorm, math.sqrt(totalUnc)
+
+
+def GetNormAndUncertaintyFromJSON(sample, postFitJson, mass, postFitType):
+    if postFitType == "prefit":
+        suffix = "prefit"
+    else:
+        suffix = "fit_" + postFitType
+    with open(postFitJson, 'r') as theFile:
+        data = json.load(theFile)
+    info = data[str(mass)][sample][suffix]["bin1"]
+    norm = info["yield"]
+    statUnc = info["statErr"]
+    systUnc = info["systErr"]
+    return norm, statUnc, systUnc
 
 
 def GetNormAndTotalUncertaintyFromFitDiagFile(sample, fitDiagFilePath, year, mass, fitType):
@@ -373,22 +400,27 @@ def GetNormAndTotalUncertaintyFromFitDiagFile(sample, fitDiagFilePath, year, mas
     return norm, unc
 
 
-def RenormalizeQCDHistoNormsAndUncs(sample, year, histo, masses, qcdNormUnc, fitDiagFilePath, doPrefit, fitType, verbose=False):
+def RenormalizeQCDHistoNormsAndUncs(sample, year, histo, masses, qcdNormUnc, fitDiagFilePath, postFitJSON, doPrefit, fitType, verbose=False):
     hist = copy.deepcopy(histo)
     integralErr = ctypes.c_double()
     integral = hist.IntegralAndError(0, hist.GetNbinsX()+2, 1, 1, integralErr)
     myMass = None
+    for mass in masses:
+        if "LQ{}".format(mass) in hist.GetName():
+            # print("DEBUG: FOUND mass {} in histName={}".format(mass, hist.GetName()))
+            myMass = mass
     if fitDiagFilePath is not None:
-        for mass in masses:
-            if "LQ{}".format(mass) in hist.GetName():
-                # print("DEBUG: FOUND mass {} in histName={}".format(mass, hist.GetName()))
-                myMass = mass
         if myMass is None:
             return hist
         norm, totUncertainty = GetNormAndTotalUncertaintyFromFitDiagFile(sample, fitDiagFilePath, year, myMass, "prefit" if doPrefit else fitType)
     elif qcdNormUnc is not None:
         norm = integral
         totUncertainty = math.sqrt(pow(integral * qcdNormUnc, 2) + pow(integralErr.value, 2))
+    elif postFitJSON is not None:
+        if myMass is None:
+            return hist
+        norm, statUnc, systUnc = GetNormAndUncertaintyFromJSON(sample, postFitJSON, myMass, fitType)
+        totUncertainty = math.sqrt(pow(statUnc, 2) + pow(systUnc, 2))
 
     if norm is not None:
         print("INFO: RenormalizeQCDHistoNormsAndUncs(): Using norm={}, totUncertainty={} to rescale '{}'; integral = {} +/- {} (myMass={})".format(norm, totUncertainty, hist.GetName(), integral, integralErr, myMass))
@@ -906,6 +938,9 @@ class Plot:
         self.xNDivisions = 510
         self.histoRescaleFactor = 1.0
         self.verboseSysts = True
+        self.postFitJSON = None
+        self.massPoint = None
+        self.fitType = None
 
     def Draw(self, fileps, page_number=-1, style="AN"):
         if self.isInteractive:
@@ -1209,33 +1244,87 @@ class Plot:
 
         # -- background uncertainty band
         if self.addBkgUncBand:
-            self.bkgUncHist, graph = GetSystematicGraphAndHist(self.bkgTotalHist, self.systNames, self.verboseSysts)
+            self.bkgUncHist, _ = GetSystematicGraphAndHist(self.bkgTotalHist, self.systNames, self.verboseSysts)
             self.bkgUncHist = copy.deepcopy(self.bkgUncHist)
             self.bkgUncHist = rebinHisto(self.bkgUncHist, self.xmin, self.xmax, self.rebin, self.xbins, self.addOvfl)[0]
             # for xBin in range(0, self.bkgUncHist.GetNbinsX()+2):
             #     if self.bkgUncHist.GetBinContent(xBin) != 0:
             #         print("INFO: for xBin={}, center={}, binError={} vs. nominal={}; binError/nominal={}".format(xBin, self.bkgUncHist.GetXaxis().GetBinCenter(xBin), self.bkgUncHist.GetBinError(xBin), self.bkgUncHist.GetBinContent(xBin), self.bkgUncHist.GetBinError(xBin)/self.bkgUncHist.GetBinContent(xBin)))
+            integralErr = ctypes.c_double()
+            integral = self.bkgUncHist.IntegralAndError(0, self.bkgUncHist.GetNbinsX()+2, integralErr)
+            print("INFO for bkgUncHist, integral = {} +/- {}; xbins={}".format(integral, integralErr.value, self.bkgUncHist.GetNbinsX()))
+            norm = None
+            if self.postFitJSON is not None:
+                norm, statUnc, systUnc = GetNormAndUncertaintyFromJSON("total_background", self.postFitJSON, self.massPoint, self.fitType)
             if style == "paper":
-                # here we take syst (+) stat as the bin error
-                for binn in range(0, self.bkgUncHist.GetNbinsX()+2):
-                    binContent = self.bkgUncHist.GetBinContent(binn)
-                    # if binContent != 0:
-                    #     print("DEBUG: binn={} [{}], bkgUncHist = {} +/- {}; add stat uncertainty={}".format(binn, self.bkgUncHist.GetXaxis().GetBinCenter(binn), self.bkgUncHist.GetBinContent(binn), self.bkgUncHist.GetBinError(binn), bkgTotalHist.GetBinError(binn)))
-                    #     self.bkgUncHist.SetBinError(binn, math.sqrt(pow(self.bkgUncHist.GetBinError(binn), 2) + pow(bkgTotalHist.GetBinError(binn), 2)) )
-                    # print("DEBUG: binn={} [{}], bkgTotalHist = {} +/- {}, bkgUncHist = {} +/- {} (after adding stats)".format(binn, bkgTotalHist.GetXaxis().GetBinCenter(binn), bkgTotalHist.GetBinContent(binn), bkgTotalHist.GetBinError(binn), self.bkgUncHist.GetBinContent(binn), self.bkgUncHist.GetBinError(binn)))
-                    # print("DEBUG: binn={} [{}], self.bkgTotalHist ybin1 = {} +/- {}".format(binn, self.bkgTotalHist.GetXaxis().GetBinCenter(binn), self.bkgTotalHist.GetBinContent(binn), self.bkgTotalHist.GetBinError(binn, 1)))
+                if norm is not None:
+                    # rescale to postFitJSON numbers
+                    totUncertainty = math.sqrt(pow(statUnc, 2) + pow(systUnc, 2))
+                    origBinContent = [self.bkgUncHist.GetBinContent(xBin) for xBin in range(0, self.bkgUncHist.GetNbinsX()+2)]
+                    for xBin in range(0, self.bkgUncHist.GetNbinsX()+2):
+                        if self.bkgUncHist.GetBinContent(xBin) != 0:
+                            # if verbose:
+                            #     print("INFO: RenormalizeQCDself.bkgUncHistoNormsAndUncs(): self.bkgUncHist '{}', xBin={}, yBin={}, scale bin content {} --> {}".format(self.bkgUncHist.GetName(), xBin, yBin, self.bkgUncHist.GetBinContent(xBin, yBin),
+                            #                                                                                 norm/integral * origBinContent[xBin]))
+                            self.bkgUncHist.SetBinContent(xBin, norm/integral * origBinContent[xBin])
+                        if self.bkgUncHist.GetBinError(xBin) != 0:
+                            # if verbose:
+                            #     print("INFO: RenormalizeQCDself.bkgUncHistoNormsAndUncs(): self.bkgUncHist '{}', xBin={}, yBin={}, scale bin error {} --> {}".format(self.bkgUncHist.GetName(), xBin, yBin, self.bkgUncHist.GetBinError(xBin, yBin),
+                            #                                                                                 totUncertainty/integralErr.value * self.bkgUncHist.GetBinError(xBin, yBin)))
+                            self.bkgUncHist.SetBinError(xBin, totUncertainty/integralErr.value * self.bkgUncHist.GetBinError(xBin))
+                else:
+                    # here we take syst (+) stat as the bin error
+                    # this is all computed from the scaling of the individual processes
+                    for binn in range(0, self.bkgUncHist.GetNbinsX()+2):
+                        binContent = self.bkgUncHist.GetBinContent(binn)
+                        # if binContent != 0:
+                        #     print("DEBUG: binn={} [{}], bkgUncHist = {} +/- {}; add stat uncertainty={}".format(binn, self.bkgUncHist.GetXaxis().GetBinCenter(binn), self.bkgUncHist.GetBinContent(binn), self.bkgUncHist.GetBinError(binn), bkgTotalHist.GetBinError(binn)))
+                        self.bkgUncHist.SetBinError(binn, math.sqrt(pow(self.bkgUncHist.GetBinError(binn), 2) + pow(bkgTotalHist.GetBinError(binn), 2)) )
+                        # print("DEBUG: binn={} [{}], bkgTotalHist = {} +/- {}, bkgUncHist = {} +/- {} (after adding stats)".format(binn, bkgTotalHist.GetXaxis().GetBinCenter(binn), bkgTotalHist.GetBinContent(binn), bkgTotalHist.GetBinError(binn), self.bkgUncHist.GetBinContent(binn), self.bkgUncHist.GetBinError(binn)))
+                        # print("DEBUG: binn={} [{}], self.bkgTotalHist ybin1 = {} +/- {}".format(binn, self.bkgTotalHist.GetXaxis().GetBinCenter(binn), self.bkgTotalHist.GetBinContent(binn), self.bkgTotalHist.GetBinError(binn, 1)))
+                        totSystBin = self.bkgTotalHist.GetYaxis().FindFixBin("TotalSystematic")
+                        # print("DEBUG: binn={} [{}], self.bkgTotalHist TotalSystematic bin = {} +/- {}".format(binn, self.bkgTotalHist.GetXaxis().GetBinCenter(binn), self.bkgTotalHist.GetBinContent(binn), self.bkgTotalHist.GetBinError(binn, totSystBin)))
+                    integral = self.bkgTotalHist.IntegralAndError(0, self.bkgTotalHist.GetNbinsX()+2, 1, 1, integralErr)
+                    print("INFO: for bkgTotalHist, integral bin 1 (stat unc) = {} +/- {}; xbins={}".format(integral, integralErr.value, self.bkgTotalHist.GetNbinsX()))
                     totSystBin = self.bkgTotalHist.GetYaxis().FindFixBin("TotalSystematic")
-                    # print("DEBUG: binn={} [{}], self.bkgTotalHist TotalSystematic bin = {} +/- {}".format(binn, self.bkgTotalHist.GetXaxis().GetBinCenter(binn), self.bkgTotalHist.GetBinContent(binn), self.bkgTotalHist.GetBinError(binn, totSystBin)))
-                integralErr = ctypes.c_double()
-                integral = self.bkgUncHist.IntegralAndError(0, self.bkgUncHist.GetNbinsX()+2, integralErr)
-                # print("DEBUG: for bkgUncHist, integral (total after including stat unc) = {} +/- {}; xbins={}".format(integral, integralErr, self.bkgUncHist.GetNbinsX()))
+                    if totSystBin >= 0:
+                        systIntegralErr = ctypes.c_double()
+                        systIntegral = self.bkgTotalHist.IntegralAndError(0, self.bkgTotalHist.GetNbinsX()+2, totSystBin, totSystBin, systIntegralErr)
+                        # print("DEBUG: for bkgTotalHist, integral of TotalSystematic bin  = {} +/- {}".format(systIntegral, systIntegralErr))
+            elif norm is not None:
+                # rescale to postFitJSON numbers
+                # stat
                 integral = self.bkgTotalHist.IntegralAndError(0, self.bkgTotalHist.GetNbinsX()+2, 1, 1, integralErr)
-                # print("DEBUG: for bkgTotalHist, integral bin 1 (stat unc) = {} +/- {}; xbins={}".format(integral, integralErr, self.bkgTotalHist.GetNbinsX()))
-                totSystBin = self.bkgTotalHist.GetYaxis().FindFixBin("TotalSystematic")
-                if totSystBin >= 0:
-                    systIntegralErr = ctypes.c_double()
-                    systIntegral = self.bkgTotalHist.IntegralAndError(0, self.bkgTotalHist.GetNbinsX()+2, totSystBin, totSystBin, systIntegralErr)
-                    # print("DEBUG: for bkgTotalHist, integral of TotalSystematic bin  = {} +/- {}".format(systIntegral, systIntegralErr))
+                origBinContent = [self.bkgTotalHist.GetBinContent(xBin) for xBin in range(0, self.bkgTotalHist.GetNbinsX()+2)]
+                for xBin in range(0, self.bkgTotalHist.GetNbinsX()+2):
+                    if self.bkgTotalHist.GetBinContent(xBin) != 0:
+                        # if verbose:
+                        #     print("INFO: RenormalizeQCDself.bkgTotalHistoNormsAndUncs(): self.bkgTotalHist '{}', xBin={}, yBin={}, scale bin content {} --> {}".format(self.bkgTotalHist.GetName(), xBin, yBin, self.bkgTotalHist.GetBinContent(xBin, yBin),
+                        #                                                                                 norm/integral * origBinContent[xBin]))
+                        self.bkgTotalHist.SetBinContent(xBin, norm/integral * origBinContent[xBin])
+                    if self.bkgTotalHist.GetBinError(xBin) != 0:
+                        # if verbose:
+                        #     print("INFO: RenormalizeQCDself.bkgTotalHistoNormsAndUncs(): self.bkgTotalHist '{}', xBin={}, yBin={}, scale bin error {} --> {}".format(self.bkgTotalHist.GetName(), xBin, yBin, self.bkgTotalHist.GetBinError(xBin, yBin),
+                        #                                                                                 totUncertainty/integralErr.value * self.bkgTotalHist.GetBinError(xBin, yBin)))
+                        self.bkgTotalHist.SetBinError(xBin, statUnc/integralErr.value * self.bkgTotalHist.GetBinError(xBin))
+                # syst
+                integral = self.bkgUncHist.IntegralAndError(0, self.bkgUncHist.GetNbinsX()+2, integralErr)
+                origBinContent = [self.bkgUncHist.GetBinContent(xBin) for xBin in range(0, self.bkgUncHist.GetNbinsX()+2)]
+                for xBin in range(0, self.bkgUncHist.GetNbinsX()+2):
+                    if self.bkgUncHist.GetBinContent(xBin) != 0:
+                        # if verbose:
+                        #     print("INFO: RenormalizeQCDself.bkgUncHistoNormsAndUncs(): self.bkgUncHist '{}', xBin={}, yBin={}, scale bin content {} --> {}".format(self.bkgUncHist.GetName(), xBin, yBin, self.bkgUncHist.GetBinContent(xBin, yBin),
+                        #                                                                                 norm/integral * origBinContent[xBin]))
+                        self.bkgUncHist.SetBinContent(xBin, norm/integral * origBinContent[xBin])
+                    if self.bkgUncHist.GetBinError(xBin) != 0:
+                        # if verbose:
+                        #     print("INFO: RenormalizeQCDself.bkgUncHistoNormsAndUncs(): self.bkgUncHist '{}', xBin={}, yBin={}, scale bin error {} --> {}".format(self.bkgUncHist.GetName(), xBin, yBin, self.bkgUncHist.GetBinError(xBin, yBin),
+                        #                                                                                 totUncertainty/integralErr.value * self.bkgUncHist.GetBinError(xBin, yBin)))
+                        self.bkgUncHist.SetBinError(xBin, systUnc/integralErr.value * self.bkgUncHist.GetBinError(xBin))
+                
+            systIntegralErr = ctypes.c_double()
+            systIntegral = self.bkgUncHist.IntegralAndError(0, self.bkgUncHist.GetNbinsX()+2, systIntegralErr)
+            print("INFO: bkgUncHist final integral = {} +/- {}".format(systIntegral, systIntegralErr.value))
             self.bkgUncHist.SetMarkerStyle(0)
             self.bkgUncHist.SetLineColor(0)
             self.bkgUncHist.SetFillColor(kGray + 2)
