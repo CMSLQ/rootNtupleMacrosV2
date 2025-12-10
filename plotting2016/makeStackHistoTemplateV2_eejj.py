@@ -183,7 +183,8 @@ makeNSigma = 1
 pt_rebin = 2
 
 if doSystematics:
-    systNames = ["Prefire", "EES", "EER", "JES", "JER", "EleRecoSF", "EleIDSF", "EleTrigSF", "Pileup", "LHEPdf", "LHEScale"]
+    systNames = ["Prefire", "EES", "EER", "JES", "JER", "EleRecoSF", "EleIDSF", "EleTrigSF", "Pileup", "UnclusteredEne", "LHEPdf", "LHEScale"]
+    uncorrelatedSysts = ["Prefire", "EES", "EER", "JES", "JER", "EleRecoSF", "EleIDSF", "EleTrigSF", "Pileup", "UnclusteredEne"]
     if doPrefit or doPostfit:
         systNames = ["TotalSystematic"]
     print("INFO: using systNames={}".format(systNames))
@@ -200,9 +201,6 @@ histoBaseName2D_userDef = "histo2D__SAMPLE__VARIABLE"
 
 samplesForStackHistos_QCD = []
 if doQCD:
-    # File_QCD_preselection = GetFile(
-    #     inputFileQCD
-    # )
     # samplesForStackHistos_QCD = ["QCD_EMEnriched"]
     samplesForStackHistos_QCD = ["QCDFakes_DATA"]
 
@@ -471,10 +469,10 @@ def makeDefaultPlot(
         doPrefit=doPrefit,
         fitType=fitType
         ))
-    if systs:
-        qcdHists = []
-        for year in qcdYearsToUse:
-            qcdFile = TFile.Open(inputFileQCDPath.format(year))
+    qcdHists = []
+    for year in qcdYearsToUse:
+        qcdFile = TFile.Open(inputFileQCDPath.format(year))
+        if systs:
             qcdHistsThisYear = generateHistoListFakeSystsFromModel(
                 histoBaseName.replace("histo2D", "histo1D").replace("WithSystematics", ""),  # never have systs for data-driven QCD
                 samplesForStackHistos_QCD,
@@ -490,28 +488,28 @@ def makeDefaultPlot(
                 doPrefit=options.preFit,
                 fitType=options.fitType
             ) if doQCD else []
-            if len(qcdHists) < 1:
-                qcdHists = qcdHistsThisYear
-            else:
-                for idx, hist in enumerate(qcdHists):
-                    hist.Add(qcdHistsThisYear[idx])
-            qcdFile.Close()
-        if postFitJSON is not None:
-            if len(samplesForStackHistos_QCD) > 1:
-                raise RuntimeError("Don't currently know how to handle this case where we have more than 1 QCD sample, and we have {}.".format(len(samplesForStackHistos_QCD)))
-            qcdHistsNew = []
-            # in this case, we simply add up the QCD hists for each year, and then rescale once
-            for hist in qcdHists:
-                hist = RenormalizeQCDHistoNormsAndUncs(samplesForStackHistos_QCD[0], "noyear", hist, LQmassesFinalSelection, None, None, postFitJSON, doPrefit, fitType)
-                qcdHistsNew.append(hist)
-            qcdHists = qcdHistsNew
-    else:
-        qcdHists = generateHistoList(
-            histoBaseName,
-            samplesForStackHistos_QCD,
-            variableName,
-            File_QCD_preselection
-        ) if doQCD else []
+        else:
+            qcdHistsThisYear = generateHistoList(
+                histoBaseName,
+                samplesForStackHistos_QCD,
+                variableName,
+                qcdFile 
+            ) if doQCD else []
+        if len(qcdHists) < 1:
+            qcdHists = qcdHistsThisYear
+        else:
+            for idx, hist in enumerate(qcdHists):
+                hist.Add(qcdHistsThisYear[idx])
+        qcdFile.Close()
+    if postFitJSON is not None:
+        if len(samplesForStackHistos_QCD) > 1:
+            raise RuntimeError("Don't currently know how to handle this case where we have more than 1 QCD sample, and we have {}.".format(len(samplesForStackHistos_QCD)))
+        qcdHistsNew = []
+        # in this case, we simply add up the QCD hists for each year, and then rescale once
+        for hist in qcdHists:
+            hist = RenormalizeQCDHistoNormsAndUncs(samplesForStackHistos_QCD[0], "noyear", hist, LQmassesFinalSelection, None, None, postFitJSON, doPrefit, fitType)
+            qcdHistsNew.append(hist)
+        qcdHists = qcdHistsNew
     if quasiRebinQCD:
         qcdHistsNew = []
         for hist in qcdHists:

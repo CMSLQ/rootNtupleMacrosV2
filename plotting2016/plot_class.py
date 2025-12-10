@@ -240,7 +240,7 @@ def generateHistoList(histoBaseName, samples, variableName, fileNames, scale=1, 
                     bine = histo.GetBinError(binx, biny)
                     histo.SetBinContent(binx, biny, binc*avgRescaleFactor)
                     histo.SetBinError(binx, biny, bine*avgRescaleFactor)
-                    # not very nice: use pileup syst to store the norm systs on top
+                    # not very nice: use EES syst to store the norm systs on top
                     if "ees" in yBinLabel.lower():
                         nominal = histo.GetBinContent(binx, 1)
                         binc = histo.GetBinContent(binx, biny)
