@@ -182,7 +182,7 @@ def GetHisto(histoName, file, scale=1):
     return new
 
 
-def generateHistoList(histoBaseName, samples, variableName, fileNames, scale=1, sumSamples=False, sumSampleName="", rescaleSystsAtPreselection=False, normSyst=0,
+def generateHistoList(histoBaseName, samples, variableName, fileNames, scale=1, sumSamples=False, sumSampleName="", rescaleSystsAtPreselection=False, normSyst=0, lumiSyst=0,
                       years=None, masses=None, fitDiagFilePath=None, postFitJSON=None, doPrefit=False, fitType=None):
     if not isinstance(fileNames, list):
         fileNames = [fileNames]
@@ -216,8 +216,29 @@ def generateHistoList(histoBaseName, samples, variableName, fileNames, scale=1, 
         #     print("\txbin {}, ybin {}: {} +/- {}".format(binx, biny, binc, bine))
         # # print("DEBUG2: For hist={}, rescaleSystsAtPreselection ? {}".format(histo.GetName(), rescaleSystsAtPreselection))
         # # DEBUG
+        # add lumi syst on top of EES
+        if lumiSyst != 0:
+            histo = histolist[-1]
+            for biny in range(2, histo.GetNbinsY()+2):
+                yBinLabel = histo.GetYaxis().GetBinLabel(biny)
+                if "ees" not in yBinLabel.lower():
+                    continue
+                for binx in range(0, histo.GetNbinsX()+2):
+                    # not very nice: use EES syst to store the norm systs on top
+                    nominal = histo.GetBinContent(binx, 1)
+                    binc = histo.GetBinContent(binx, biny)
+                    bine = histo.GetBinError(binx, biny)
+                    if "up" in yBinLabel.lower():
+                        print("DEBUG1: histo {}, set {} xbin {} bin content from {} to {} + {} = {}; set bin error from {} to {}; lumiSyst={}, nominal={}".format(histo.GetName(), yBinLabel, binx, binc, binc, nominal*lumiSyst, binc + nominal*lumiSyst, bine, math.sqrt( pow(nominal*lumiSyst, 2) + pow(bine, 2) ), lumiSyst, nominal))
+                        histo.SetBinContent(binx, biny, binc + nominal*lumiSyst)
+                    else:
+                        histo.SetBinContent(binx, biny, binc - nominal*lumiSyst)
+                    histo.SetBinError(binx, biny, math.sqrt( pow(nominal*lumiSyst, 2) + pow(bine, 2) ))
+
         if rescaleSystsAtPreselection:
             histo = histolist[-1]
+            if lumiSyst != 0:
+                raise RuntimeError("Asked to rescale systs at preselection for hist '{}' but we have specified a lumi syst, so this doesn't make sense.".format(histo.GetName()))
             if not histo.InheritsFrom("TH2"):
                 raise RuntimeError("Asked to zero systematics from histogram named '{}' from file '{}', but it's not 2-D".format(
                     histo.GetName(), fileNames[idx]))

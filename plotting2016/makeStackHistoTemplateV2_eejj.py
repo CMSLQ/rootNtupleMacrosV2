@@ -149,22 +149,28 @@ for year in SeparateArgs(options.years):
         do2016 = True
         do2016pre = True
         qcdYearsToUse = ['2016preVFP']
+        lumiNormSyst = 0.012
     elif '2016postVFP' in year:
         do2016 = True
         do2016post = True
         qcdYearsToUse = ['2016postVFP']
+        lumiNormSyst = 0.012
     elif '2016' in year:
         do2016 = True
         qcdYearsToUse = ['2016preVFP', '2016postVFP']
+        lumiNormSyst = 0.012
     elif '2017' in year:
         do2017 = True
         qcdYearsToUse = ['2017']
+        lumiNormSyst = 0.0082
     elif '2018' in year:
         do2018 = True
         qcdYearsToUse = ['2018']
+        lumiNormSyst = 0.0084
     elif 'RunII' == year or 'all' == year.lower():
         doRunII = True
         qcdYearsToUse = ['2016preVFP', '2016postVFP', '2017', '2018']
+        lumiNormSyst = 0.0073
     else:
         print("ERROR: could not find one of 2017/2017/2018/RunII/all in given year. cannot do year-specific customizations. quitting.")
         exit(-1)
@@ -440,7 +446,9 @@ def makeDefaultPlot(
     plot.systNames = systList
     plot.histosStack = []
     plot.histosStack.extend(generateHistoList(
-            histoBaseName, samplesForStackHistos_other, variableName, [dataMCFilesDict[sample] for sample in samplesForStackHistos_other], 1.0, True, histoBaseName.replace("SAMPLE", "OTHERBKG").replace("VARIABLE", variableName), 
+            histoBaseName, samplesForStackHistos_other, variableName, [dataMCFilesDict[sample] for sample in samplesForStackHistos_other],
+            1.0, True, histoBaseName.replace("SAMPLE", "OTHERBKG").replace("VARIABLE", variableName), 
+            lumiSyst=lumiNormSyst,
             years=qcdYearsToUse,
             masses=LQmassesFinalSelection,
             fitDiagFilePath=fitDiagFilePath,
@@ -449,7 +457,8 @@ def makeDefaultPlot(
             fitType=fitType
         ))
     plot.histosStack.extend(generateHistoList(
-            histoBaseName, samplesForStackHistos_ttbar, variableName, [dataMCFilesDict[sample] for sample in samplesForStackHistos_ttbar], rescaleSystsAtPreselection=rescaleDYJTTBarSystsAtPreselection,
+            histoBaseName, samplesForStackHistos_ttbar, variableName, [dataMCFilesDict[sample] for sample in samplesForStackHistos_ttbar],
+            rescaleSystsAtPreselection=rescaleDYJTTBarSystsAtPreselection,
             normSyst=ttbarNormSyst,
             years=qcdYearsToUse,
             masses=LQmassesFinalSelection,
@@ -460,14 +469,15 @@ def makeDefaultPlot(
             
         ))
     plot.histosStack.extend(generateHistoList(
-        histoBaseName, samplesForStackHistos_ZJets, variableName, [dataMCFilesDict[sample] for sample in samplesForStackHistos_ZJets], rescaleSystsAtPreselection=rescaleDYJTTBarSystsAtPreselection,
-        normSyst=dyjNormSyst,
-        years=qcdYearsToUse,
-            masses=LQmassesFinalSelection,
-        fitDiagFilePath=fitDiagFilePath,
-            postFitJSON=postFitJSON,
-        doPrefit=doPrefit,
-        fitType=fitType
+            histoBaseName, samplesForStackHistos_ZJets, variableName, [dataMCFilesDict[sample] for sample in samplesForStackHistos_ZJets],
+            rescaleSystsAtPreselection=rescaleDYJTTBarSystsAtPreselection,
+            normSyst=dyjNormSyst,
+            years=qcdYearsToUse,
+                masses=LQmassesFinalSelection,
+            fitDiagFilePath=fitDiagFilePath,
+                postFitJSON=postFitJSON,
+            doPrefit=doPrefit,
+            fitType=fitType
         ))
     qcdHists = []
     for year in qcdYearsToUse:
@@ -520,7 +530,7 @@ def makeDefaultPlot(
     #plot.histosStack = generateHistoList(histoBaseName, samplesForStackHistos_ZJets, variableName, File_preselection)
     #print("2) histosStack=", plot.histosStack)
     plot.histos = generateHistoList(
-        histoBaseName, samplesForHistos, variableName, [dataMCFilesDict[sample] for sample in samplesForHistos]
+        histoBaseName, samplesForHistos, variableName, [dataMCFilesDict[sample] for sample in samplesForHistos], lumiSyst=lumiNormSyst
     )
     if dataBlindAbove != 0 and sampleForDataHisto != "":
         scale = 1.0
