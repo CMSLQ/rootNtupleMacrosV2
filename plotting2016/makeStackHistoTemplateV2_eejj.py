@@ -97,6 +97,15 @@ parser.add_option(
     help="fit type for postfit final selection plots",
     metavar="FITTYPE",
 )
+
+parser.add_option(
+    "--reducedSet",
+    dest="reducedSet",
+    default=False,
+    action="store_true",
+    help="produce reduced set of plots",
+    metavar="REDUCEDSET",
+)
     
 (options, args) = parser.parse_args()
 
@@ -127,13 +136,15 @@ qcdNormSyst = 0.4
 doPreselPlots = False
 doBTagPlots = False
 doFinalSelectionPlots = True
-doFullSet = True
+doFullSet = not options.reducedSet
 blindFinalSelectionData = False
 doPrefit = options.preFit
 doPostfit = options.postFit
 if doPrefit or doPostfit:
     doPreselPlots = False
     print("INFO: Not doing preselection plots as prefit or postfit option is enabled.")
+if doPrefit:
+    options.fitType = "prefit"
 if doPostfit:
     if options.fitType is None:
         print(usage)

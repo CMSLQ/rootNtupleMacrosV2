@@ -229,7 +229,7 @@ def generateHistoList(histoBaseName, samples, variableName, fileNames, scale=1, 
                     binc = histo.GetBinContent(binx, biny)
                     bine = histo.GetBinError(binx, biny)
                     if "up" in yBinLabel.lower():
-                        print("DEBUG1: histo {}, set {} xbin {} bin content from {} to {} + {} = {}; set bin error from {} to {}; lumiSyst={}, nominal={}".format(histo.GetName(), yBinLabel, binx, binc, binc, nominal*lumiSyst, binc + nominal*lumiSyst, bine, math.sqrt( pow(nominal*lumiSyst, 2) + pow(bine, 2) ), lumiSyst, nominal))
+                        # print("DEBUG1: histo {}, set {} xbin {} bin content from {} to {} + {} = {}; set bin error from {} to {}; lumiSyst={}, nominal={}".format(histo.GetName(), yBinLabel, binx, binc, binc, nominal*lumiSyst, binc + nominal*lumiSyst, bine, math.sqrt( pow(nominal*lumiSyst, 2) + pow(bine, 2) ), lumiSyst, nominal))
                         histo.SetBinContent(binx, biny, binc + nominal*lumiSyst)
                     else:
                         histo.SetBinContent(binx, biny, binc - nominal*lumiSyst)
@@ -444,7 +444,8 @@ def RenormalizeQCDHistoNormsAndUncs(sample, year, histo, masses, qcdNormUnc, fit
         totUncertainty = math.sqrt(pow(statUnc, 2) + pow(systUnc, 2))
 
     if norm is not None:
-        print("INFO: RenormalizeQCDHistoNormsAndUncs(): Using norm={}, totUncertainty={} to rescale '{}'; integral = {} +/- {} (myMass={})".format(norm, totUncertainty, hist.GetName(), integral, integralErr, myMass))
+        if verbose:
+            print("INFO: RenormalizeQCDHistoNormsAndUncs(): Using norm={}, totUncertainty={} to rescale '{}'; integral = {} +/- {} (myMass={})".format(norm, totUncertainty, hist.GetName(), integral, integralErr, myMass))
         # make sure there is a valid fit result
         # # DEBUG
         # yBin = hist.GetYaxis().FindFixBin("TotalSystematic")
@@ -818,7 +819,8 @@ def GetSystematicGraphAndHist(bkgTotalHist, systNames, verbose=False):
             binLowEdges = [bkgTotalHist.GetXaxis().GetBinLowEdge(xBin) for xBin in xBins]
             nominals = [bkgTotalHist.GetBinContent(xBin, 1) for xBin in xBins]
             upErrorDict = {lowEdge:err for lowEdge in binLowEdges for err in upErrs}
-            print("for hist={}, syst={}, got upErrs={}, downErrs={}".format(bkgTotalHist.GetName(), systName, upErrorDict, downErrs.tolist()))
+            if verbose:
+                print("DEBUG: for hist={}, syst={}, got upErrs={}, downErrs={}".format(bkgTotalHist.GetName(), systName, upErrorDict, downErrs.tolist()))
             upErrsSliced = [upErrs[xBin] for xBin in xBins]
             downErrsSliced = [downErrs[xBin] for xBin in xBins]
             upErrPercents = [100*upErr/nom if nom != 0 else 0 for nom, upErr in zip(nominals, upErrsSliced)]
@@ -826,11 +828,12 @@ def GetSystematicGraphAndHist(bkgTotalHist, systNames, verbose=False):
             upErrsPercentBySyst[systName] = upErrPercents
             downErrsPercentBySyst[systName] = downErrPercents
             rows = [list(x) for x in zip(xBins, binLowEdges, nominals, upErrsSliced, downErrsSliced, upErrPercents, downErrPercents)]
-            if len(rows) > 0:
-                print("Table for syst: {}".format(systName))
-                print(tabulate(rows, headers=headers, tablefmt="github", floatfmt=".4f"))
-            else:
-                print("Table for syst: {} has no rows".format(systName))
+            if verbose:
+                if len(rows) > 0:
+                    print("Table for syst: {}".format(systName))
+                    print(tabulate(rows, headers=headers, tablefmt="github", floatfmt=".4f"))
+                else:
+                    print("Table for syst: {} has no rows".format(systName))
     upErrsComb = np.sqrt(upErrsComb)
     downErrsComb = np.sqrt(downErrsComb)
     if verbose:
