@@ -133,9 +133,9 @@ quasiRebinQCD = False  # TODO: not sure the current algorithm works correctly or
 dyjNormSyst = 0.2
 ttbarNormSyst = 0.1
 qcdNormSyst = 0.4
-doPreselPlots = False
+doPreselPlots = True
 doBTagPlots = False
-doFinalSelectionPlots = True
+doFinalSelectionPlots = False
 doFullSet = not options.reducedSet
 blindFinalSelectionData = False
 doPrefit = options.preFit
@@ -192,6 +192,8 @@ LQmasses = [1000, 1200, 1500]
 # LQmassesFinalSelection = [1200, 1500]
 LQmassesFinalSelection = list(range(300, 3100, 100))
 # LQmassesFinalSelection = [1200]
+if not doFinalSelectionPlots:
+    LQmassesFinalSelection = []
 
 zUncBand = "no"
 makeRatio = 1

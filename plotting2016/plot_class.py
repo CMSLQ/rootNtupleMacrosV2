@@ -149,9 +149,9 @@ maxAxisValue = nSigma2DPaletteMax
 
 def GetFile(filename):
     if filename.startswith("/eos/cms"):
-        filename = "root://eoscms/" + filename
+        filename = "root://eoscms.cern.ch/" + filename.replace("eos/cms", "")
     elif filename.startswith("/eos/user"):
-        filename = "root://eosuser/" + filename
+        filename = "root://eosuser.cern.ch/" + filename
     # print("GetFile("+filename+")", flush=True)
     tfile = TFile.Open(filename)
     if not tfile or tfile.IsZombie():
@@ -961,7 +961,7 @@ class Plot:
         self.extraText = ""
         self.xNDivisions = 510
         self.histoRescaleFactor = 1.0
-        self.verboseSysts = True
+        self.verboseSysts = False
         self.postFitJSON = None
         self.massPoint = None
         self.fitType = None
@@ -2296,48 +2296,48 @@ def makeTOC(tex_file_name, plot_file_name, plot_list):
 
 def makeTOCTexFile(tex_file_name, plot_list):
     with open(tex_file_name, "w") as texFile:
-        texFile.write("\documentclass{article}\n")
+        texFile.write("\\documentclass{article}\n")
         texFile.write("\\usepackage{multirow}\n")
         texFile.write(
             "\\usepackage[landscape, top=1cm, bottom=1cm, left=1cm, right=1cm]{geometry}\n"
         )
-        texFile.write("\pagestyle{empty}\n")
+        texFile.write("\\pagestyle{empty}\n")
         texFile.write("\\begin{document}\n")
         texFile.write("\\begin{table} \n")
         texFile.write("\\begin{tabular}{ l | c  } \n")
         texFile.write("Plot name & Page number \\\\ \n")
-        texFile.write("\hline \n")
-        texFile.write("\hline \n")
+        texFile.write("\\hline \n")
+        texFile.write("\\hline \n")
 
         for i, plot in enumerate(plot_list):
             if i % 40 == 0 and i != 0 and i + 1 != len(plot_list):
-                texFile.write("\end{tabular}\n")
-                texFile.write("\end{table}\n")
+                texFile.write("\\end{tabular}\n")
+                texFile.write("\\end{table}\n")
                 texFile.write("\n\n")
                 texFile.write("\\newpage\n")
 
                 texFile.write("\\begin{table} \n")
                 texFile.write("\\begin{tabular}{ l | c  } \n")
                 texFile.write("Plot name & Page number \\\\ \n")
-                texFile.write("\hline \n")
-                texFile.write("\hline \n")
+                texFile.write("\\hline \n")
+                texFile.write("\\hline \n")
 
             if i + 1 % 6 == 0:
-                texFile.write("\hline \n")
+                texFile.write("\\hline \n")
 
             title = plot.xtit
-            title = title.replace("#Delta", "$\Delta$")
-            title = title.replace("#sigma", "$\sigma$")
-            title = title.replace("#eta", "$\eta$")
-            title = title.replace("#phi", "$\phi$")
-            title = title.replace("#", "\#")
-            title = title.replace("_", "\_")
-            title = title.replace("^", "\^")
+            title = title.replace("#Delta", "$\\Delta$")
+            title = title.replace("#sigma", "$\\sigma$")
+            title = title.replace("#eta", "$\\eta$")
+            title = title.replace("#phi", "$\\phi$")
+            title = title.replace("#", "\\#")
+            title = title.replace("_", "\\_")
+            title = title.replace("^", "\\^")
             title = title.replace(">", "$>$")
             title = title.replace("<", "$<$")
             # print 'title is now:',title
             texFile.write(title + " & " + str(i + 1) + " \\\\ \n")
 
-        texFile.write("\end{tabular}\n")
-        texFile.write("\end{table}\n")
-        texFile.write("\end{document}\n")
+        texFile.write("\\end{tabular}\n")
+        texFile.write("\\end{table}\n")
+        texFile.write("\\end{document}\n")
