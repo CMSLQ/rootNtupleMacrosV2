@@ -357,9 +357,26 @@ def generateHistoListFakeSystsFromModel(histoBaseName, samples, variableName, fi
             )
             modelHist.GetXaxis().Copy(newHist.GetXaxis())
             modelHist.GetYaxis().Copy(newHist.GetYaxis())
-            for xBin in range(0, origHist.GetNbinsX()+2):
-                newHist.SetBinContent(xBin, 1, origHist.GetBinContent(xBin))
-                newHist.SetBinError(xBin, 1, origHist.GetBinError(xBin))
+            if modelHist.GetNbinsY() < 2 and qcdNormUnc > 0:
+                raise RuntimeError("Can't put QCD norm uncertainty into separate systematic bin, as the input (model) hist doesn't have any systematics")
+            if "Down" not in modelHist.GetYaxis().GetBinLabel(2):
+                raise RuntimeError("Not sure how to put QCD norm uncertainty into first syst bin in input (model) hist, as bin label 3 '{}' doesn't contain 'Down'".format(modelHist.GetYaxis().GetBinLabel(2)))
+            if "Up" not in modelHist.GetYaxis().GetBinLabel(3):
+                raise RuntimeError("Not sure how to put QCD norm uncertainty into first syst bin in input (model) hist, as bin label 2 '{}' doesn't contain 'Up'".format(modelHist.GetYaxis().GetBinLabel(3)))
+            # only syst for datadriven QCD is the norm syst
+            for yBin in range(0, newHist.GetNbinsY()+2):
+                for xBin in range(0, origHist.GetNbinsX()+2):
+                    newHist.SetBinContent(xBin, yBin, origHist.GetBinContent(xBin))
+                    newHist.SetBinError(xBin, yBin, origHist.GetBinError(xBin))
+                    if any(testStr in newHist.GetYaxis().GetBinLabel(yBin).lower() for testStr in ["lhepdf", "lhescale", "totalSystematic"]):
+                        newHist.SetBinError(xBin, yBin, 0)
+                    # put the norm syst into the first systematic bins (assume it's up/down)
+                    if yBin == 2 and qcdNormUnc > 0:
+                        newHist.SetBinContent(xBin, yBin, (1-qcdNormUnc)*origHist.GetBinContent(xBin))
+                        newHist.SetBinError(xBin, yBin, (1-qcdNormUnc)*origHist.GetBinError(xBin))
+                    if yBin == 3 and qcdNormUnc > 0:
+                        newHist.SetBinContent(xBin, yBin, (1+qcdNormUnc)*origHist.GetBinContent(xBin))
+                        newHist.SetBinError(xBin, yBin, (1+qcdNormUnc)*origHist.GetBinError(xBin))
             if fitDiagFilePath is not None:
                 # only rescale per year for the fitDiag file case, which is only available per-year
                 newHist = RenormalizeQCDHistoNormsAndUncs(sample, year, newHist, masses, qcdNormUnc, fitDiagFilePath, postFitJSON, doPrefit, fitType)
@@ -859,6 +876,7 @@ def GetSystematicGraphAndHist(bkgTotalHist, systNames, verbose=False):
         #rows = [list(x) for x in zip(xBins, binLowEdges, nominals, upErrPercents, downErrPercents)]
         rows = [list(x) for x in zip(xBins, binLowEdges, nominals, upErrsSliced, downErrsSliced, upErrPercents, downErrPercents, *upDownErrsBySystList)]
         if len(rows) > 0:
+            print("Table for all systs for hist: {}".format(bkgTotalHist.GetName()))
             print(tabulate(rows, headers=headers, tablefmt="github", floatfmt=".4f"))
     nominals = []
     xBins = []
@@ -961,7 +979,7 @@ class Plot:
         self.extraText = ""
         self.xNDivisions = 510
         self.histoRescaleFactor = 1.0
-        self.verboseSysts = False
+        self.verboseSysts = True
         self.postFitJSON = None
         self.massPoint = None
         self.fitType = None
@@ -1016,7 +1034,8 @@ class Plot:
             self.cmsTextSize = 1.05
             self.cmsLumiTextScaleFactor = self.cmsTextSize * 1.25
             self.bkgUncKey = "Bkg. unc. (stat. #oplus syst.)"
-            self.stackFillStyleIds = [3013, 3006, 3005, 3004]
+            # self.stackFillStyleIds = [3013, 3006, 3005, 3004]
+            self.stackFillStyleIds = [1001, 1001, 1001, 1001]
 
         # -- create canvas
         canvas = TCanvas()
@@ -1219,6 +1238,7 @@ class Plot:
         xLabelSize = self.labelSize
         if style == "paper":
             if self.makeRatio:
+                thStack.GetYaxis().SetTitleOffset(1.0)
                 thStack.GetXaxis().SetTitleOffset(0.0)
                 thStack.GetXaxis().SetLabelOffset(0.0)
                 xTitle = ""
@@ -1268,12 +1288,13 @@ class Plot:
 
         # -- background uncertainty band
         if self.addBkgUncBand:
-            self.bkgUncHist, _ = GetSystematicGraphAndHist(self.bkgTotalHist, self.systNames, self.verboseSysts)
+            print("INFO: computing total background uncertainties")
+            self.bkgUncHist, _ = GetSystematicGraphAndHist(self.bkgTotalHist, self.systNames)
             self.bkgUncHist = copy.deepcopy(self.bkgUncHist)
             self.bkgUncHist = rebinHisto(self.bkgUncHist, self.xmin, self.xmax, self.rebin, self.xbins, self.addOvfl)[0]
-            # for xBin in range(0, self.bkgUncHist.GetNbinsX()+2):
-            #     if self.bkgUncHist.GetBinContent(xBin) != 0:
-            #         print("INFO: for xBin={}, center={}, binError={} vs. nominal={}; binError/nominal={}".format(xBin, self.bkgUncHist.GetXaxis().GetBinCenter(xBin), self.bkgUncHist.GetBinError(xBin), self.bkgUncHist.GetBinContent(xBin), self.bkgUncHist.GetBinError(xBin)/self.bkgUncHist.GetBinContent(xBin)))
+            for xBin in range(0, self.bkgUncHist.GetNbinsX()+2):
+                if self.bkgUncHist.GetBinContent(xBin) != 0:
+                    print("INFO: for xBin={}, center={} [{}-{}], binError={} vs. nominal={}; binError/nominal={}".format(xBin, self.bkgUncHist.GetXaxis().GetBinCenter(xBin), self.bkgUncHist.GetXaxis().GetBinLowEdge(xBin), self.bkgUncHist.GetXaxis().GetBinUpEdge(xBin), self.bkgUncHist.GetBinError(xBin), self.bkgUncHist.GetBinContent(xBin), self.bkgUncHist.GetBinError(xBin)/self.bkgUncHist.GetBinContent(xBin)))
             integralErr = ctypes.c_double()
             integral = self.bkgUncHist.IntegralAndError(0, self.bkgUncHist.GetNbinsX()+2, integralErr)
             print("INFO for bkgUncHist, integral = {} +/- {}; xbins={}".format(integral, integralErr.value, self.bkgUncHist.GetNbinsX()))
@@ -1427,6 +1448,7 @@ class Plot:
         CMS.SetCmsTextSize(self.cmsTextSize)
         CMS.lumiTextOffset = self.cmsLumiTextOffset 
         CMS.ResetAdditionalInfo()
+        CMS.SetLumi(self.lumi_fb)
         if len(self.extraText):
             CMS.AppendAdditionalInfo(self.extraText)
         CMS.CMS_lumi(fPads1, 11, scaleLumi=self.cmsLumiTextScaleFactor)
