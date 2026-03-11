@@ -955,6 +955,8 @@ class Plot:
         self.suffix = ""
         self.stackColorIndexes = []
         self.stackFillStyleIds = []
+        self.histoColorIndexes = [418, 4, 1, 1, 4, 1]  # after Mar.6 comment
+        self.histoLineIndexes = [1, 2, 3, 1, 2, 3]
         self.is_integral = False
         self.histodataBlindAbove = -1.0
         self.doPageNumbers = False
@@ -979,10 +981,11 @@ class Plot:
         self.extraText = ""
         self.xNDivisions = 510
         self.histoRescaleFactor = 1.0
-        self.verboseSysts = True
+        self.verboseSysts = False
         self.postFitJSON = None
         self.massPoint = None
         self.fitType = None
+        self.doPreliminary = True
 
     def Draw(self, fileps, page_number=-1, style="AN"):
         if self.isInteractive:
@@ -1029,6 +1032,8 @@ class Plot:
             # self.makeRatio = 1
             self.makeNSigma = 0
             self.suffix = "paper"
+            if self.doPreliminary:
+                self.suffix += "_preliminary"
             self.ratioLabelTextSizeScaleFactor = 3
             self.cmsLumiTextOffset = 0.25
             self.cmsTextSize = 1.05
@@ -1294,7 +1299,7 @@ class Plot:
             self.bkgUncHist = rebinHisto(self.bkgUncHist, self.xmin, self.xmax, self.rebin, self.xbins, self.addOvfl)[0]
             for xBin in range(0, self.bkgUncHist.GetNbinsX()+2):
                 if self.bkgUncHist.GetBinContent(xBin) != 0:
-                    print("INFO: for xBin={}, center={} [{}-{}], binError={} vs. nominal={}; binError/nominal={}".format(xBin, self.bkgUncHist.GetXaxis().GetBinCenter(xBin), self.bkgUncHist.GetXaxis().GetBinLowEdge(xBin), self.bkgUncHist.GetXaxis().GetBinUpEdge(xBin), self.bkgUncHist.GetBinError(xBin), self.bkgUncHist.GetBinContent(xBin), self.bkgUncHist.GetBinError(xBin)/self.bkgUncHist.GetBinContent(xBin)))
+                    print("INFO: for xBin={}/{}, center={} [{}-{}], binError={} vs. nominal={}; binError/nominal={}".format(xBin, self.bkgUncHist.GetNbinsX(), self.bkgUncHist.GetXaxis().GetBinCenter(xBin), self.bkgUncHist.GetXaxis().GetBinLowEdge(xBin), self.bkgUncHist.GetXaxis().GetBinUpEdge(xBin), self.bkgUncHist.GetBinError(xBin), self.bkgUncHist.GetBinContent(xBin), self.bkgUncHist.GetBinError(xBin)/self.bkgUncHist.GetBinContent(xBin)))
             integralErr = ctypes.c_double()
             integral = self.bkgUncHist.IntegralAndError(0, self.bkgUncHist.GetNbinsX()+2, integralErr)
             print("INFO for bkgUncHist, integral = {} +/- {}; xbins={}".format(integral, integralErr.value, self.bkgUncHist.GetNbinsX()))
@@ -1385,19 +1390,25 @@ class Plot:
                     GetSystematicGraphAndHist(hist, self.systNames, True)
 
         # -- loop over histograms (overlaid)
+        # these are the signal model hists
         ih = 0  # index of histo within a plot
-        # dataColorIndexes = [1,4,1,1,4,1]
-        dataColorIndexes = [8, 4, 1, 1, 4, 1]
-        dataLineIndexes = [1, 2, 3, 1, 2, 3]
-        # dataLineIndexes = [2,1,3,1,2,3]
-        # dataLineIndexes = [9,2,3,1,2,3]
+        # histoColorIndexes = [1,4,1,1,4,1]
+        # histoColorIndexes = [8, 4, 1, 1, 4, 1]
+
+        # histoColorIndexes = [418, 4, 1, 1, 4, 1]  # after Mar.6 comment
+        # histoLineIndexes = [1, 2, 3, 1, 2, 3]
+        # # histoColorIndexes = [4, 418, 1, 1, 4, 1]  # HACK FOR PRESELECTION BDT PLOT
+        # # histoLineIndexes = [2, 1, 3, 1, 2, 3]
+
+        # histoLineIndexes = [2,1,3,1,2,3]
+        # histoLineIndexes = [9,2,3,1,2,3]
 
         for histo in self.histos:
             histo.Scale(self.histoRescaleFactor)
-            histo.SetMarkerStyle(dataColorIndexes[ih])
-            histo.SetMarkerColor(dataColorIndexes[ih])
-            histo.SetLineColor(dataColorIndexes[ih])
-            histo.SetLineStyle(dataLineIndexes[ih])
+            histo.SetMarkerStyle(self.histoColorIndexes[ih])
+            histo.SetMarkerColor(self.histoColorIndexes[ih])
+            histo.SetLineColor(self.histoColorIndexes[ih])
+            histo.SetLineStyle(self.histoLineIndexes[ih])
             #            histo.SetMarkerStyle(20+2*ih)
             #            histo.SetMarkerColor(2+2*ih)
             #            histo.SetLineColor(  2+2*ih)
@@ -1405,6 +1416,7 @@ class Plot:
             legEntryAddition = ", x{}".format(self.histoRescaleFactor) if self.histoRescaleFactor != 1.0 else ""
             legend.AddEntry(histo, self.keys[ih] + legEntryAddition, "l")
             histo.Draw("HISTsame")
+            print("DEBUG: histo={}, color={}, style={}, key={}, ih={}".format(histo.GetName(), self.histoColorIndexes[ih], self.histoLineIndexes[ih], self.keys[ih], ih))
             ih = ih + 1
 
         # -- plot data
@@ -1449,8 +1461,13 @@ class Plot:
         CMS.lumiTextOffset = self.cmsLumiTextOffset 
         CMS.ResetAdditionalInfo()
         CMS.SetLumi(self.lumi_fb)
-        if len(self.extraText):
-            CMS.AppendAdditionalInfo(self.extraText)
+        if self.doPreliminary:
+            CMS.SetExtraText("Preliminary")
+            if len(self.extraText):
+                CMS.AppendAdditionalInfo(self.extraText)
+        else:
+            CMS.SetExtraText(self.extraText)
+            CMS.extraTextFont = CMS.additionalInfoFont
         CMS.CMS_lumi(fPads1, 11, scaleLumi=self.cmsLumiTextScaleFactor)
 
         legend.Draw()

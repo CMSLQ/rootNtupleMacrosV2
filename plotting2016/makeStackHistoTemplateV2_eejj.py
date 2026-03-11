@@ -107,6 +107,24 @@ parser.add_option(
     metavar="REDUCEDSET",
 )
     
+parser.add_option(
+    "--preselection",
+    dest="preselection",
+    default=False,
+    action="store_true",
+    help="produce preselection plots",
+    metavar="PRESELECTION",
+)
+
+# parser.add_option(
+#     "--preliminary",
+#     dest="preliminary",
+#     default=False,
+#     action="store_true",
+#     help="produce plots with preliminary label",
+#     metavar="preliminary",
+# )
+
 (options, args) = parser.parse_args()
 
 requiredOpts = [options.qcdFilePath, options.mcDataFilePath, options.years]
@@ -133,7 +151,7 @@ quasiRebinQCD = False  # TODO: not sure the current algorithm works correctly or
 dyjNormSyst = 0.2
 ttbarNormSyst = 0.1
 qcdNormSyst = 0.4
-doPreselPlots = False
+doPreselPlots = options.preselection
 doBTagPlots = False
 doFinalSelectionPlots = not doPreselPlots
 doFullSet = not options.reducedSet
@@ -191,7 +209,8 @@ for year in SeparateArgs(options.years):
 # LQmasses = [1000, 1200, 1500]
 LQmasses = [1000, 1500]
 # LQmassesFinalSelection = [1200, 1500]
-LQmassesFinalSelection = list(range(300, 3100, 100))
+# LQmassesFinalSelection = list(range(300, 3100, 100))
+LQmassesFinalSelection = [800]
 # LQmassesFinalSelection = [1200]
 if not doFinalSelectionPlots:
     LQmassesFinalSelection = []
@@ -398,13 +417,13 @@ stackFillStyleIds = [1001, 1001, 1001, 1001]
 # signalSampleLabel = "LQToDEle, M={} GeV"
 signalSampleLabel = "m_{{LQ}} = {} GeV, #beta = 1"
 samplesForHistos = [signalSampleName.format(lqmass) for lqmass in LQmasses] + [signalSampleName.format(lqmass) for lqmass in LQmassesFinalSelection]
-samplesForHistos = list(set(samplesForHistos))
+samplesForHistos = sorted(list(set(samplesForHistos)))
 # samplesForHistos = list(samplesForHistos)
 extraLQMasses = [500]
 extraSamplesForHistos = [signalSampleName.format(lqmass) for lqmass in extraLQMasses]
 for sample in samplesForHistos + extraSamplesForHistos:
     dataMCFilesDict[sample] = GetFile(dataMCFilePath + "analysisClass_lq_eejj_{}_plots.root".format(sample))
-keys = [signalSampleLabel.format(lqmass) for lqmass in LQmasses+extraLQMasses]
+keys = [signalSampleLabel.format(lqmass) for lqmass in LQmasses] + [signalSampleLabel.format(lqmass) for lqmass in extraLQMasses]
 # keys = list(set([signalSampleLabel.format(lqmass) for lqmass in LQmasses+LQmassesFinalSelection+extraLQMasses]))
 # samplesForHistos.extend([signalSampleName.format(lqmass) for lqmass in extraLQMasses])
 # no signal
@@ -1707,29 +1726,29 @@ if doPreselPlots:
     plots[-1].name = "Mej_selected_min_PAS_rebinVar"
     plots[-1].xtit = "M(ej) minimum (GeV) [Preselection]"
     plots[-1].xtitPaper = "m_{ej}^{min} (GeV)"
-#
-#    plots.append(makeDefaultPlot("Mej_selected_max_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
-#    plots[-1].rebin = 1
-#    # plots[-1].ymax = 1.8e4
-#    # plots[-1].ymin = 1e-1
-#    plots[-1].ylog = "no"
-#    plots[-1].xmin = 0
-#    # plots[-1].xmax = 1000
-#    plots[-1].rebin = 5
-#    plots[-1].xtit = "M(ej) maximum (GeV) [Preselection]"
-#    plots[-1].xtitPaper = "M_{ej}^{max} (GeV)"
-#
-#    plots.append(makeDefaultPlot("Mej_selected_max_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
-#    plots[-1].rebin = 1
-#    # plots[-1].ymax = 1000000
-#    # plots[-1].ymin = 1e-1
-#    plots[-1].ylog = "yes"
-#    plots[-1].xmin = 0
-#    # plots[-1].xmax = 1200
-#    plots[-1].rebin = 5
-#    plots[-1].xtit = "M(ej) maximum (GeV) [Preselection]"
-#    plots[-1].xtitPaper = "M_{ej}^{max} (GeV)"
-#
+
+    plots.append(makeDefaultPlot("Mej_selected_max_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
+    plots[-1].rebin = 1
+    # plots[-1].ymax = 1.8e4
+    # plots[-1].ymin = 1e-1
+    plots[-1].ylog = "no"
+    plots[-1].xmin = 0
+    # plots[-1].xmax = 1000
+    plots[-1].rebin = 5
+    plots[-1].xtit = "M(ej) maximum (GeV) [Preselection]"
+    plots[-1].xtitPaper = "M_{ej}^{max} (GeV)"
+
+    plots.append(makeDefaultPlot("Mej_selected_max_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
+    plots[-1].rebin = 1
+    # plots[-1].ymax = 1000000
+    # plots[-1].ymin = 1e-1
+    plots[-1].ylog = "yes"
+    plots[-1].xmin = 0
+    # plots[-1].xmax = 1200
+    plots[-1].rebin = 5
+    plots[-1].xtit = "M(ej) maximum (GeV) [Preselection]"
+    plots[-1].xtitPaper = "M_{ej}^{max} (GeV)"
+
 #    # plots.append(makeDefaultPlot("Mej_selected_diff_PAS")
 #    # plots[-1].rebin = 1
 #    # plots[-1].ymax = 2000000
@@ -1751,23 +1770,23 @@ if doPreselPlots:
 #    plots[-1].xtit = "M(ej) asym (GeV) [Preselection]"
 #    plots[-1].xtitPaper = "M_{ej}^{asym} (GeV)"
 #
-#    plots.append(makeDefaultPlot("nVertex_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
-#    plots[-1].rebin = 1
-#    plots[-1].xmin = -0.5
-#    plots[-1].xmax = 60.5
-#    # plots[-1].ymin = 1e-1
-#    # plots[-1].ymax = 5e7
-#    # plots[-1].ylog = "yes"
-#    plots[-1].xtit = "n(vertices) [Preselection]"
-#    plots[-1].xtitPaper = "N(vertex)"
-#
-#    # plots.append(makeDefaultPlot("nVertex_PAS"))
-#    # plots[-1].rebin = 1
-#    # plots[-1].xmin = -0.5
-#    # plots[-1].xmax = 40.5
-#    # plots[-1].ymin = 1e-1
-#    # plots[-1].ymax = 6e2
-#    # plots[-1].xtit = "n(vertices) [Preselection]"
+    plots.append(makeDefaultPlot("nVertex_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
+    plots[-1].rebin = 1
+    plots[-1].xmin = -0.5
+    plots[-1].xmax = 60.5
+    # plots[-1].ymin = 1e-1
+    # plots[-1].ymax = 5e7
+    # plots[-1].ylog = "yes"
+    plots[-1].xtit = "n(vertices) [Preselection]"
+    plots[-1].xtitPaper = "N(vertex)"
+
+    # plots.append(makeDefaultPlot("nVertex_PAS"))
+    # plots[-1].rebin = 1
+    # plots[-1].xmin = -0.5
+    # plots[-1].xmax = 40.5
+    # plots[-1].ymin = 1e-1
+    # plots[-1].ymax = 6e2
+    # plots[-1].xtit = "n(vertices) [Preselection]"
 #
 #    plots.append(makeDefaultPlot("DR_Ele1Jet1_PAS", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True))
 #    plots[-1].rebin = 1
@@ -1888,145 +1907,149 @@ if doPreselPlots:
 #    #
 #    #
     lq1500rescale = 50
-#    lqmasstouse = 500
-#    plots.append(makeDefaultPlot("BDTOutput_ZJetCRRegion_LQ500", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
-#    plots[-1].xtit = "BDT output [ZJetCRRegion, M_{LQ} = 500 GeV]"
-#    plots[-1].rebin = 10
-#    plots[-1].ymax = 1e6
-#    plots[-1].ymin = 1e-1
-#    plots[-1].xmax = 1
-#    plots[-1].xmin = -1
-#    plots[-1].ylog = "yes"
-#    plots[-1].xtitPaper = "BDT score"
-#
-#    lqmasstouse = 1000
-#    plots.append(makeDefaultPlot("BDTOutput_ZJetCRRegion_LQ1000", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
-#    plots[-1].xtit = "BDT output [ZJetCRRegion, M_{LQ} = 1000 GeV]"
-#    plots[-1].rebin = 10
-#    plots[-1].ymax = 1e6
-#    plots[-1].ymin = 1e-1
-#    plots[-1].xmax = 1
-#    plots[-1].xmin = -1
-#    plots[-1].ylog = "yes"
-#    plots[-1].xtitPaper = "BDT score"
-#
-#    lqmasstouse = 1500
-#    plots.append(makeDefaultPlot("BDTOutput_ZJetCRRegion_LQ1500", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
-#    plots[-1].xtit = "BDT output [ZJetCRRegion, M_{LQ} = 1500 GeV]"
-#    plots[-1].rebin = 10
-#    plots[-1].ymax = 1e6
-#    plots[-1].ymin = 1e-1
-#    plots[-1].xmax = 1
-#    plots[-1].xmin = -1
-#    plots[-1].ylog = "yes"
-#    plots[-1].xtitPaper = "BDT score"
-#    plots[-1].histoRescaleFactor = lq1500rescale
-#
-#    lqmasstouse = 500
-#    plots.append(makeDefaultPlot("BDTOutput_TTBarCRRegion_LQ500", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
-#    plots[-1].xtit = "BDT output [TTBarCRRegion, M_{LQ} = 500 GeV]"
-#    plots[-1].rebin = 10
-#    plots[-1].ymax = 1e6
-#    plots[-1].ymin = 1e-1
-#    plots[-1].xmax = 1
-#    plots[-1].xmin = -1
-#    plots[-1].ylog = "yes"
-#    plots[-1].xtitPaper = "BDT score"
-#
-#    lqmasstouse = 1000
-#    plots.append(makeDefaultPlot("BDTOutput_TTBarCRRegion_LQ1000", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
-#    plots[-1].xtit = "BDT output [TTBarCRRegion, M_{LQ} = 1000 GeV]"
-#    plots[-1].rebin = 10
-#    plots[-1].ymax = 1e6
-#    plots[-1].ymin = 1e-1
-#    plots[-1].xmax = 1
-#    plots[-1].xmin = -1
-#    plots[-1].ylog = "yes"
-#    plots[-1].xtitPaper = "BDT score"
-#
-#    lqmasstouse = 1500
-#    plots.append(makeDefaultPlot("BDTOutput_TTBarCRRegion_LQ1500", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
-#    plots[-1].xtit = "BDT output [TTBarCRRegion, M_{LQ} = 1500 GeV]"
-#    plots[-1].rebin = 10
-#    plots[-1].ymax = 1e6
-#    plots[-1].ymin = 1e-1
-#    plots[-1].xmax = 1
-#    plots[-1].xmin = -1
-#    plots[-1].ylog = "yes"
-#    plots[-1].xtitPaper = "BDT score"
-#    plots[-1].histoRescaleFactor = lq1500rescale
-#
+    lqmasstouse = 500
+    plots.append(makeDefaultPlot("BDTOutput_ZJetCRRegion_LQ500", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
+    plots[-1].xtit = "BDT output [ZJetCRRegion, M_{LQ} = 500 GeV]"
+    plots[-1].rebin = 10
+    plots[-1].ymax = 1e6
+    plots[-1].ymin = 1e-1
+    plots[-1].xmax = 1
+    plots[-1].xmin = -1
+    plots[-1].ylog = "yes"
+    plots[-1].xtitPaper = "BDT score"
+
+    lqmasstouse = 1000
+    plots.append(makeDefaultPlot("BDTOutput_ZJetCRRegion_LQ1000", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
+    plots[-1].xtit = "BDT output [ZJetCRRegion, M_{LQ} = 1000 GeV]"
+    plots[-1].rebin = 10
+    plots[-1].ymax = 1e6
+    plots[-1].ymin = 1e-1
+    plots[-1].xmax = 1
+    plots[-1].xmin = -1
+    plots[-1].ylog = "yes"
+    plots[-1].xtitPaper = "BDT score"
+
+    lqmasstouse = 1500
+    plots.append(makeDefaultPlot("BDTOutput_ZJetCRRegion_LQ1500", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
+    plots[-1].xtit = "BDT output [ZJetCRRegion, M_{LQ} = 1500 GeV]"
+    plots[-1].rebin = 10
+    plots[-1].ymax = 1e6
+    plots[-1].ymin = 1e-1
+    plots[-1].xmax = 1
+    plots[-1].xmin = -1
+    plots[-1].ylog = "yes"
+    plots[-1].xtitPaper = "BDT score"
+    plots[-1].histoRescaleFactor = lq1500rescale
+    plots[-1].histoColorIndexes = [4, 418, 1, 1, 4, 1]
+    plots[-1].histoLineIndexes = [2, 1, 3, 1, 2, 3]
+
+    lqmasstouse = 500
+    plots.append(makeDefaultPlot("BDTOutput_TTBarCRRegion_LQ500", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
+    plots[-1].xtit = "BDT output [TTBarCRRegion, M_{LQ} = 500 GeV]"
+    plots[-1].rebin = 10
+    plots[-1].ymax = 1e6
+    plots[-1].ymin = 1e-1
+    plots[-1].xmax = 1
+    plots[-1].xmin = -1
+    plots[-1].ylog = "yes"
+    plots[-1].xtitPaper = "BDT score"
+
+    lqmasstouse = 1000
+    plots.append(makeDefaultPlot("BDTOutput_TTBarCRRegion_LQ1000", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
+    plots[-1].xtit = "BDT output [TTBarCRRegion, M_{LQ} = 1000 GeV]"
+    plots[-1].rebin = 10
+    plots[-1].ymax = 1e6
+    plots[-1].ymin = 1e-1
+    plots[-1].xmax = 1
+    plots[-1].xmin = -1
+    plots[-1].ylog = "yes"
+    plots[-1].xtitPaper = "BDT score"
+
+    lqmasstouse = 1500
+    plots.append(makeDefaultPlot("BDTOutput_TTBarCRRegion_LQ1500", systs=doSystematics, rescaleDYJTTBarSystsAtPreselection=True, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
+    plots[-1].xtit = "BDT output [TTBarCRRegion, M_{LQ} = 1500 GeV]"
+    plots[-1].rebin = 10
+    plots[-1].ymax = 1e6
+    plots[-1].ymin = 1e-1
+    plots[-1].xmax = 1
+    plots[-1].xmin = -1
+    plots[-1].ylog = "yes"
+    plots[-1].xtitPaper = "BDT score"
+    plots[-1].histoRescaleFactor = lq1500rescale
+    plots[-1].histoColorIndexes = [4, 418, 1, 1, 4, 1]
+    plots[-1].histoLineIndexes = [2, 1, 3, 1, 2, 3]
+
     bdtRebin = 125
     # bdtBlindAbove = 0.8
     bdtBlindAbove = -1  # unblind
     bdtRebin = 200
     bdtYMax = 1e8
     lqmasstouse = 500
-#    plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ500", dataBlindAbove=bdtBlindAbove, systs=doSystematics, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
-#    plots[-1].xtit = "BDT output [training, M_{LQ} = 500 GeV]"
-#    plots[-1].rebin = 10
-#    plots[-1].xmax = 1
-#    plots[-1].xmin = -1
-#    plots[-1].ylog = "yes"
-#    plots[-1].xtitPaper = "BDT score"
-#
-#    plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ500", dataBlindAbove=bdtBlindAbove, systs=doSystematics, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
-#    plots[-1].xtit = "BDT output [training, M_{LQ} = 500 GeV]"
-#    plots[-1].rebin = bdtRebin
-#    plots[-1].ymax = bdtYMax
-#    plots[-1].ymin = 1e-1
-#    plots[-1].xmax = 1
-#    plots[-1].xmin = -1
-#    plots[-1].ylog = "yes"
-#    plots[-1].name = "BDTOutput_TrainRegion_LQ500_fixRebin"
-#    plots[-1].extraText = "m_{LQ} = 500 GeV"
-#    plots[-1].xtitPaper = "BDT score"
-#
-#    plots.append(makeDefaultPlot("BDTOutput_TrainRegionNoMeejj_LQ500", dataBlindAbove=bdtBlindAbove, systs=doSystematics, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
-#    plots[-1].xtit = "BDT output [training, no M_{eejj}, M_{LQ} = 500 GeV]"
-#    plots[-1].rebin = bdtRebin
-#    plots[-1].ymax = bdtYMax
-#    plots[-1].ymin = 1e-1
-#    plots[-1].xmax = 1
-#    plots[-1].xmin = -1
-#    plots[-1].ylog = "yes"
-#    plots[-1].name = "BDTOutput_TrainRegionNoMeejj_LQ500_fixRebin"
-#    plots[-1].extraText = "m_{LQ} = 500 GeV"
-#    plots[-1].xtitPaper = "BDT score"
-#
-#    lqmasstouse = 1000
-#    plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ1000", dataBlindAbove=bdtBlindAbove, systs=doSystematics, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
-#    plots[-1].xtit = "BDT output [training, M_{LQ} = 1000 GeV]"
-#    plots[-1].rebin = 10
-#    plots[-1].xmax = 1
-#    plots[-1].xmin = -1
-#    plots[-1].ylog = "yes"
-#    plots[-1].xtitPaper = "BDT score"
-#
-#    plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ1000", dataBlindAbove=bdtBlindAbove, systs=doSystematics, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
-#    plots[-1].xtit = "BDT output [training, M_{LQ} = 1000 GeV]"
-#    plots[-1].rebin = bdtRebin
-#    plots[-1].ymax = bdtYMax
-#    plots[-1].ymin = 1e-1
-#    plots[-1].xmax = 1
-#    plots[-1].xmin = -1
-#    plots[-1].ylog = "yes"
-#    plots[-1].name = "BDTOutput_TrainRegion_LQ1000_fixRebin"
-#    plots[-1].extraText = "m_{LQ} = 1000 GeV"
-#    plots[-1].xtitPaper = "BDT score"
-#
-#    plots.append(makeDefaultPlot("BDTOutput_TrainRegionNoMeejj_LQ1000", dataBlindAbove=bdtBlindAbove, systs=doSystematics, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
-#    plots[-1].xtit = "BDT output [training, no M_{eejj}, M_{LQ} = 1000 GeV]"
-#    plots[-1].rebin = bdtRebin
-#    plots[-1].ymax = bdtYMax
-#    plots[-1].ymin = 1e-1
-#    plots[-1].xmax = 1
-#    plots[-1].xmin = -1
-#    plots[-1].ylog = "yes"
-#    plots[-1].name = "BDTOutput_TrainRegionNoMeejj_LQ1000_fixRebin"
-#    plots[-1].extraText = "m_{LQ} = 1000 GeV"
-#    plots[-1].xtitPaper = "BDT score"
-#
+    plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ500", dataBlindAbove=bdtBlindAbove, systs=doSystematics, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
+    plots[-1].xtit = "BDT output [training, M_{LQ} = 500 GeV]"
+    plots[-1].rebin = 10
+    plots[-1].xmax = 1
+    plots[-1].xmin = -1
+    plots[-1].ylog = "yes"
+    plots[-1].xtitPaper = "BDT score"
+
+    plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ500", dataBlindAbove=bdtBlindAbove, systs=doSystematics, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
+    plots[-1].xtit = "BDT output [training, M_{LQ} = 500 GeV]"
+    plots[-1].rebin = bdtRebin
+    plots[-1].ymax = bdtYMax
+    plots[-1].ymin = 1e-1
+    plots[-1].xmax = 1
+    plots[-1].xmin = -1
+    plots[-1].ylog = "yes"
+    plots[-1].name = "BDTOutput_TrainRegion_LQ500_fixRebin"
+    plots[-1].extraText = "m_{LQ} = 500 GeV"
+    plots[-1].xtitPaper = "BDT score"
+
+    plots.append(makeDefaultPlot("BDTOutput_TrainRegionNoMeejj_LQ500", dataBlindAbove=bdtBlindAbove, systs=doSystematics, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
+    plots[-1].xtit = "BDT output [training, no M_{eejj}, M_{LQ} = 500 GeV]"
+    plots[-1].rebin = bdtRebin
+    plots[-1].ymax = bdtYMax
+    plots[-1].ymin = 1e-1
+    plots[-1].xmax = 1
+    plots[-1].xmin = -1
+    plots[-1].ylog = "yes"
+    plots[-1].name = "BDTOutput_TrainRegionNoMeejj_LQ500_fixRebin"
+    plots[-1].extraText = "m_{LQ} = 500 GeV"
+    plots[-1].xtitPaper = "BDT score"
+
+    lqmasstouse = 1000
+    plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ1000", dataBlindAbove=bdtBlindAbove, systs=doSystematics, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
+    plots[-1].xtit = "BDT output [training, M_{LQ} = 1000 GeV]"
+    plots[-1].rebin = 10
+    plots[-1].xmax = 1
+    plots[-1].xmin = -1
+    plots[-1].ylog = "yes"
+    plots[-1].xtitPaper = "BDT score"
+
+    plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ1000", dataBlindAbove=bdtBlindAbove, systs=doSystematics, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
+    plots[-1].xtit = "BDT output [training, M_{LQ} = 1000 GeV]"
+    plots[-1].rebin = bdtRebin
+    plots[-1].ymax = bdtYMax
+    plots[-1].ymin = 1e-1
+    plots[-1].xmax = 1
+    plots[-1].xmin = -1
+    plots[-1].ylog = "yes"
+    plots[-1].name = "BDTOutput_TrainRegion_LQ1000_fixRebin"
+    plots[-1].extraText = "m_{LQ} = 1000 GeV"
+    plots[-1].xtitPaper = "BDT score"
+
+    plots.append(makeDefaultPlot("BDTOutput_TrainRegionNoMeejj_LQ1000", dataBlindAbove=bdtBlindAbove, systs=doSystematics, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
+    plots[-1].xtit = "BDT output [training, no M_{eejj}, M_{LQ} = 1000 GeV]"
+    plots[-1].rebin = bdtRebin
+    plots[-1].ymax = bdtYMax
+    plots[-1].ymin = 1e-1
+    plots[-1].xmax = 1
+    plots[-1].xmin = -1
+    plots[-1].ylog = "yes"
+    plots[-1].name = "BDTOutput_TrainRegionNoMeejj_LQ1000_fixRebin"
+    plots[-1].extraText = "m_{LQ} = 1000 GeV"
+    plots[-1].xtitPaper = "BDT score"
+
     lqmasstouse = 1500
     plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ1500", dataBlindAbove=bdtBlindAbove, systs=doSystematics, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
     plots[-1].xtit = "BDT output [training, M_{LQ} = 1500 GeV]"
@@ -2036,6 +2059,8 @@ if doPreselPlots:
     plots[-1].ylog = "yes"
     plots[-1].xtitPaper = "BDT score"
     plots[-1].histoRescaleFactor = lq1500rescale
+    plots[-1].histoColorIndexes = [4, 418, 1, 1, 4, 1]
+    plots[-1].histoLineIndexes = [2, 1, 3, 1, 2, 3]
 
     plots.append(makeDefaultPlot("BDTOutput_TrainRegion_LQ1500", dataBlindAbove=bdtBlindAbove, systs=doSystematics, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
     plots[-1].xtit = "BDT output [training, M_{LQ} = 1500 GeV]"
@@ -2049,6 +2074,8 @@ if doPreselPlots:
     plots[-1].extraText = "m_{LQ} = 1500 GeV"
     plots[-1].xtitPaper = "BDT score"
     plots[-1].histoRescaleFactor = lq1500rescale
+    plots[-1].histoColorIndexes = [4, 418, 1, 1, 4, 1]
+    plots[-1].histoLineIndexes = [2, 1, 3, 1, 2, 3]
 #
 #    plots.append(makeDefaultPlot("BDTOutput_TrainRegionNoMeejj_LQ1500", dataBlindAbove=bdtBlindAbove, systs=doSystematics, samplesForHistos=[signalSampleName.format(lqmasstouse)], keys=[signalSampleLabel.format(lqmasstouse)]))
 #    plots[-1].xtit = "BDT output [training, no M_{eejj}, M_{LQ} = 1500 GeV]"
@@ -5059,6 +5086,7 @@ c = TCanvas()
 
 plotsAN = copy.deepcopy(plots)
 plotsPaper = copy.deepcopy(plots)
+plotsPaperPreliminary = copy.deepcopy(plots)
 fileps = "allPlots_eejj_analysis.ps"
 print("INFO: writing canvas with plots to PDF...", end=' ')
 c.Print(fileps + "[")
@@ -5082,6 +5110,7 @@ print("INFO: writing canvas with plots to PDF...", end=' ')
 c.Print(fileps + "[")
 for i_plot, plot in enumerate(plotsPaper):
     try:
+        plot.doPreliminary = False
         plot.Draw(fileps, i_plot + 1, style="paper")
     except Exception as e:
         raise RuntimeError("Caught exception while making plot", plot.name, ":", e)
@@ -5089,6 +5118,21 @@ c.Print(fileps + "]")
 print("DONE")
 print("INFO: MakeTOC()")
 makeTOC("allPlots_eejj_paper_toc.tex", fileps, plotsPaper)
+
+c = TCanvas()
+fileps = "allPlots_eejj_paper_preliminary.ps"
+print("INFO: Doing paper plots [preliminary]")
+print("INFO: writing canvas with plots to PDF...", end=' ')
+c.Print(fileps + "[")
+for i_plot, plot in enumerate(plotsPaperPreliminary):
+    try:
+        plot.Draw(fileps, i_plot + 1, style="paper")
+    except Exception as e:
+        raise RuntimeError("Caught exception while making plot", plot.name, ":", e)
+c.Print(fileps + "]")
+print("DONE")
+print("INFO: MakeTOC()")
+makeTOC("allPlots_eejj_paper_preliminary_toc.tex", fileps, plotsPaperPreliminary)
 
 print("INFO: years =", qcdYearsToUse)
 print("INFO: using file path:", dataMCFilePath)
