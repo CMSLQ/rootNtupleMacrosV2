@@ -7,11 +7,14 @@ from tabulate import tabulate
 from ROOT import TH1D, TGraphAsymmErrors, TCanvas, gROOT, TLatex, TFile
 from plot_class import GetFile, GetHisto
 
+import cmsstyle as CMS
+
 gROOT.SetBatch()
 
 
-def plotSignalEfficiencyTimesAcceptance(filePath, signalNameTemplate, mass_points, year=None):
+def plotSignalEfficiencyTimesAcceptance(filePaths, signalNameTemplate="", mass_points=[], year=None):
     doPDFReweight = False
+    doPreliminary = False
     # LQToDEle
     # signalNameTemplate = "LQToDEle_M-{}_pair"
     # signalNameTemplate = "LQToDEle_M-{}_pair_bMassZero_TuneCP2_13TeV-madgraph-pythia8"
@@ -24,16 +27,24 @@ def plotSignalEfficiencyTimesAcceptance(filePath, signalNameTemplate, mass_point
     # LQToUE
     # signalNameTemplate = "LQToUE_M-{}_BetaOne_pythia8"
     # mass_points = [i for i in range(300, 2100, 100)]  # go from 300-2000 in 100 GeV steps
+    if(len(signalNameTemplate) < 1):
+        print("INFO: Defaulting to LQToDEle_pair signal")
+        signalNameTemplate = "LQToDEle_M-{}_pair"
+    if(len(mass_points) < 1):
+        print("INFO: Defaulting to LQ mass points 300-3000 by 100 GeV steps")
+        mass_points = [i for i in range(300, 3100, 100)]  # go from 300-3000 in 100 GeV steps
+    if(not isinstance(filePaths, list)):
+        filePaths = filePaths.split(",")
     
-    if year is None:
-         if "2016preVFP" in filePath:
-             year = "2016preVFP"
-         elif "2016postVFP" in filePath:
-             year = "2016postVFP"
-         elif "2017" in filePath:
-             year = "2017"
-         elif "2018" in filePath:
-             year = "2018"
+    # if year is None:
+    #      if "2016preVFP" in filePath:
+    #          year = "2016preVFP"
+    #      elif "2016postVFP" in filePath:
+    #          year = "2016postVFP"
+    #      elif "2017" in filePath:
+    #          year = "2017"
+    #      elif "2018" in filePath:
+    #          year = "2018"
     if "UE" in signalNameTemplate:
         signalNameShort = "eeuu"
     elif "DEle" in signalNameTemplate:
@@ -43,73 +54,89 @@ def plotSignalEfficiencyTimesAcceptance(filePath, signalNameTemplate, mass_point
     
     histNameBase = "profile1D__{}__EventsPassingCuts"
     # histName = "EventsPassingCuts"
-    totalEventsByMass = []
-    eventsAtFinalSelByMass = []
     firstFinalSelBin = 39
     
+    totalEventsByMass = {}
+    eventsAtFinalSelByMass = {}
+    sumWeights = {}
+    sumWeightsErr = {}
+    binContent = {}
+    binErrorSqr = {}
+
+    for mass in mass_points:
+        totalEventsByMass[mass] = 0
+        eventsAtFinalSelByMass[mass] = 0
+        sumWeights[mass] = 0
+        sumWeightsErr[mass] = 0
+        binContent[mass] = 0
+        binErrorSqr[mass] = 0
+
     histTotal = TH1D("total", "total", 38, 250, 4050)
     histTotal.Sumw2()
     histPass = TH1D("pass", "pass", 38, 250, 4050)
     histPass.Sumw2()
     
-    for i, mass in enumerate(mass_points):
-        sampleName = signalNameTemplate.format(mass)
-        # filename = filePath.format(sampleName, sampleName)
-        # filename = filePath.format(mass, mass)
-        filename = filePath
-        if ".root" not in filename:
-            filename += "analysisClass_lq_eejj_{}_plots.root".format(sampleName)
-        tfile = GetFile(filename)
-        histName = histNameBase.format(sampleName)
-        eventsPassingHist = GetHisto(histName, tfile)
-        # noCutEntries = hist.GetBinContent(1)
-        # sumOfWeightsHist = GetHisto("SumOfWeights", tfile)
-        sumOfWeightsHist = GetHisto("histo1D__{}__SumOfWeights".format(sampleName), tfile)
-        sumWeights = sumOfWeightsHist.GetBinContent(1)
-        sumWeightsErr = sumOfWeightsHist.GetBinError(1)
-        # print("For file={}, hist={}, got sumweights = {}".format(filename, sumOfWeightsHist.GetName(), sumWeights), flush=True)
-        # lhePdfWeightsHist = tfile.Get("LHEPdfSumw")
-        # lhePdfWeightSumw = lhePdfWeightsHist.GetBinContent(1)  # sum[genWeight*pdfWeight_0]
-        # print hist.GetXaxis().GetBinLabel(2)
-        # finalSelName = "min_M_ej_LQ{}".format(mass)
-        finalSelName = "BDTOutput_LQ{}".format(mass)
-        finalSelBin = eventsPassingHist.GetXaxis().FindBin(finalSelName)
-        # print("For file={}, hist={}, found bin for {} = {}".format(filename, eventsPassingHist.GetName(), finalSelName, finalSelBin), flush=True)
-        # merged hists have no bin labels; have to use super ugly hack
-        # finalSelBin = firstFinalSelBin+(i*3)
-        # print "mass={}, finalSelBin ={}".format(mass, finalSelBin)
-        # finalSelEntries = eventsPassingHist.GetBinContent(finalSelBin)
-        if eventsPassingHist.ClassName() == "TProfile":
-            binContent = eventsPassingHist.GetBinContent(finalSelBin)*eventsPassingHist.GetBinEntries(finalSelBin)
-            binError = math.sqrt(eventsPassingHist.GetSumw2().At(finalSelBin))
-            # firstBinContent = eventsPassingHist.GetBinContent(1)*eventsPassingHist.GetBinEntries(1)
-            # firstBinError = math.sqrt(eventsPassingHist.GetSumw2().At(1))
-        else:
-            binContent = eventsPassingHist.GetBinContent(finalSelBin)
-            binError = eventsPassingHist.GetBinError(finalSelBin)
-            # firstBinContent = eventsPassingHist.GetBinContent(1)
-            # firstBinError = eventsPassingHist.GetBinError(1)
-        # totalEventsByMass.append(round(noCutEntries, 3))
-        totalEventsByMass.append(sumWeights)
-        if doPDFReweight and "2016" in filename:
-            if "LQToBEle" in filename or "LQToDEle" in filename:
-                totalEventsByMass.pop()
-                totalEventsByMass.append(lhePdfWeightSumw)
-                print("\tapplying LHEPdfWeight={} to dataset={}".format(
-                        lhePdfWeightSumw, filename)+"[instead of original sumWeights={}]".format(sumWeights))
+    for filePath in filePaths:
+        for i, mass in enumerate(mass_points):
+            sampleName = signalNameTemplate.format(mass)
+            # filename = filePath.format(sampleName, sampleName)
+            # filename = filePath.format(mass, mass)
+            filename = filePath
+            if ".root" not in filename:
+                filename += "analysisClass_lq_eejj_{}_plots.root".format(sampleName)
+            tfile = GetFile(filename)
+            histName = histNameBase.format(sampleName)
+            eventsPassingHist = GetHisto(histName, tfile)
+            # noCutEntries = hist.GetBinContent(1)
+            # sumOfWeightsHist = GetHisto("SumOfWeights", tfile)
+            sumOfWeightsHist = GetHisto("histo1D__{}__SumOfWeights".format(sampleName), tfile)
+            sumWeights[mass] += sumOfWeightsHist.GetBinContent(1)
+            sumWeightsErr[mass] += sumOfWeightsHist.GetBinError(1)
+            # print("For file={}, hist={}, got sumweights = {}".format(filename, sumOfWeightsHist.GetName(), sumWeights), flush=True)
+            # lhePdfWeightsHist = tfile.Get("LHEPdfSumw")
+            # lhePdfWeightSumw = lhePdfWeightsHist.GetBinContent(1)  # sum[genWeight*pdfWeight_0]
+            # print hist.GetXaxis().GetBinLabel(2)
+            # finalSelName = "min_M_ej_LQ{}".format(mass)
+            finalSelName = "BDTOutput_LQ{}".format(mass)
+            finalSelBin = eventsPassingHist.GetXaxis().FindBin(finalSelName)
+            # print("For file={}, hist={}, found bin for {} = {}".format(filename, eventsPassingHist.GetName(), finalSelName, finalSelBin), flush=True)
+            # merged hists have no bin labels; have to use super ugly hack
+            # finalSelBin = firstFinalSelBin+(i*3)
+            # print "mass={}, finalSelBin ={}".format(mass, finalSelBin)
+            # finalSelEntries = eventsPassingHist.GetBinContent(finalSelBin)
+            if eventsPassingHist.ClassName() == "TProfile":
+                binContent[mass] += eventsPassingHist.GetBinContent(finalSelBin)*eventsPassingHist.GetBinEntries(finalSelBin)
+                binErrorSqr[mass] += eventsPassingHist.GetSumw2().At(finalSelBin)
+                # firstBinContent = eventsPassingHist.GetBinContent(1)*eventsPassingHist.GetBinEntries(1)
+                # firstBinError = math.sqrt(eventsPassingHist.GetSumw2().At(1))
+            else:
+                binContent[mass] += eventsPassingHist.GetBinContent(finalSelBin)
+                binErrorSqr[mass] += math.pow(eventsPassingHist.GetBinError(finalSelBin), 2)
+                # firstBinContent = eventsPassingHist.GetBinContent(1)
+                # firstBinError = eventsPassingHist.GetBinError(1)
+            # totalEventsByMass.append(round(noCutEntries, 3))
+            totalEventsByMass[mass] += sumWeights[mass]
+            # FIXME below for reweighting if needed
+            # if doPDFReweight and "2016" in filename:
+            #     if "LQToBEle" in filename or "LQToDEle" in filename:
+            #         totalEventsByMass.pop()
+            #         totalEventsByMass.append(lhePdfWeightSumw)
+            #         print("\tapplying LHEPdfWeight={} to dataset={}".format(
+            #                 lhePdfWeightSumw, filename)+"[instead of original sumWeights={}]".format(sumWeights))
+        
+            # eventsAtFinalSelByMass.append(round(binContent, 4))
+            eventsAtFinalSelByMass[mass] += binContent[mass]
+            tfile.Close()
+            # print("LQ {}: final sel bin {}, binContent={}, binEntries={}, passing={} +/- {}, total = {} +/- {} (approx.) +/- {} (exact), firstBinContent = {}".format(
+            #         mass, finalSelBin, eventsPassingHist.GetBinContent(finalSelBin), eventsPassingHist.GetBinEntries(finalSelBin), binContent, binError, round(sumWeights, 3), sumWeights*firstBinError/firstBinContent, sumWeightsErr, firstBinContent))
     
-        # eventsAtFinalSelByMass.append(round(binContent, 4))
-        eventsAtFinalSelByMass.append(binContent)
-        histTotal.SetBinContent(histTotal.FindBin(mass), sumWeights)
+    for i, mass in enumerate(mass_points):
+        histTotal.SetBinContent(histTotal.FindBin(mass), sumWeights[mass])
         # old approximation: take the relative stat error from the "raw" number of MC events and apply it to the sumWeights
         # histTotal.SetBinError(histTotal.FindBin(mass), sumWeights*firstBinError/firstBinContent)
-        histTotal.SetBinError(histTotal.FindBin(mass), sumWeightsErr)
-        histPass.SetBinContent(histPass.FindBin(mass), binContent)
-        histPass.SetBinError(histTotal.FindBin(mass), binError)
-        tfile.Close()
-        # print("LQ {}: final sel bin {}, binContent={}, binEntries={}, passing={} +/- {}, total = {} +/- {} (approx.) +/- {} (exact), firstBinContent = {}".format(
-        #         mass, finalSelBin, eventsPassingHist.GetBinContent(finalSelBin), eventsPassingHist.GetBinEntries(finalSelBin), binContent, binError, round(sumWeights, 3), sumWeights*firstBinError/firstBinContent, sumWeightsErr, firstBinContent))
-    
+        histTotal.SetBinError(histTotal.FindBin(mass), sumWeightsErr[mass])
+        histPass.SetBinContent(histPass.FindBin(mass), binContent[mass])
+        histPass.SetBinError(histTotal.FindBin(mass), math.sqrt(binErrorSqr[mass]))
     
     # print "masses:", mass_points
     # print "total:", totalEventsByMass
@@ -117,8 +144,8 @@ def plotSignalEfficiencyTimesAcceptance(filePath, signalNameTemplate, mass_point
     # print "effAcc:", [n/d for n, d in zip(eventsAtFinalSelByMass, totalEventsByMass)]
     table = []
     for idx, mass in enumerate(mass_points):
-        eventsAtFinalSel = eventsAtFinalSelByMass[idx]
-        total = totalEventsByMass[idx]
+        eventsAtFinalSel = eventsAtFinalSelByMass[mass]
+        total = totalEventsByMass[mass]
         try:
             effAcc = eventsAtFinalSel/total
         except ZeroDivisionError as e:
@@ -141,8 +168,14 @@ def plotSignalEfficiencyTimesAcceptance(filePath, signalNameTemplate, mass_point
     # tcan3.cd()
     # histPass.Draw()
     
-    tcan = TCanvas()
-    tcan.cd()
+    titleSize = 0.055
+    labelSize = 0.050
+
+    tcan = CMS.cmsCanvas('', 200, 3000, 0, 1, '', '', square = False, extraSpace=0.025, iPos=11)
+    tcan.SetRightMargin(0.045)
+    tcan.SetBottomMargin(0.15)
+    # tcan = TCanvas()
+    # tcan.cd()
     graph = TGraphAsymmErrors()
     # graph.Divide(histPass, histTotal, "cl=0.683 b(1,1) modev")
     graph.Divide(histPass, histTotal, "cl=0.683 b(1,1) mode")
@@ -150,46 +183,60 @@ def plotSignalEfficiencyTimesAcceptance(filePath, signalNameTemplate, mass_point
     graph.Draw("ap")
     graph.GetYaxis().SetRangeUser(0, 0.7)
     graph.GetYaxis().SetTitle("Acceptance #times efficiency")
-    graph.GetYaxis().SetTitleFont(42)
-    graph.GetYaxis().SetLabelFont(42)
-    # graph.GetYaxis().SetLabelOffset(0.007)
-    # graph.GetYaxis().SetLabelSize(0.06)
-    # graph.GetYaxis().SetTitleOffset(1.)
-    # graph.GetYaxis().SetTitleSize(0.07)
+    # graph.GetYaxis().SetTitleFont(42)
+    # graph.GetYaxis().SetLabelFont(42)
+    graph.GetYaxis().SetLabelSize(labelSize)
+    graph.GetYaxis().SetTitleSize(titleSize)
+    graph.GetYaxis().SetTitleOffset(1.01)
     graph.GetYaxis().CenterTitle(1)
     #
-    graph.GetXaxis().SetTitle('#it{m}_{LQ} [GeV]')
-    graph.GetXaxis().SetTitleFont(42)
-    graph.GetXaxis().SetLabelFont(42)
-    # graph.GetXaxis().SetLabelOffset(0.01)
-    graph.GetXaxis().SetTitleOffset(1.)
-    # graph.GetXaxis().SetLabelSize(0.06)
-    # graph.GetXaxis().SetTitleSize(0.07)
-    graph.GetXaxis().SetNdivisions(505)
+    graph.GetXaxis().SetTitle('m_{LQ} [GeV]')
+    # graph.GetXaxis().SetTitleFont(42)
+    # graph.GetXaxis().SetLabelFont(42)
+    graph.GetXaxis().SetTitleOffset(1.125)
+    graph.GetXaxis().SetLabelSize(labelSize)
+    graph.GetXaxis().SetTitleSize(titleSize)
+    graph.GetXaxis().SetRangeUser(200, 3000)
+    graph.GetXaxis().SetNdivisions(508)
     graph.SetName("accTimesEffGraph")
     tcan.Update()
     
-    # -- draw label
-    labelOffset = 0.03
-    ystart = 0.64
-    xstart = 0.35
-    hsize = 0.21
-    vsize = 0.25
-    l = TLatex()
-    l.SetNDC()
-    l.SetTextAlign(12)
-    l.SetTextFont(132)
-    # l.SetTextSize(0.065)
-    l.SetTextSize(0.045)
-    l.DrawLatex(
-        xstart - hsize + 0, ystart + vsize - 0.05, "CMS Preliminary {}".format(year)
-    )
+    # # -- draw label
+    # labelOffset = 0.03
+    # ystart = 0.64
+    # xstart = 0.35
+    # hsize = 0.21
+    # vsize = 0.25
+    # l = TLatex()
+    # l.SetNDC()
+    # l.SetTextAlign(12)
+    # l.SetTextFont(132)
+    # # l.SetTextSize(0.065)
+    # l.SetTextSize(0.045)
     # l.DrawLatex(
-    #     xstart - hsize + 0, ystart + vsize - 0.10, "#it{Simulation}"
+    #     xstart - hsize + 0, ystart + vsize - 0.05, "CMS Preliminary {}".format(year)
     # )
-    l.DrawLatex(
-        xstart - hsize + 0, ystart + vsize - 0.10, "Scalar LQ #bar{LQ} #rightarrow "+signalNameShort
-    )
+    # # l.DrawLatex(
+    # #     xstart - hsize + 0, ystart + vsize - 0.10, "#it{Simulation}"
+    # # )
+    # l.DrawLatex(
+    #     xstart - hsize + 0, ystart + vsize - 0.10, "Scalar LQ #bar{LQ} #rightarrow "+signalNameShort
+    # )
+
+    CMS.SetCmsTextSize(1)
+    # CMS.lumiTextOffset = 0.275
+    # CMS.ResetAdditionalInfo()
+    if doPreliminary:
+        CMS.SetExtraText("Preliminary")
+        if len(self.extraText):
+            CMS.AppendAdditionalInfo(self.extraText)
+    else:
+        CMS.SetExtraText("Simulation")
+        CMS.AppendAdditionalInfo("Scalar LQ #bar{LQ} #rightarrow "+signalNameShort)
+        # CMS.extraTextFont = CMS.additionalInfoFont
+    CMS.SetLumi("")
+    CMS.CMS_lumi(tcan, 11, 1.2)
+
     tcan.Update()
     tcan.Print("accTimesEff.pdf")
     tcan.Print("accTimesEff.png")
@@ -209,6 +256,11 @@ if __name__ == "__main__":
     if not filePath.endswith(".root") and not filePath.endswith("/"):
         print("WARNING: you will likely need to modify the code to change the names of histograms, etc., to work with unscaled input plot files.")
         filePath += "/"
+
+    if(len(sys.argv) > 2):
+        signalNameTemplate = sys.argv[2]
+        if(len(sys.argv) > 3):
+            mass_points = sys.argv[3]
     
-    mass_points = range(300, 3100, 100)
-    plotSignalEfficiencyTimesAcceptance(filePath, mass_points)
+    # mass_points = range(300, 3100, 100)
+    plotSignalEfficiencyTimesAcceptance(filePath)
