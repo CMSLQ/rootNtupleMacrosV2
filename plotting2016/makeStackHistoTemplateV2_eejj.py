@@ -372,7 +372,7 @@ elif doRunII:
         "Other backgrounds",
         # "t#bar{t} (powheg)",
         # "Z/#gamma* + jets (MG5_aMC Pt+IncStitch)",
-        "t#bar{t}",
+        "t#bar{t} + jets",
         "Z/#gamma* + jets",
     ])
 

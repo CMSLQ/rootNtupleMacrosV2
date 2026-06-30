@@ -1147,7 +1147,7 @@ class Plot:
         legend.SetShadowColor(10)
         legend.SetMargin(0.2)
         legend.SetTextFont(self.titleFont)
-        legend.AddEntry(self.histodata, "Data", "lp")
+        legend.AddEntry(self.histodata, "Data", "lep")
 
         # -- loop over histograms (stacked)
         # stackColorIndexes = [20,38,14,45,20,38,14,45]
@@ -1520,11 +1520,13 @@ class Plot:
             if self.makeRatio == 1:
                 fPads2.cd()
                 divOptions = "poiscpe0"
+                ratioYMin = 0.0
+                ratioYMax = 2.0
                 h_ratio1.Divide(h_dataCopy, h_bkgTot1, divOptions)
 
                 h_ratio1.GetXaxis().SetTitle("")
                 h_ratio1.GetXaxis().SetLabelSize(self.labelSize*self.ratioLabelTextSizeScaleFactor)
-                h_ratio1.GetYaxis().SetRangeUser(0.0, 2)
+                h_ratio1.GetYaxis().SetRangeUser(ratioYMin, ratioYMax)
                 h_ratio1.GetYaxis().SetTitle("data / bkg.")
                 h_ratio1.GetXaxis().SetTitle(self.xtitPaper if style == "paper" else "")
                 h_ratio1.GetYaxis().SetLabelSize(self.labelSize*self.ratioLabelTextSizeScaleFactor)
@@ -1573,7 +1575,7 @@ class Plot:
                     bgRatioErrs.GetXaxis().SetTitleOffset(1.0 if style == "paper" else 0.3)
                     bgRatioErrs.GetXaxis().SetTitleSize(self.titleSize*self.ratioLabelTextSizeScaleFactor)
                     bgRatioErrs.GetXaxis().SetLabelSize(self.labelSize*self.ratioLabelTextSizeScaleFactor)
-                    bgRatioErrs.GetYaxis().SetRangeUser(0.0, 2)
+                    bgRatioErrs.GetYaxis().SetRangeUser(ratioYMin, ratioYMax)
                     bgRatioErrs.GetYaxis().SetTitle("data / bkg.")
                     bgRatioErrs.GetYaxis().SetLabelSize(self.labelSize*self.ratioLabelTextSizeScaleFactor)
                     bgRatioErrs.GetYaxis().SetTitleSize(self.titleSize*self.ratioLabelTextSizeScaleFactor)
